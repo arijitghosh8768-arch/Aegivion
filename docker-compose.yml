@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aegivion_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: aegivion
+      POSTGRES_PASSWORD: aegivion123
+      POSTGRES_DB: aegivion
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: aegivion_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  qdrant:
+    image: qdrant/qdrant:v1.3.0
+    container_name: aegivion_qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./packages/backend/Dockerfile
+    container_name: aegivion_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://aegivion:aegivion123@postgres/aegivion
+      REDIS_URL: redis://redis:6379/0
+
+  security:
+    build: ./packages/security
+    container_name: aegivion_security
+    restart: always
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://aegivion:aegivion123@postgres/aegivion
+      REDIS_URL: redis://redis:6379/0
+
+  ai:
+    build: ./packages/ai
+    container_name: aegivion_ai
+    restart: always
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres
+      - redis
+      - qdrant
+    environment:
+      DATABASE_URL: postgresql://aegivion:aegivion123@postgres/aegivion
+      REDIS_URL: redis://redis:6379/0
+      VECTOR_DB_URL: http://qdrant:6333
+
+  frontend:
+    build: ./packages/frontend
+    container_name: aegivion_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:

@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.grayscale-mode {
+  filter: grayscale(100%) !important;
+}
+
+/* Light Mode Overrides */
+.light-mode {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.light-mode main {
+  background-color: #f8fafc !important;
+}
+
+.light-mode header,
+.light-mode aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.light-mode h1,
+.light-mode h2,
+.light-mode h3,
+.light-mode h4,
+.light-mode th,
+.light-mode td strong,
+.light-mode span.text-white,
+.light-mode .text-white {
+  color: #0f172a !important;
+}
+
+.light-mode p,
+.light-mode span.text-gray-400,
+.light-mode .text-gray-400,
+.light-mode .text-gray-300,
+.light-mode .text-gray-500 {
+  color: #475569 !important;
+}
+
+/* Sidebar navigation links */
+.light-mode a {
+  color: #475569 !important;
+}
+.light-mode a:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+.light-mode a.active,
+.light-mode a[aria-current="page"] {
+  background-color: #f1f5f9 !important;
+  color: #3b82f6 !important;
+}
+
+/* Cards & containers */
+.light-mode .bg-\[\#0e1428\],
+.light-mode .bg-\[\#0d1326\],
+.light-mode .bg-\[\#0b0f19\],
+.light-mode .bg-\[\#0d1326\]\/60,
+.light-mode .bg-\[\#0d1326\]\/20,
+.light-mode .bg-\[\#0e1428\]\/50,
+.light-mode .bg-\[\#0b0f19\]\/40,
+.light-mode .bg-\[\#0b0f19\]\/55,
+.light-mode .bg-\[\#0b0f19\]\/65,
+.light-mode .bg-\[\#0b0f19\]\/85,
+.light-mode .bg-\[\#0b0f19\]\/80 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Borders */
+.light-mode .border-gray-800,
+.light-mode .border-gray-850,
+.light-mode .border-gray-800\/80,
+.light-mode .border-gray-800\/60,
+.light-mode .border-gray-800\/50,
+.light-mode .border-gray-800\/85 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Buttons */
+.light-mode button.border-gray-800,
+.light-mode button.border-gray-750,
+.light-mode button.bg-\[\#0d1326\],
+.light-mode button.bg-\[\#0b0f19\] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+.light-mode button.border-gray-800:hover,
+.light-mode button.bg-\[\#0d1326\]:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Inputs */
+.light-mode input,
+.light-mode select {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Table heads */
+.light-mode thead {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Fix text and badges in Light mode */
+.light-mode .text-gray-400 {
+  color: #475569 !important;
+}
+.light-mode .bg-gray-850 {
+  background-color: #e2e8f0 !important;
+}

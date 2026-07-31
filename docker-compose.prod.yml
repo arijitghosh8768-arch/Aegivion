@@ -1,0 +1,92 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aegivion_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_USER: aegivion
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-aegivion123}
+      POSTGRES_DB: aegivion
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegivion"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  redis:
+    image: redis:7-alpine
+    container_name: aegivion_redis_prod
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:v1.3.0
+    container_name: aegivion_qdrant_prod
+    restart: always
+    volumes:
+      - qdrant_data_prod:/qdrant/storage
+
+  backend:
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile.prod
+    container_name: aegivion_backend_prod
+    environment:
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:-aegivion123}@postgres/aegivion
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-super-secret-key-123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  security:
+    build:
+      context: ./packages/security
+      dockerfile: Dockerfile.prod
+    container_name: aegivion_security_prod
+    environment:
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:-aegivion123}@postgres/aegivion
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ai:
+    build:
+      context: ./packages/ai
+      dockerfile: Dockerfile.prod
+    container_name: aegivion_ai_prod
+    environment:
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:-aegivion123}@postgres/aegivion
+      VECTOR_DB_URL: http://qdrant:6333
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile.prod
+    container_name: aegivion_frontend_prod
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data_prod:
+  qdrant_data_prod:

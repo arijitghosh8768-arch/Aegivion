@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [backend, security, ai, frontend]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Python
+      if: matrix.service != 'frontend'
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Setup Node.js
+      if: matrix.service == 'frontend'
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies & run tests
+      run: |
+        cd packages/${{ matrix.service }}
+        if [ "${{ matrix.service }}" == "frontend" ]; then
+          npm install
+          npm run build
+        else
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          pip install pytest
+          pytest
+        fi

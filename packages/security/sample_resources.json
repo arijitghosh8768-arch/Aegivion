@@ -1,0 +1,51 @@
+{
+  "aws": [
+    {
+      "name": "aegivion-public-assets",
+      "arn": "arn:aws:s3:::aegivion-public-assets",
+      "acl": "public-read",
+      "public_access_block": {
+        "block_public_acls": false,
+        "block_public_policy": false,
+        "ignore_public_acls": false,
+        "restrict_public_buckets": false
+      }
+    },
+    {
+      "name": "aegivion-secure-vault",
+      "arn": "arn:aws:s3:::aegivion-secure-vault",
+      "acl": "private",
+      "public_access_block": {
+        "block_public_acls": true,
+        "block_public_policy": true,
+        "ignore_public_acls": true,
+        "restrict_public_buckets": true
+      }
+    }
+  ],
+  "azure": [
+    {
+      "name": "aegivion-vm-01",
+      "resource_id": "/subscriptions/sub-123/resourceGroups/aegivion-rg/providers/Microsoft.Compute/virtualMachines/aegivion-vm-01",
+      "os": "Ubuntu 22.04",
+      "nsg_rules": [
+        {
+          "name": "allow-ssh-all",
+          "destination_port": "22",
+          "source_address_prefix": "*",
+          "access": "Allow"
+        }
+      ]
+    }
+  ],
+  "gcp": [
+    {
+      "name": "aegivion-k8s-cluster",
+      "resource_id": "projects/aegivion-prod/zones/us-central1-a/clusters/aegivion-k8s-cluster",
+      "private_cluster_config": {
+        "enable_private_nodes": false,
+        "enable_private_endpoint": false
+      }
+    }
+  ]
+}

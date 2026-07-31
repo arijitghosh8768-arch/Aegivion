@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SecurityFinding",
+  "type": "object",
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "description": "Unique identifier for the security finding."
+    },
+    "title": {
+      "type": "string",
+      "description": "Short, descriptive title of the finding."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["Critical", "High", "Medium", "Low", "Info"],
+      "description": "The severity rating of the finding."
+    },
+    "resource_id": {
+      "type": "string",
+      "description": "The identifier of the cloud resource containing the vulnerability."
+    },
+    "resource_type": {
+      "type": "string",
+      "description": "The type of cloud resource (e.g., aws_s3_bucket, azure_virtual_machine)."
+    },
+    "cloud_provider": {
+      "type": "string",
+      "enum": ["AWS", "Azure", "GCP"],
+      "description": "Cloud platform provider."
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the vulnerability."
+    },
+    "remediation": {
+      "type": "string",
+      "description": "Actionable steps to resolve the finding."
+    }
+  },
+  "required": ["finding_id", "title", "severity", "resource_id", "resource_type", "cloud_provider", "description"]
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "kb-001",
+    "topic": "S3 Public Access Prevention",
+    "resource_type": "aws_s3_bucket",
+    "context": "Publicly accessible S3 buckets are one of the most common causes of data leaks. By default, all S3 buckets should block public access unless explicitly hosting static web content with strict policies.",
+    "remediation_terraform": "resource \"aws_s3_bucket_public_access_block\" \"example\" {\n  bucket = aws_s3_bucket.example.id\n\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}"
+  },
+  {
+    "id": "kb-002",
+    "topic": "SSH Open to Internet",
+    "resource_type": "aws_security_group_rule / azure_nsg_rule",
+    "context": "Port 22 (SSH) should never be open to 0.0.0.0/0 (any IP). Access should be restricted to specific corporate IP ranges or routed through a bastion host or SSH session manager.",
+    "remediation_terraform": "resource \"aws_security_group_rule\" \"ssh_ingress\" {\n  type              = \"ingress\"\n  from_port         = 22\n  to_port           = 22\n  protocol          = \"tcp\"\n  cidr_blocks       = [\"10.0.0.0/8\"]  # Private IP range or specific bastion CIDR\n  security_group_id = aws_security_group.sg.id\n}"
+  }
+]
