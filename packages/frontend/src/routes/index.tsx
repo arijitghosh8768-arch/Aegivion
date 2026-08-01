@@ -54,7 +54,7 @@ interface SecurityBrief {
   summary: string;
   top_risks: TopRisk[];
   recommended_priorities: string[];
-  statistics: Record<string, int>;
+  statistics: Record<string, number>;
   confidence: number;
   generated_at: string;
 }

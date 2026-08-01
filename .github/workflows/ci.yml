@@ -31,12 +31,19 @@ jobs:
     
     - name: Install dependencies & run tests
       run: |
-        cd packages/${{ matrix.service }}
         if [ "${{ matrix.service }}" == "frontend" ]; then
+          cd packages/frontend
           npm install
           chmod +x node_modules/.bin/vite || true
           npm run build
+        elif [ "${{ matrix.service }}" == "security" ]; then
+          # Run from packages/ so that "from security.xxx" imports work
+          cd packages
+          pip install -r security/requirements.txt
+          pip install pytest
+          PYTHONPATH=$(pwd) python -m pytest security/tests -v
         else
+          cd packages/${{ matrix.service }}
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi

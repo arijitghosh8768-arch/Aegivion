@@ -11,9 +11,11 @@ import { Route as reportsRoute } from './routes/reports';
 import { Route as incidentsRoute } from './routes/incidents';
 import { Route as findingsDetailRoute } from './routes/findings.$findingId';
 import { Route as cloudAccountsScanRoute } from './routes/cloud-accounts.$accountId.scan';
+import { Route as loginRoute } from './routes/login';
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  loginRoute,
   findingsRoute,
   findingsDetailRoute,
   assetsRoute,

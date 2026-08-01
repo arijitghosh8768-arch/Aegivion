@@ -19,4 +19,6 @@ pyjwt>=2.8.0
 cryptography>=41.0.0
 casbin>=1.24.0
 boto3>=1.26.0
+jsonschema>=4.23.0
+python-dotenv>=1.0.0
 

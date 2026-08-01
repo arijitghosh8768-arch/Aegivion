@@ -204,7 +204,8 @@ function CloudAccountsPage() {
 
                 <div className="border-t border-gray-800/80 pt-3 mt-4 flex items-center justify-between">
                   <Link 
-                    to={`/cloud-accounts/${acc.id}/scan`}
+                    to={'/cloud-accounts/$accountId/scan'}
+                    params={{ accountId: acc.id }}
                     className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 bg-blue-600/5 hover:bg-blue-600/10 px-2.5 py-1.5 rounded-lg border border-blue-500/10 transition"
                   >
                     <RefreshCw size={12} />
