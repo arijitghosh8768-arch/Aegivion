@@ -21,4 +21,5 @@ casbin>=1.24.0
 boto3>=1.26.0
 jsonschema>=4.23.0
 python-dotenv>=1.0.0
+google-auth>=2.23.0
 

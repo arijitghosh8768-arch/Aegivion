@@ -73,7 +73,7 @@ function AIAssistantPage() {
               <Sparkles size={16} className="text-blue-400" />
               Aegivion Copilot
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">Answers cite live findings and asset relationships</p>
+            <p className="text-xs text-gray-400 mt-0.5">Answers cite live findings and asset relationships</p>
           </div>
 
           {/* Conversation list */}
@@ -141,9 +141,11 @@ function AIAssistantPage() {
               />
               <button 
                 type="submit"
+                aria-label="Send message"
+                title="Send message"
                 className="absolute right-2.5 top-2 p-1.5 bg-blue-600 hover:bg-blue-500 rounded text-white transition"
               >
-                <Send size={14} />
+                <Send size={14} aria-hidden="true" />
               </button>
             </form>
           </div>
@@ -155,7 +157,7 @@ function AIAssistantPage() {
           <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5 space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-white">Recommendation panel</h3>
-              <p className="text-xs text-gray-500">Risk summary, impact and confidence</p>
+              <p className="text-xs text-gray-400">Risk summary, impact and confidence</p>
             </div>
             
             <div className="space-y-4">
@@ -165,9 +167,9 @@ function AIAssistantPage() {
                     <h4 className="font-semibold text-gray-200 leading-snug hover:text-blue-400 cursor-pointer transition">{rec.title}</h4>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{rec.impact}</span>
                   </div>
-                  <p className="text-[10px] text-gray-500 leading-relaxed">{rec.desc}</p>
+                  <p className="text-[10px] text-gray-400 leading-relaxed">{rec.desc}</p>
                   <div>
-                    <div className="flex justify-between text-[9px] text-gray-500 mb-1">
+                    <div className="flex justify-between text-[9px] text-gray-400 mb-1">
                       <span>Confidence</span>
                       <span>{rec.confidence}%</span>
                     </div>
@@ -192,7 +194,7 @@ function AIAssistantPage() {
                   onClick={() => handleSend(p)}
                   className="w-full text-left text-xs text-gray-400 hover:text-white flex items-center gap-2 py-1.5 border-b border-gray-800/50 last:border-0 transition"
                 >
-                  <MessageSquare size={13} className="text-gray-600" />
+                  <MessageSquare size={13} className="text-gray-400" />
                   {p}
                 </button>
               ))}

@@ -18,14 +18,22 @@ export function TopNav() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <button className="relative p-2 text-slate-400 hover:text-white">
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-600" />
+        <button
+          aria-label="Open notifications"
+          title="Notifications"
+          className="relative p-2 text-slate-400 hover:text-white"
+        >
+          <Bell className="h-5 w-5" aria-hidden="true" />
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-600" aria-label="unread notifications" />
         </button>
         
-        <button className="flex items-center gap-2 p-2 text-slate-300 hover:text-white">
+        <button
+          aria-label={`User menu for ${user?.name || 'Admin'}`}
+          title={user?.name || 'Admin'}
+          className="flex items-center gap-2 p-2 text-slate-300 hover:text-white"
+        >
           <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
-            <User className="h-4 w-4" />
+            <User className="h-4 w-4" aria-hidden="true" />
           </div>
           <span className="hidden md:inline text-sm font-medium">{user?.name || "Admin"}</span>
         </button>

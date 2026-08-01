@@ -249,7 +249,7 @@ function DashboardPage() {
             <div className="text-3xl font-bold text-green-400 mt-2">
               {Math.max(30, 100 - findings.length * 5)}/100
             </div>
-            <div className="text-xs text-gray-500 mt-1 font-medium">Based on open severity findings</div>
+            <div className="text-xs text-gray-400 mt-1 font-medium">Based on open severity findings</div>
           </div>
         </div>
 
@@ -260,7 +260,7 @@ function DashboardPage() {
           </div>
           <div>
             <div className="text-3xl font-bold text-white mt-2">Global</div>
-            <div className="text-xs text-gray-500 mt-1 font-medium">Active AWS STS check</div>
+            <div className="text-xs text-gray-400 mt-1 font-medium">Active AWS STS check</div>
           </div>
         </div>
       </div>
@@ -270,7 +270,7 @@ function DashboardPage() {
         <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5 lg:col-span-2">
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-white">Vulnerability findings trend</h3>
-            <p className="text-xs text-gray-500">Historical open issues by severity classification</p>
+            <p className="text-xs text-gray-400">Historical open issues by severity classification</p>
           </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -289,7 +289,7 @@ function DashboardPage() {
         <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5 flex flex-col justify-between">
           <div>
             <h3 className="text-sm font-semibold text-white">Finding Severity Breakdown</h3>
-            <p className="text-xs text-gray-500">Proportion of open vulnerabilities</p>
+            <p className="text-xs text-gray-400">Proportion of open vulnerabilities</p>
           </div>
           <div className="h-44 w-full relative flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -319,7 +319,7 @@ function DashboardPage() {
         <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5">
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-white">Assets by provider</h3>
-            <p className="text-xs text-gray-500">Discovered inventory</p>
+            <p className="text-xs text-gray-400">Discovered inventory</p>
           </div>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -340,7 +340,7 @@ function DashboardPage() {
         <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5">
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-white">Risk trend</h3>
-            <p className="text-xs text-gray-500">Aggregate risk vs. exposure</p>
+            <p className="text-xs text-gray-400">Aggregate risk vs. exposure</p>
           </div>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -358,7 +358,7 @@ function DashboardPage() {
         <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5 flex flex-col justify-between">
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-white">Recent security events</h3>
-            <p className="text-xs text-gray-500">Last 3 hours</p>
+            <p className="text-xs text-gray-400">Last 3 hours</p>
           </div>
           <div className="space-y-3 overflow-y-auto max-h-56 flex-1 pr-1">
             {events.map((ev, idx) => (
@@ -368,7 +368,7 @@ function DashboardPage() {
                     <span className={`px-2 py-0.5 border rounded text-[10px] font-semibold ${ev.color}`}>
                       {ev.severity}
                     </span>
-                    <span className="text-gray-500 text-[10px]">{ev.time}</span>
+                    <span className="text-gray-400 text-[10px]">{ev.time}</span>
                   </div>
                   <p className="text-gray-300 font-medium leading-snug">{ev.text}</p>
                 </div>
@@ -391,13 +391,13 @@ function DashboardPage() {
           {briefLoading && (
             <div className="py-10 text-center">
               <RotateCw className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-2" />
-              <p className="text-xs text-gray-500">Generating AI security profile...</p>
+              <p className="text-xs text-gray-400">Generating AI security profile...</p>
             </div>
           )}
 
           {!brief && !briefLoading && (
             <div className="text-center py-10">
-              <p className="text-xs text-gray-500 mb-4">No security brief cached for this account.</p>
+              <p className="text-xs text-gray-400 mb-4">No security brief cached for this account.</p>
               <button 
                 onClick={fetchSecurityBrief}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition"
@@ -414,7 +414,7 @@ function DashboardPage() {
               </div>
               
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Top Priority Fixes</h4>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Priority Fixes</h4>
                 <div className="space-y-2">
                   {brief.recommended_priorities.map((priority, idx) => (
                     <div key={idx} className="bg-[#0b0f19] border border-gray-850 p-3 rounded-xl flex gap-2 items-start text-xs text-gray-300">
@@ -425,7 +425,7 @@ function DashboardPage() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center text-[10px] text-gray-500 pt-2 border-t border-gray-800/80">
+              <div className="flex justify-between items-center text-[10px] text-gray-400 pt-2 border-t border-gray-800/80">
                 <span>Confidence score: {Math.round(brief.confidence * 100)}%</span>
                 <span>Generated: {new Date(brief.generated_at).toLocaleString()}</span>
               </div>
@@ -455,7 +455,7 @@ function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="text-xs text-gray-500 py-10 text-center">No risky assets identified.</p>
+            <p className="text-xs text-gray-400 py-10 text-center">No risky assets identified.</p>
           )}
         </div>
 

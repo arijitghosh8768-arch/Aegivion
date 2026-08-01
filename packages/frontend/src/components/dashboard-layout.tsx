@@ -87,12 +87,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Shield className="w-6 h-6 text-blue-500 animate-pulse shrink-0" />
             <div>
               <span className="text-sm font-bold tracking-wider text-white block">Aegivion</span>
-              <span className="text-[10px] text-gray-500 block">Cloud Security Platform</span>
+              <span className="text-[10px] text-gray-400 block">Cloud Security Platform</span>
             </div>
           </div>
           
           <nav className="px-4 py-6 space-y-1">
-            <span className="text-[9px] font-bold text-gray-500 tracking-wider uppercase px-4 block mb-2">Security Center</span>
+            <span className="text-[9px] font-bold text-gray-400 tracking-wider uppercase px-4 block mb-2">Security Center</span>
             {generalTabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -118,7 +118,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {isAdmin && (
               <>
                 <div className="border-t border-gray-800/60 my-4" />
-                <span className="text-[9px] font-bold text-gray-500 tracking-wider uppercase px-4 block mb-2">Administration</span>
+                <span className="text-[9px] font-bold text-gray-400 tracking-wider uppercase px-4 block mb-2">Administration</span>
                 {adminTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -143,7 +143,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-4 border-t border-gray-800/80">
           <div className="bg-[#0b0f19]/80 border border-gray-850 rounded-xl p-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-gray-500 font-semibold block uppercase">Posture score</span>
+              <span className="text-[10px] text-gray-400 font-semibold block uppercase">Posture score</span>
               <span className="text-[9px] bg-blue-900/30 text-blue-400 border border-blue-800/50 rounded px-1.5 py-0.5 capitalize">{userRole}</span>
             </div>
             <div className="flex items-baseline gap-2 mt-1">
@@ -160,10 +160,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="h-14 bg-[#0d1326] border-b border-gray-800 px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4 flex-1">
             <button 
+              aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              title={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
               className="p-1.5 rounded bg-gray-800 border border-gray-700 text-white lg:hidden"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-              {sidebarOpen ? <X size={16} /> : <Menu size={16} />}
+              {sidebarOpen ? <X size={16} aria-hidden="true" /> : <Menu size={16} aria-hidden="true" />}
             </button>
 
             {/* Dropdown selector */}
@@ -175,7 +177,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Search Input */}
             <div className="relative max-w-md w-full hidden md:block">
-              <Search className="absolute left-3 top-2.5 text-gray-600" size={12} />
+              <Search className="absolute left-3 top-2.5 text-gray-400" size={12} aria-hidden="true" />
               <input 
                 type="text"
                 placeholder="Search assets, findings, incidents..."
@@ -185,29 +187,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-1.5 text-gray-400 hover:text-white transition">
-              <Bell size={16} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <button
+              aria-label="Open notifications"
+              title="Notifications"
+              className="relative p-1.5 text-gray-400 hover:text-white transition"
+            >
+              <Bell size={16} aria-hidden="true" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" aria-label="Unread notifications"></span>
             </button>
             <button 
               onClick={toggleGrayscale}
+              aria-label="Toggle grayscale mode"
               className={`p-1.5 rounded-lg transition ${isGrayscale ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
               title="Toggle Grayscale Mode"
             >
-              <Moon size={16} />
+              <Moon size={16} aria-hidden="true" />
             </button>
             <button 
               onClick={toggleLightMode}
+              aria-label="Toggle light/dark mode"
               className={`p-1.5 rounded-lg transition ${isLightMode ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800/30'}`}
               title="Toggle Light/Dark Mode"
             >
-              {isLightMode ? <Sun size={16} /> : <Sun className="rotate-45" size={16} />}
+              {isLightMode ? <Sun size={16} aria-hidden="true" /> : <Sun className="rotate-45" size={16} aria-hidden="true" />}
             </button>
             
             {/* User Dropdown / Profile Menu */}
             <div className="relative">
               <button 
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                aria-label={`User menu for ${user?.first_name || 'User'}`}
+                title={user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'User menu'}
                 className="w-8 h-8 rounded-full bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold text-xs select-none cursor-pointer transition-all"
               >
                 {userInitials}

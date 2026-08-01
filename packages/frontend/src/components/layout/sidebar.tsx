@@ -31,8 +31,13 @@ export function Sidebar() {
     )}>
       <div className="flex h-16 items-center justify-between border-b border-surface-border px-4">
         {!isCollapsed && <span className="text-xl font-bold text-blue-500">Aegivion</span>}
-        <button onClick={toggleSidebar} className="h-8 w-8 text-slate-300 hover:text-white flex items-center justify-center">
-          <ChevronLeft className={cn("h-4 w-4 transition-transform", isCollapsed && "rotate-180")} />
+        <button
+          onClick={toggleSidebar}
+          aria-label={isCollapsed ? "Expand navigation sidebar" : "Collapse navigation sidebar"}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="h-8 w-8 text-slate-300 hover:text-white flex items-center justify-center"
+        >
+          <ChevronLeft className={cn("h-4 w-4 transition-transform", isCollapsed && "rotate-180")} aria-hidden="true" />
         </button>
       </div>
 
