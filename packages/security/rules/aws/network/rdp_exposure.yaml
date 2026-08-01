@@ -1,0 +1,22 @@
+id: AWS-NET-002
+version: 1
+enabled: true
+title: RDP Exposed to Unrestricted Sources
+provider: aws
+resource_type: security_group
+severity: high
+description: Security group allows RDP from unrestricted IPv4 sources.
+conditions:
+  - field: configuration.ingress
+    operator: contains
+    value:
+      protocol: tcp
+      from_port: 3389
+      to_port: 3389
+      cidr: 0.0.0.0/0
+mitre_technique: T1078
+mitre_tactic: initial_access
+remediation:
+  - Restrict RDP access to approved administrative networks
+  - Use VPN or jump server for Windows access
+  - Consider using AWS Systems Manager Session Manager

@@ -1,0 +1,21 @@
+id: AWS-IAM-003
+version: 1
+enabled: true
+title: Unused Access Key
+provider: aws
+resource_type: iam_user
+severity: low
+description: IAM user has an access key that has never been used.
+conditions:
+  - field: configuration.access_keys[*].status
+    operator: equals
+    value: Active
+  - field: configuration.access_keys[*].last_used.last_used_date
+    operator: exists
+    value: false
+mitre_technique: T1098
+mitre_tactic: persistence
+remediation:
+  - Remove unused access keys
+  - Review why keys were created
+  - Consider using IAM roles instead

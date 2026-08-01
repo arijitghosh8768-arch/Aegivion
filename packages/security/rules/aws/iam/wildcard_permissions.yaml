@@ -1,0 +1,18 @@
+id: AWS-IAM-005
+version: 1
+enabled: true
+title: IAM Policy Contains Wildcard Permissions
+provider: aws
+resource_type: iam_policy
+severity: medium
+description: IAM policy contains wildcard permissions that should be restricted.
+conditions:
+  - field: configuration.has_wildcard_permissions.has_wildcard_actions
+    operator: equals
+    value: true
+mitre_technique: T1098
+mitre_tactic: privilege_escalation
+remediation:
+  - Restrict wildcard permissions to specific services and resources
+  - Use IAM conditions for fine-grained access
+  - Review policy with least privilege principle

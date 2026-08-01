@@ -1,0 +1,22 @@
+id: AWS-NET-001
+version: 1
+enabled: true
+title: SSH Exposed to Unrestricted Sources
+provider: aws
+resource_type: security_group
+severity: high
+description: Security group allows SSH from unrestricted IPv4 sources.
+conditions:
+  - field: configuration.ingress
+    operator: contains
+    value:
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      cidr: 0.0.0.0/0
+mitre_technique: T1046
+mitre_tactic: lateral_movement
+remediation:
+  - Restrict SSH access to approved administrative networks
+  - Implement bastion host architecture
+  - Remove direct SSH access for non-critical resources

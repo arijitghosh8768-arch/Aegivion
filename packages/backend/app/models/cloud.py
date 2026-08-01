@@ -95,3 +95,31 @@ class EC2InstanceAsset(BaseModel):
     has_public_ip = Column(Boolean, default=False)
 
     asset = relationship("CloudAsset", back_populates="ec2_instance_details")
+
+class ScanStatus(str, enum.Enum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class ScanJob(BaseModel):
+    __tablename__ = "scan_jobs"
+
+    cloud_account_id = Column(UUID(as_uuid=True), ForeignKey("cloud_accounts.id", ondelete="CASCADE"), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), nullable=False)
+    status = Column(Enum(ScanStatus), default=ScanStatus.QUEUED)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    assets_discovered = Column(Integer, default=0)
+    findings_generated = Column(Integer, default=0)
+    collector_status = Column(JSON, nullable=True)
+    error_summary = Column(String(500), nullable=True)
+    region = Column(String(50), nullable=True)
+
+class Relationship(BaseModel):
+    __tablename__ = "asset_relationships"
+
+    source_id = Column(String(300), nullable=False)
+    target_id = Column(String(300), nullable=False)
+    type = Column(String(100), nullable=False)
+    target_type = Column(String(100), nullable=True)

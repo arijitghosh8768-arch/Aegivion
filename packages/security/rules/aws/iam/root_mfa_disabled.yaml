@@ -1,0 +1,21 @@
+id: AWS-IAM-006
+version: 1
+enabled: true
+title: AWS Root User Without MFA
+provider: aws
+resource_type: iam_user
+severity: critical
+description: AWS root user does not have Multi-Factor Authentication enabled.
+conditions:
+  - field: configuration.is_root_user
+    operator: equals
+    value: true
+  - field: configuration.mfa_enabled
+    operator: equals
+    value: false
+mitre_technique: T1078
+mitre_tactic: initial_access
+remediation:
+  - Enable MFA for the root user immediately
+  - Use the root user only for account management
+  - Consider using AWS Organizations for multiple accounts

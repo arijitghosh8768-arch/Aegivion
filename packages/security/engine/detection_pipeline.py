@@ -2,6 +2,7 @@ from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
 import asyncio
+from security.schema.validation import validate_asset
 
 @dataclass
 class DetectionResult:
@@ -30,7 +31,7 @@ class DetectionPipeline:
                 "id": "rule-s3-public",
                 "name": "Block S3 Public Access",
                 "severity": "high",
-                "resource_type": "aws_s3_bucket",
+                "resource_type": "s3_bucket",  # Updated to match mock types
                 "mitre_technique": "T1530 - Data from Cloud Shared Storage",
                 "mitre_tactic": "Collection",
                 "description": "Checks if S3 bucket permissions allow public read or write access.",
@@ -41,7 +42,7 @@ class DetectionPipeline:
                 "id": "rule-ssh-open",
                 "name": "SSH Security Ingress Limits",
                 "severity": "critical",
-                "resource_type": "azure_virtual_machine",
+                "resource_type": "security_group",  # Updated to match mock types
                 "mitre_technique": "T1190 - Exploit Public-Facing Application",
                 "mitre_tactic": "Initial Access",
                 "description": "Port 22 (SSH) open to all incoming connections.",
@@ -55,6 +56,11 @@ class DetectionPipeline:
     
     async def evaluate_resource(self, resource: Dict[str, Any]) -> List[DetectionResult]:
         """Evaluate a single resource against all applicable rules"""
+        # Validate against the contract schema first
+        is_valid, err_msg = validate_asset(resource)
+        if not is_valid:
+            raise ValueError(f"Invalid asset structure rejected: {err_msg}")
+
         results = []
         applicable_rules = self._get_applicable_rules(resource)
         
@@ -73,12 +79,15 @@ class DetectionPipeline:
         try:
             # Simple rule evaluation logic based on configuration keys
             is_compliant = True
+            config = resource.get("configuration", {})
             if rule["id"] == "rule-s3-public":
-                is_compliant = resource.get("acl") != "public-read"
+                is_compliant = not (config.get("is_public", False) or config.get("acl") == "public-read")
             elif rule["id"] == "rule-ssh-open":
+                ingress_rules = config.get("ingress", []) or config.get("ingress_rules", [])
                 is_compliant = not any(
-                    ingress.get("port") == "22" and ingress.get("source") == "*"
-                    for ingress in resource.get("ingress_rules", [])
+                    (ingress.get("port") == 22 or ingress.get("from_port") == 22 or ingress.get("to_port") == 22) and 
+                    (ingress.get("source") == "*" or ingress.get("cidr") == "0.0.0.0/0")
+                    for ingress in ingress_rules
                 )
                 
             if not is_compliant:
@@ -86,7 +95,7 @@ class DetectionPipeline:
                     rule_id=rule['id'],
                     rule_name=rule['name'],
                     severity=rule.get('severity', 'medium'),
-                    resource_id=resource.get('id', 'unknown'),
+                    resource_id=resource.get('asset_id', 'unknown'),
                     resource_type=resource.get('type', 'unknown'),
                     mitre_technique=rule.get('mitre_technique', ''),
                     mitre_tactic=rule.get('mitre_tactic', ''),

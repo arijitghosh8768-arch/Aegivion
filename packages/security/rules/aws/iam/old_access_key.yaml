@@ -1,0 +1,21 @@
+id: AWS-IAM-002
+version: 1
+enabled: true
+title: Active Access Key Exceeds 90 Days
+provider: aws
+resource_type: iam_user
+severity: medium
+description: IAM user has an active access key older than 90 days.
+conditions:
+  - field: configuration.access_keys[*].status
+    operator: equals
+    value: Active
+  - field: configuration.access_keys[*].age_days
+    operator: greater_than
+    value: 90
+mitre_technique: T1098
+mitre_tactic: persistence
+remediation:
+  - Rotate access keys for the affected IAM user
+  - Review whether keys are still needed
+  - Implement access key rotation policy

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NormalizedAsset",
+  "type": "object",
+  "properties": {
+    "asset_id": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string",
+      "enum": ["aws", "azure", "gcp"]
+    },
+    "type": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "configuration": {
+      "type": "object"
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": ["asset_id", "provider", "type", "region", "name", "configuration", "relationships"]
+}

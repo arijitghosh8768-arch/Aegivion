@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { useAuthStore } from '@/store/auth-store';
 import { 
   Shield, 
   LayoutDashboard, 
@@ -16,13 +17,21 @@ import {
   Sun,
   ChevronDown,
   Terminal,
-  FileText
+  FileText,
+  Users,
+  ShieldAlert,
+  LogOut
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+  const user = useAuthStore((state: any) => state.user);
+  const logout = useAuthStore((state: any) => state.logout);
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isGrayscale, setIsGrayscale] = useState(false);
   const [isLightMode, setIsLightMode] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const toggleGrayscale = () => {
     setIsGrayscale(!isGrayscale);
@@ -42,15 +51,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   };
 
-  const tabs = [
+  const handleLogout = () => {
+    logout();
+    navigate({ to: '/login' });
+  };
+
+  const userRole = user?.role || 'viewer';
+  const isAdmin = userRole === 'admin';
+  const userInitials = user ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() : 'US';
+
+  const generalTabs = [
     { to: '/', name: 'Dashboard', icon: LayoutDashboard },
     { to: '/cloud-accounts', name: 'Cloud Accounts', icon: Shield },
     { to: '/assets', name: 'Assets', icon: Database },
     { to: '/findings', name: 'Findings', icon: AlertTriangle, badge: '23' },
-    { to: '/incidents', name: 'Incidents', icon: Terminal, badge: '6' },
     { to: '/compliance', name: 'Compliance', icon: BarChart3 },
-    { to: '/ai-assistant', name: 'AI Assistant', icon: BrainCircuit },
+    { to: '/ai-assistant', name: 'AI Intelligence', icon: BrainCircuit },
     { to: '/reports', name: 'Reports', icon: FileText },
+  ];
+
+  const adminTabs = [
+    { to: '/settings', name: 'Users & Roles', icon: Users },
     { to: '/settings', name: 'Settings', icon: SettingsIcon },
   ];
 
@@ -71,29 +92,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           
           <nav className="px-4 py-6 space-y-1">
-            <span className="text-[9px] font-bold text-gray-500 tracking-wider uppercase px-4 block mb-2">Overview</span>
-            {tabs.slice(0, 3).map((tab) => {
+            <span className="text-[9px] font-bold text-gray-500 tracking-wider uppercase px-4 block mb-2">Security Center</span>
+            {generalTabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <Link
-                  key={tab.to}
-                  to={tab.to}
-                  activeProps={{ className: 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500' }}
-                  inactiveProps={{ className: 'text-gray-400 hover:bg-gray-800/30 hover:text-white' }}
-                  className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-medium transition-all"
-                >
-                  <Icon size={14} />
-                  {tab.name}
-                </Link>
-              );
-            })}
-
-            <span className="text-[9px] font-bold text-gray-500 tracking-wider uppercase px-4 block pt-4 pb-2">Security Operations</span>
-            {tabs.slice(3, 6).map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <Link
-                  key={tab.to}
+                  key={tab.name}
                   to={tab.to}
                   activeProps={{ className: 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500' }}
                   inactiveProps={{ className: 'text-gray-400 hover:bg-gray-800/30 hover:text-white' }}
@@ -110,29 +114,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               );
             })}
 
-            <span className="text-[9px] font-bold text-gray-500 tracking-wider uppercase px-4 block pt-4 pb-2">Intelligence</span>
-            {tabs.slice(6).map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <Link
-                  key={tab.to}
-                  to={tab.to}
-                  activeProps={{ className: 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500' }}
-                  inactiveProps={{ className: 'text-gray-400 hover:bg-gray-800/30 hover:text-white' }}
-                  className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-medium transition-all"
-                >
-                  <Icon size={14} />
-                  {tab.name}
-                </Link>
-              );
-            })}
+            {/* Role-Based Administration Section */}
+            {isAdmin && (
+              <>
+                <div className="border-t border-gray-800/60 my-4" />
+                <span className="text-[9px] font-bold text-gray-500 tracking-wider uppercase px-4 block mb-2">Administration</span>
+                {adminTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <Link
+                      key={tab.name}
+                      to={tab.to}
+                      activeProps={{ className: 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500' }}
+                      inactiveProps={{ className: 'text-gray-400 hover:bg-gray-800/30 hover:text-white' }}
+                      className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-medium transition-all"
+                    >
+                      <Icon size={14} />
+                      {tab.name}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
         </div>
 
         {/* Posture Score Display at Sidebar Bottom */}
         <div className="p-4 border-t border-gray-800/80">
           <div className="bg-[#0b0f19]/80 border border-gray-850 rounded-xl p-3">
-            <span className="text-[10px] text-gray-500 font-semibold block uppercase">Posture score</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-gray-500 font-semibold block uppercase">Posture score</span>
+              <span className="text-[9px] bg-blue-900/30 text-blue-400 border border-blue-800/50 rounded px-1.5 py-0.5 capitalize">{userRole}</span>
+            </div>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-2xl font-extrabold text-white">87</span>
               <span className="text-[10px] text-green-500 font-medium">+5 vs last month</span>
@@ -190,8 +203,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               {isLightMode ? <Sun size={16} /> : <Sun className="rotate-45" size={16} />}
             </button>
-            <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-xs select-none cursor-pointer">
-              RO
+            
+            {/* User Dropdown / Profile Menu */}
+            <div className="relative">
+              <button 
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="w-8 h-8 rounded-full bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold text-xs select-none cursor-pointer transition-all"
+              >
+                {userInitials}
+              </button>
+              {userDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-[#0d1326] border border-gray-800 rounded-xl shadow-2xl py-1 z-50">
+                  <div className="px-4 py-2 border-b border-gray-800/80">
+                    <p className="text-xs font-semibold text-white truncate">{user?.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-950/20 hover:text-red-300 flex items-center gap-2 transition"
+                  >
+                    <LogOut size={12} />
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

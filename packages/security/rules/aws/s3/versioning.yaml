@@ -1,0 +1,17 @@
+id: AWS-S3-003
+version: 1
+enabled: true
+title: S3 Bucket Versioning Disabled
+provider: aws
+resource_type: s3
+severity: medium
+description: S3 bucket does not have versioning enabled for data protection.
+conditions:
+  - field: configuration.versioning_enabled
+    operator: equals
+    value: false
+mitre_technique: T1562
+mitre_tactic: defense_evasion
+remediation:
+  - Enable bucket versioning to protect against accidental deletion
+  - Implement lifecycle rules for version management

@@ -9,13 +9,17 @@ import { Route as complianceRoute } from './routes/compliance';
 import { Route as settingsRoute } from './routes/settings';
 import { Route as reportsRoute } from './routes/reports';
 import { Route as incidentsRoute } from './routes/incidents';
+import { Route as findingsDetailRoute } from './routes/findings.$findingId';
+import { Route as cloudAccountsScanRoute } from './routes/cloud-accounts.$accountId.scan';
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   findingsRoute,
+  findingsDetailRoute,
   assetsRoute,
   aiAssistantRoute,
   cloudAccountsRoute,
+  cloudAccountsScanRoute,
   complianceRoute,
   settingsRoute,
   reportsRoute,

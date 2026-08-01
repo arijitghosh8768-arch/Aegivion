@@ -1,0 +1,17 @@
+id: AWS-S3-004
+version: 1
+enabled: true
+title: S3 Bucket Access Logging Disabled
+provider: aws
+resource_type: s3
+severity: low
+description: S3 bucket does not have access logging enabled.
+conditions:
+  - field: configuration.logging_enabled
+    operator: equals
+    value: false
+mitre_technique: T1530
+mitre_tactic: discovery
+remediation:
+  - Enable S3 access logging
+  - Configure target bucket for logs

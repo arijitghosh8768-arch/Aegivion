@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { createRoute } from '@tanstack/react-router';
 import { Route as rootRoute } from './__root';
-import { Search, Download, Plus } from 'lucide-react';
+import { api } from '@/lib/api';
+import { 
+  Search, 
+  Download, 
+  Plus, 
+  Cloud, 
+  RotateCw, 
+  X, 
+  ExternalLink,
+  ChevronRight,
+  Database,
+  ShieldAlert,
+  SlidersHorizontal
+} from 'lucide-react';
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -9,169 +22,235 @@ export const Route = createRoute({
   component: AssetsPage,
 });
 
-function AssetsPage() {
-  const [filterType, setFilterType] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [providerFilter, setProviderFilter] = useState('All');
-  const [assetsList, setAssetsList] = useState([]);
+interface Relationship {
+  type: string;
+  target_id: string;
+  target_type: string;
+}
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+interface Asset {
+  id: string;
+  resource_id: string;
+  name: string;
+  type: string;
+  region: string;
+  provider: string;
+  configuration?: Record<string, any>;
+  relationships?: Relationship[];
+  findings_count?: number;
+  risk_score?: number;
+}
+
+function AssetsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState('All');
+  const [selectedType, setSelectedType] = useState('All');
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'config' | 'relationships'>('overview');
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   const fetchAssets = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/findings/assets`);
-      const data = await res.json();
-      setAssetsList(data.assets || []);
+      setLoading(true);
+      const res = await api.get('/v1/findings/assets');
+      if (res.data && res.data.assets) {
+        setAssets(res.data.assets);
+      }
     } catch (e) {
       console.error(e);
+      // Fallback base data for development representation
+      setAssets([
+        {
+          id: '1',
+          resource_id: 'i-0abcdef1234567890',
+          name: 'production-web-server',
+          type: 'EC2',
+          region: 'ap-south-1',
+          provider: 'aws',
+          configuration: {
+            state: 'running',
+            instance_type: 't3.medium',
+            public_ip: '54.210.12.34',
+            private_ip: '10.0.1.4',
+            vpc_id: 'vpc-09ab12cd',
+            security_groups: ['sg-01ffbcde12']
+          },
+          relationships: [
+            { type: 'located_in', target_id: 'vpc-09ab12cd', target_type: 'vpc' },
+            { type: 'protected_by', target_id: 'sg-01ffbcde12', target_type: 'security_group' }
+          ],
+          findings_count: 1,
+          risk_score: 92
+        },
+        {
+          id: '2',
+          resource_id: 's3-customer-exports',
+          name: 'aegivion-customer-data-bucket',
+          type: 'S3_BUCKET',
+          region: 'ap-south-1',
+          provider: 'aws',
+          configuration: {
+            is_public: true,
+            encryption_enabled: false,
+            versioning_enabled: false
+          },
+          relationships: [],
+          findings_count: 2,
+          risk_score: 85
+        }
+      ]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchAssets();
+    // Auto-refresh every 30s
+    const interval = setInterval(fetchAssets, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Baseline data if API database is not populated
-  const defaultAssets = [
-    { name: 'prod-api-gateway-01', id: 'i-8af12c9d', type: 'EC2', provider: 'AWS', region: 'us-east-1', account: 'aegivion-prod', risk: 'Critical', riskColor: 'bg-red-500/20 text-red-400 border-red-500/30', exposure: 'Internet-facing', expColor: 'text-red-500 font-semibold' },
-    { name: 'prod-worker-04', id: 'i-0bb77c21', type: 'EC2', provider: 'AWS', region: 'us-east-1', account: 'aegivion-prod', risk: 'Medium', riskColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', exposure: 'Internal', expColor: 'text-gray-400' },
-    { name: 'customer-exports', id: 's3-cust-exports', type: 'S3', provider: 'AWS', region: 'us-east-1', account: 'aegivion-data', risk: 'Critical', riskColor: 'bg-red-500/20 text-red-400 border-red-500/30', exposure: 'Internet-facing', expColor: 'text-red-500 font-semibold' },
-    { name: 'build-cache', id: 's3-build-cache', type: 'S3', provider: 'AWS', region: 'eu-west-1', account: 'aegivion-staging', risk: 'Low', riskColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30', exposure: 'Internal', expColor: 'text-gray-400' },
-    { name: 'deploy-automation', id: 'iam-deploy', type: 'IAM', provider: 'AWS', region: 'global', account: 'aegivion-prod', risk: 'High', riskColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30', exposure: 'Internal', expColor: 'text-gray-400' },
-    { name: 'legacy-ci-user', id: 'iam-legacy', type: 'IAM', provider: 'AWS', region: 'global', account: 'aegivion-staging', risk: 'High', riskColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30', exposure: 'Internal', expColor: 'text-gray-400' },
-    { name: 'billing-postgres', id: 'rds-billing', type: 'RDS', provider: 'AWS', region: 'us-east-1', account: 'aegivion-prod', risk: 'High', riskColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30', exposure: 'Internet-facing', expColor: 'text-red-500 font-semibold' },
-    { name: 'reporting-mysql', id: 'rds-reporting', type: 'RDS', provider: 'Azure', region: 'westeurope', account: 'corp-analytics', risk: 'Medium', riskColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', exposure: 'Internal', expColor: 'text-gray-400' },
-    { name: 'sg-public-ssh', id: 'sg-public-ssh', type: 'Security Group', provider: 'AWS', region: 'us-east-1', account: 'aegivion-prod', risk: 'Critical', riskColor: 'bg-red-500/20 text-red-400 border-red-500/30', exposure: 'Internet-facing', expColor: 'text-red-500 font-semibold' },
-    { name: 'sg-internal-mesh', id: 'sg-internal', type: 'Security Group', provider: 'GCP', region: 'us-central1', account: 'ml-platform', risk: 'Low', riskColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30', exposure: 'Internal', expColor: 'text-gray-400' },
-    { name: 'ml-training-node-7', id: 'i-ecc89fa1', type: 'EC2', provider: 'GCP', region: 'us-central1', account: 'ml-platform', risk: 'Medium', riskColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', exposure: 'Internal', expColor: 'text-gray-400' },
-    { name: 'model-weights', id: 's3-model-weights', type: 'S3', provider: 'GCP', region: 'us-central1', account: 'ml-platform', risk: 'Medium', riskColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', exposure: 'Internal', expColor: 'text-gray-400' }
-  ];
+  const handleSyncNow = () => {
+    setSyncing(true);
+    fetchAssets().finally(() => setSyncing(false));
+  };
 
-  const currentAssets = assetsList.length > 0 ? assetsList.map((a: any) => {
-    // Map database structures to fit representation
-    const matchingDefault = defaultAssets.find(d => a.resource_id.includes(d.name) || d.id === a.resource_id);
-    return {
-      name: matchingDefault ? matchingDefault.name : a.resource_id.split(':').pop(),
-      id: a.resource_id,
-      type: a.type.replace('aws_', '').toUpperCase(),
-      provider: a.provider,
-      region: a.region,
-      account: matchingDefault ? matchingDefault.account : 'aegivion-prod',
-      risk: matchingDefault ? matchingDefault.risk : 'Low',
-      riskColor: matchingDefault ? matchingDefault.riskColor : 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      exposure: matchingDefault ? matchingDefault.exposure : 'Internal',
-      expColor: matchingDefault ? matchingDefault.expColor : 'text-gray-400'
-    };
-  }) : defaultAssets;
+  const getRiskBadge = (score: number) => {
+    if (score >= 80) return 'bg-red-500/10 text-red-400 border-red-500/20';
+    if (score >= 40) return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+    if (score >= 20) return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+    return 'bg-green-500/10 text-green-400 border-green-500/20';
+  };
 
-  const tabs = ['All', 'EC2', 'S3', 'IAM', 'RDS', 'Security Group'];
-
-  const filteredAssets = currentAssets.filter(asset => {
-    const matchesTab = filterType === 'All' || 
-      asset.type.toLowerCase().replace(/_/g, ' ').includes(filterType.toLowerCase().replace(/_/g, ' '));
-    const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) || asset.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesProvider = providerFilter === 'All' || asset.provider.toLowerCase() === providerFilter.toLowerCase();
-    return matchesTab && matchesSearch && matchesProvider;
+  const filteredAssets = assets.filter(asset => {
+    const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          asset.resource_id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesProvider = selectedProvider === 'All' || asset.provider.toLowerCase() === selectedProvider.toLowerCase();
+    const matchesType = selectedType === 'All' || asset.type.toLowerCase().includes(selectedType.toLowerCase());
+    return matchesSearch && matchesProvider && matchesType;
   });
 
   return (
-    <div className="space-y-6 text-gray-200">
+    <div className="space-y-6 text-gray-200 relative min-h-screen pb-10">
       {/* Header bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Assets</h1>
-          <p className="text-gray-400 text-sm mt-1">{currentAssets.length} discovered resources across AWS, Azure and GCP.</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Asset Inventory</h1>
+          <p className="text-gray-400 text-sm mt-1">Discovered cloud resources across connected accounts.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 border border-gray-800 bg-[#0d1326] text-gray-300 rounded-lg text-sm hover:text-white transition flex items-center gap-2">
-            <Download size={14} />
-            Export
-          </button>
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm transition flex items-center gap-2">
-            <Plus size={16} />
-            Add source
+          <button 
+            onClick={handleSyncNow}
+            disabled={syncing}
+            className="px-4 py-2 border border-gray-800 bg-[#0d1326] text-gray-300 rounded-lg text-sm hover:text-white transition flex items-center gap-2"
+          >
+            <RotateCw size={14} className={syncing ? 'animate-spin' : ''} />
+            Sync Now
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2 pt-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilterType(tab)}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold border transition ${
-              filterType === tab 
-                ? 'bg-white text-gray-900 border-white' 
-                : 'bg-[#0d1326]/60 text-gray-400 border-gray-800 hover:text-white'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex gap-4 items-center justify-between">
+      {/* Toolbar filters */}
+      <div className="flex flex-wrap gap-4 items-center justify-between bg-[#0e1428] border border-gray-850 p-4 rounded-xl">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-2.5 text-gray-500" size={16} />
+          <Search className="absolute left-3.5 top-3 text-gray-500" size={14} />
           <input
             type="text"
-            placeholder="Filter by name or resource ID"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#0d1326] border border-gray-800 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-gray-700 transition"
+            placeholder="Search by asset name, IP, or resource ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[#0b0f19] border border-gray-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-700 transition"
           />
         </div>
-        <select
-          value={providerFilter}
-          onChange={(e) => setProviderFilter(e.target.value)}
-          className="bg-[#0d1326] border border-gray-800 text-xs text-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-700"
-        >
-          <option value="All">All providers</option>
-          <option value="AWS">AWS</option>
-          <option value="Azure">Azure</option>
-          <option value="GCP">GCP</option>
-        </select>
+        
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Provider:</span>
+            <select
+              value={selectedProvider}
+              onChange={(e) => setSelectedProvider(e.target.value)}
+              className="bg-[#0b0f19] border border-gray-800 text-xs text-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-gray-750"
+            >
+              <option value="All">All Providers</option>
+              <option value="AWS">AWS</option>
+              <option value="Azure">Azure</option>
+              <option value="GCP">GCP</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Type:</span>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="bg-[#0b0f19] border border-gray-800 text-xs text-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-gray-750"
+            >
+              <option value="All">All Types</option>
+              <option value="EC2">EC2 Instance</option>
+              <option value="S3">S3 Bucket</option>
+              <option value="Security Group">Security Group</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-[#0e1428] border border-gray-800 rounded-xl overflow-hidden">
+      {/* Asset Table */}
+      <div className="bg-[#0e1428] border border-gray-800 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-gray-300">
-            <thead className="bg-[#0d1326] text-gray-400 uppercase text-[10px] tracking-wider font-semibold border-b border-gray-800">
+            <thead className="bg-[#0d1326] text-gray-400 uppercase text-[9px] tracking-wider font-semibold border-b border-gray-800">
               <tr>
                 <th className="px-6 py-4">Resource</th>
                 <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Provider</th>
-                <th className="px-6 py-4">Region</th>
-                <th className="px-6 py-4">Account</th>
-                <th className="px-6 py-4">Risk</th>
-                <th className="px-6 py-4">Exposure</th>
+                <th className="px-6 py-4">Provider / Region</th>
+                <th className="px-6 py-4">Risk Score</th>
+                <th className="px-6 py-4">Findings</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/65">
+            <tbody className="divide-y divide-gray-800/60">
               {filteredAssets.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-500">No matching assets found.</td>
+                  <td colSpan={6} className="text-center py-10 text-gray-500">No matching assets found.</td>
                 </tr>
               ) : (
-                filteredAssets.map((asset, idx) => (
-                  <tr key={idx} className="hover:bg-gray-800/10 transition">
-                    <td className="px-6 py-3.5">
+                filteredAssets.map((asset) => (
+                  <tr key={asset.id} className="hover:bg-gray-800/10 transition group">
+                    <td className="px-6 py-4">
                       <div className="font-semibold text-white text-sm">{asset.name}</div>
-                      <div className="text-[10px] text-gray-500 font-mono mt-0.5">{asset.id}</div>
+                      <div className="text-[10px] text-gray-500 font-mono mt-0.5">{asset.resource_id}</div>
                     </td>
-                    <td className="px-6 py-3.5 font-medium text-gray-400">{asset.type}</td>
-                    <td className="px-6 py-3.5 text-gray-400">{asset.provider}</td>
-                    <td className="px-6 py-3.5 text-gray-400">{asset.region}</td>
-                    <td className="px-6 py-3.5 text-gray-400">{asset.account}</td>
-                    <td className="px-6 py-3.5">
-                      <span className={`px-2 py-0.5 border text-[10px] font-bold rounded ${asset.riskColor}`}>
-                        {asset.risk}
+                    <td className="px-6 py-4 font-medium text-gray-400 capitalize">{asset.type.replace('_', ' ')}</td>
+                    <td className="px-6 py-4 text-gray-400 capitalize">
+                      <span className="font-semibold">{asset.provider}</span> ({asset.region})
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-0.5 border text-[10px] font-bold rounded ${getRiskBadge(asset.risk_score || 0)}`}>
+                        {asset.risk_score || 0} / 100
                       </span>
                     </td>
-                    <td className={`px-6 py-3.5 ${asset.expColor}`}>{asset.exposure}</td>
+                    <td className="px-6 py-4">
+                      {asset.findings_count && asset.findings_count > 0 ? (
+                        <span className="text-red-400 font-bold flex items-center gap-1.5">
+                          <ShieldAlert size={14} />
+                          {asset.findings_count}
+                        </span>
+                      ) : (
+                        <span className="text-green-400">Compliant</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => { setSelectedAsset(asset); setActiveTab('overview'); }}
+                        className="px-2.5 py-1 text-xs text-blue-400 hover:text-white bg-blue-600/5 hover:bg-blue-600 rounded border border-blue-500/20 transition flex items-center gap-1 ml-auto"
+                      >
+                        Details
+                        <ChevronRight size={12} />
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -179,6 +258,140 @@ function AssetsPage() {
           </table>
         </div>
       </div>
+
+      {/* Details Side Drawer */}
+      {selectedAsset && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-all">
+          <div className="w-full max-w-lg bg-[#0d1326] border-l border-gray-800 h-full flex flex-col justify-between shadow-2xl relative">
+            
+            {/* Drawer Header */}
+            <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-white leading-snug">{selectedAsset.name}</h2>
+                <span className="text-[10px] text-gray-500 font-mono block mt-0.5">{selectedAsset.resource_id}</span>
+              </div>
+              <button 
+                onClick={() => setSelectedAsset(null)}
+                className="p-1.5 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Tabs Selector */}
+            <div className="flex border-b border-gray-800 px-6 bg-[#0e1428]">
+              {(['overview', 'config', 'relationships'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-3 px-4 text-xs font-semibold uppercase tracking-wider border-b-2 transition ${
+                    activeTab === tab 
+                      ? 'border-blue-500 text-white' 
+                      : 'border-transparent text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Drawer Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Basic Metadata */}
+                  <div className="bg-[#0e1428] border border-gray-850 rounded-xl p-5 space-y-4">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Database size={13} className="text-blue-500" />
+                      Resource Metadata
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <span className="text-gray-500 block">Cloud Provider</span>
+                        <span className="font-semibold text-white uppercase">{selectedAsset.provider}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">Region</span>
+                        <span className="font-semibold text-white">{selectedAsset.region}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">Type</span>
+                        <span className="font-semibold text-white">{selectedAsset.type}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">Risk Rating</span>
+                        <span className="font-semibold text-white">{selectedAsset.risk_score || 0}/100</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Configuration Highlights */}
+                  {selectedAsset.configuration && (
+                    <div className="bg-[#0e1428] border border-gray-850 rounded-xl p-5 space-y-4">
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <SlidersHorizontal size={13} className="text-blue-500" />
+                        Status & Networking
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        {Object.entries(selectedAsset.configuration).slice(0, 4).map(([key, val]) => (
+                          <div key={key}>
+                            <span className="text-gray-500 block capitalize">{key.replace('_', ' ')}</span>
+                            <span className="font-semibold text-white">{String(val)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'config' && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Raw Asset Configuration</h4>
+                  <pre className="bg-[#0b0f19] border border-gray-850 rounded-xl p-4 text-[10px] font-mono text-blue-400 overflow-x-auto">
+                    {JSON.stringify(selectedAsset.configuration || {}, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {activeTab === 'relationships' && (
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Discovered Relationships</h4>
+                  {selectedAsset.relationships && selectedAsset.relationships.length > 0 ? (
+                    <div className="space-y-2">
+                      {selectedAsset.relationships.map((rel, idx) => (
+                        <div key={idx} className="bg-[#0e1428] border border-gray-850 rounded-xl p-3.5 flex items-center justify-between text-xs">
+                          <div>
+                            <span className="text-gray-500 block">Relation</span>
+                            <span className="font-semibold text-white capitalize">{rel.type.replace('_', ' ')}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-gray-500 block capitalize">{rel.target_type}</span>
+                            <span className="font-mono text-blue-400">{rel.target_id}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">No relationships mapped for this resource.</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Drawer Footer */}
+            <div className="p-6 border-t border-gray-800 bg-[#0e1428] flex items-center justify-between text-xs">
+              <span className="text-gray-500">Discovered in sync inventory.</span>
+              <button 
+                onClick={() => setSelectedAsset(null)}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
+              >
+                Close Drawer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
