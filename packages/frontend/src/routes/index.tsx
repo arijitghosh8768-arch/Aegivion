@@ -44,13 +44,15 @@ function DashboardPage() {
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
   const fetchData = async () => {
     try {
-      const fRes = await fetch('http://localhost:8000/api/v1/findings');
+      const fRes = await fetch(`${API_URL}/api/v1/findings`);
       const fData = await fRes.json();
       setFindings(fData.findings || []);
 
-      const aRes = await fetch('http://localhost:8000/api/v1/findings/assets');
+      const aRes = await fetch(`${API_URL}/api/v1/findings/assets`);
       const aData = await aRes.json();
       setAssets(aData.assets || []);
     } catch (e) {
@@ -76,7 +78,7 @@ function DashboardPage() {
     }, 400);
 
     try {
-      await fetch('http://localhost:8000/api/v1/findings/scan', { method: 'POST' });
+      await fetch(`${API_URL}/api/v1/findings/scan`, { method: 'POST' });
       await fetchData();
       clearInterval(interval);
       setScanProgress(100);

@@ -59,9 +59,12 @@ export default function App() {
   const [assetsList, setAssetsList] = useState<any[]>([]);
   const [scanning, setScanning] = useState(false);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const WS_URL = API_URL.replace(/^http/, 'ws');
+
   const fetchFindings = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/v1/findings');
+      const res = await fetch(`${API_URL}/api/v1/findings`);
       const data = await res.json();
       if (data && data.findings) {
         setFindingsList(data.findings);
@@ -73,7 +76,7 @@ export default function App() {
 
   const fetchAssets = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/v1/findings/assets');
+      const res = await fetch(`${API_URL}/api/v1/findings/assets`);
       const data = await res.json();
       if (data && data.assets) {
         setAssetsList(data.assets);
@@ -86,7 +89,7 @@ export default function App() {
   const handleTriggerScan = async () => {
     setScanning(true);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/findings/scan', {
+      const res = await fetch(`${API_URL}/api/v1/findings/scan`, {
         method: 'POST',
       });
       const data = await res.json();
@@ -106,7 +109,7 @@ export default function App() {
     fetchAssets();
     
     // Establish real-time WebSocket connection to the backend service
-    const socket = new WebSocket('ws://localhost:8000/ws/dashboard?user_id=u-1234');
+    const socket = new WebSocket(`${WS_URL}/ws/dashboard?user_id=u-1234`);
     
     socket.onmessage = (event) => {
       try {

@@ -15,9 +15,11 @@ function AssetsPage() {
   const [providerFilter, setProviderFilter] = useState('All');
   const [assetsList, setAssetsList] = useState([]);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
   const fetchAssets = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/v1/findings/assets');
+      const res = await fetch(`${API_URL}/api/v1/findings/assets`);
       const data = await res.json();
       setAssetsList(data.assets || []);
     } catch (e) {

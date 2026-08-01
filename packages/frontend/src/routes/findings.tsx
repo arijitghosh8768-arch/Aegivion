@@ -15,9 +15,11 @@ function FindingsPage() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [findingsList, setFindingsList] = useState([]);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
   const fetchFindings = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/v1/findings');
+      const res = await fetch(`${API_URL}/api/v1/findings`);
       const data = await res.json();
       setFindingsList(data.findings || []);
     } catch (e) {
