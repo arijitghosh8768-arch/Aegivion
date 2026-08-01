@@ -1,7 +1,7 @@
 import enum
-from sqlalchemy import Column, String, JSON, Integer, ForeignKey, ARRAY, Enum
+from sqlalchemy import Column, String, JSON, Integer, ForeignKey, Enum
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
 from app.database.base import BaseModel
 
 class KnowledgeCategory(str, enum.Enum):
@@ -18,7 +18,7 @@ class KnowledgeBase(BaseModel):
     title = Column(String(300), nullable=False)
     content = Column(String(5000), nullable=False)
     category = Column(Enum(KnowledgeCategory), nullable=False, index=True)
-    tags = Column(ARRAY(String), default=[])
+    tags = Column(JSON().with_variant(ARRAY(String), "postgresql"), default=list)
     
     # Embedding for vector search (stored as JSON/ARRAY of floats for compatibility)
     embedding = Column(JSON, nullable=True)  

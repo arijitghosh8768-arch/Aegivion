@@ -10,6 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         service: [backend, security, ai, frontend]
     
@@ -33,6 +34,7 @@ jobs:
         cd packages/${{ matrix.service }}
         if [ "${{ matrix.service }}" == "frontend" ]; then
           npm install
+          chmod +x node_modules/.bin/vite || true
           npm run build
         else
           if [ -f requirements.txt ]; then
