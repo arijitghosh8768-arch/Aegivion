@@ -22,16 +22,16 @@ interface AuthStore extends AuthState {
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, get) => ({
-      user: null,
-      organization: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
+    (set: any, get: any) => ({
+      user: null as User | null,
+      organization: null as Organization | null,
+      accessToken: null as string | null,
+      refreshToken: null as string | null,
+      isAuthenticated: false as boolean,
+      isLoading: false as boolean,
+      error: null as string | null,
 
-      login: async (email: string, password: str) => {
+      login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
           // Mock login API fetch. In production, replace with: await fetch('/auth/login')
@@ -136,7 +136,7 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({
+      partialize: (state: AuthStore) => ({
         user: state.user,
         organization: state.organization,
         accessToken: state.accessToken,

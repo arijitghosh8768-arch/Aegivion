@@ -13,11 +13,11 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      login: (user, token) => {
+    (set: any) => ({
+      user: null as User | null,
+      token: null as string | null,
+      isAuthenticated: false as boolean,
+      login: (user: User, token: string) => {
         if (typeof document !== 'undefined') {
           document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
         }

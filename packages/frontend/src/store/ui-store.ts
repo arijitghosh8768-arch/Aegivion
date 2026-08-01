@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 
 interface UIState {
-  isSidebarCollapsed: boolean
+  isCollapsed: boolean
   toggleSidebar: () => void
 }
 
-export const useUIStore = create<UIState>((set) => ({
-  isSidebarCollapsed: false,
-  toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+export const useUIStore = create<UIState>((set: any) => ({
+  isCollapsed: false,
+  toggleSidebar: () => set((state: any) => ({ isCollapsed: !state.isCollapsed })),
 }))

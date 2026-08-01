@@ -4,7 +4,7 @@ import { Bell, Moon, Sun, Search, User } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 
 export function TopNav() {
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore((state: any) => state.user);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-surface-border bg-[#1E293B] px-6">

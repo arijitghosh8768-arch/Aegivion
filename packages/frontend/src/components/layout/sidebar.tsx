@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, Cloud, ShieldAlert, FileWarning, 
@@ -22,7 +21,7 @@ const menuItems = [
 ];
 
 export function Sidebar() {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
   const { isCollapsed, toggleSidebar } = useUIStore();
 
   return (
@@ -43,7 +42,7 @@ export function Sidebar() {
           return (
             <Link
               key={item.name}
-              href={item.href}
+              to={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive 
