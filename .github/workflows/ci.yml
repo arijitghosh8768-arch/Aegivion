@@ -39,5 +39,5 @@ jobs:
             pip install -r requirements.txt
           fi
           pip install pytest
-          python -m pytest
+          PYTHONPATH=. python -m pytest
         fi
