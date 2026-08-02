@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+.env.local
+
+# Node / Frontend
+node_modules/
+packages/frontend/dist/
+packages/frontend/.vite/
+packages/frontend/node_modules/
+packages/frontend/.env
+
+# Vite cache
+.vite/
+
+# Environment files (keep .env.example, ignore real secrets)
+.env
+*.env.local
+*.env.production
+
+# Build artifacts
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Alembic pycache
+packages/backend/alembic/__pycache__/
+packages/backend/alembic/versions/__pycache__/
