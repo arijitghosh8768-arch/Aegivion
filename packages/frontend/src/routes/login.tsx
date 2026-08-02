@@ -44,46 +44,64 @@ function LoginPage() {
   // -------------------------------------------------------------------------
   useEffect(() => {
     const initializeGoogle = () => {
-      if (!window.google) return;
-      if (window.google_auth_initialized) return;
-      if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) return;
+      console.log('initializeGoogle called. window.google:', !!window.google, 'GOOGLE_CLIENT_ID:', GOOGLE_CLIENT_ID);
+      if (!window.google) {
+        console.warn('Google script (window.google) is not loaded.');
+        return;
+      }
+      if (window.google_auth_initialized) {
+        console.log('Google Auth already initialized.');
+        return;
+      }
+      if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
+        console.warn('Google Client ID is missing or contains placeholder:', GOOGLE_CLIENT_ID);
+        return;
+      }
 
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: async (response: { credential: string }) => {
-          setError(null);
-          setIsGoogleLoading(true);
-          try {
-            const res = await api.post('/v1/auth/google', {
-              id_token: response.credential,
-            });
-            if (res.data.success) {
-              loginAction(res.data.user, res.data.token);
-              navigate({ to: '/' });
-            } else {
-              setError('Google login failed. Please try again.');
+      try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async (response: { credential: string }) => {
+            setError(null);
+            setIsGoogleLoading(true);
+            try {
+              const res = await api.post('/v1/auth/google', {
+                id_token: response.credential,
+              });
+              if (res.data.success) {
+                loginAction(res.data.user, res.data.token);
+                navigate({ to: '/' });
+              } else {
+                setError('Google login failed. Please try again.');
+              }
+            } catch (err: any) {
+              setError(
+                err.response?.data?.detail ||
+                  'Google login failed. Please try again.'
+              );
+            } finally {
+              setIsGoogleLoading(false);
             }
-          } catch (err: any) {
-            setError(
-              err.response?.data?.detail ||
-                'Google login failed. Please try again.'
-            );
-          } finally {
-            setIsGoogleLoading(false);
-          }
-        },
-      });
-      window.google_auth_initialized = true;
-
-      // Render the official Google Sign-In button in the div container
-      const buttonDiv = document.getElementById('google-signin-btn');
-      if (buttonDiv) {
-        window.google.accounts.id.renderButton(buttonDiv, {
-          theme: 'outline',
-          size: 'large',
-          width: buttonDiv.clientWidth || 382,
-          logo_alignment: 'center',
+          },
         });
+        window.google_auth_initialized = true;
+        console.log('Google accounts initialized successfully.');
+
+        // Render the official Google Sign-In button in the div container
+        const buttonDiv = document.getElementById('google-signin-btn');
+        if (buttonDiv) {
+          window.google.accounts.id.renderButton(buttonDiv, {
+            theme: 'outline',
+            size: 'large',
+            width: buttonDiv.clientWidth || 382,
+            logo_alignment: 'center',
+          });
+          console.log('Google Sign-In button rendered.');
+        } else {
+          console.warn('google-signin-btn element not found in DOM.');
+        }
+      } catch (err) {
+        console.error('Error during Google initialization:', err);
       }
     };
 
@@ -92,6 +110,7 @@ function LoginPage() {
       initializeGoogle();
       return;
     } else {
+      console.log('Google script not found yet, polling...');
       // Wait for the script to load
       const interval = setInterval(() => {
         if (window.google) {

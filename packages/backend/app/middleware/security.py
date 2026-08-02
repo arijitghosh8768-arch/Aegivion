@@ -15,8 +15,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         
-        # Less restrictive CSP to allow development assets/APIs from localhost
-        response.headers["Content-Security-Policy"] = "default-src 'self' http://localhost:* http://127.0.0.1:* https://*.google.com https://*.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://accounts.google.com;"
+        # Less restrictive CSP to allow development assets/APIs from localhost and production domains
+        response.headers["Content-Security-Policy"] = "default-src 'self' http://localhost:* http://127.0.0.1:* https://*.google.com https://*.googleapis.com https://*.onrender.com https://*.vercel.app; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://accounts.google.com;"
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
         

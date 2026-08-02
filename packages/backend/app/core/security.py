@@ -51,7 +51,8 @@ class SecurityService:
     
     def create_access_token(self, user_id: str, org_id: str, role: str) -> str:
         """Create JWT access token with short expiry using RS256"""
-        now = datetime.utcnow()
+        from datetime import timezone
+        now = datetime.now(timezone.utc)
         payload = {
             "sub": str(user_id),
             "org": str(org_id),
