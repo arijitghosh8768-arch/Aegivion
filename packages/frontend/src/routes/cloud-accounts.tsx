@@ -53,7 +53,7 @@ function CloudAccountsPage() {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/v1/cloud-accounts');
+      const res = await api.get('/v1/cloud-accounts/');
       if (res.data.success) {
         setAccounts(res.data.data);
       }
