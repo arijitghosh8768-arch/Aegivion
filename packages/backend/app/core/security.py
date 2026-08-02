@@ -1,3 +1,4 @@
+import os
 import jwt
 import uuid
 from datetime import datetime, timedelta
@@ -20,8 +21,30 @@ class SecurityService:
         return cls._instance
 
     def _load_or_generate_private_key(self):
+        key_file = "jwt_key.pem"
+        if os.path.exists(key_file):
+            try:
+                with open(key_file, "rb") as f:
+                    return serialization.load_pem_private_key(
+                        f.read(),
+                        password=None
+                    )
+            except Exception:
+                pass
+        
         # Dynamically generate a 2048-bit RSA key pair for development
-        return rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        try:
+            pem = private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            )
+            with open(key_file, "wb") as f:
+                f.write(pem)
+        except Exception:
+            pass
+        return private_key
     
     def create_access_token(self, user_id: str, org_id: str, role: str) -> str:
         """Create JWT access token with short expiry using RS256"""

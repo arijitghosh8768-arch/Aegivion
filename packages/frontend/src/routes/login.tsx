@@ -15,6 +15,7 @@ export const Route = createRoute({
 declare global {
   interface Window {
     google?: any;
+    google_auth_initialized?: boolean;
   }
 }
 
@@ -44,6 +45,7 @@ function LoginPage() {
   useEffect(() => {
     const initializeGoogle = () => {
       if (!window.google) return;
+      if (window.google_auth_initialized) return;
       if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) return;
 
       window.google.accounts.id.initialize({
@@ -71,6 +73,7 @@ function LoginPage() {
           }
         },
       });
+      window.google_auth_initialized = true;
 
       // Render the official Google Sign-In button in the div container
       const buttonDiv = document.getElementById('google-signin-btn');
