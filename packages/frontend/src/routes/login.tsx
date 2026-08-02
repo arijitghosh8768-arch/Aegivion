@@ -87,6 +87,7 @@ function LoginPage() {
     // If Google script has already loaded
     if (window.google) {
       initializeGoogle();
+      return;
     } else {
       // Wait for the script to load
       const interval = setInterval(() => {
