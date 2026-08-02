@@ -56,6 +56,7 @@ def test_aws_connection(payload: AWSTestRequest):
             status="authentication_failed"
         )
 
+@router.post("")
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_cloud_account(
     payload: CloudAccountCreateRequest,
@@ -96,6 +97,7 @@ def create_cloud_account(
         }
     }
 
+@router.get("")
 @router.get("/")
 def list_cloud_accounts(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     org_id = current_user.get("organization_id")
