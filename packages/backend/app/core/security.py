@@ -21,7 +21,10 @@ class SecurityService:
         return cls._instance
 
     def _load_or_generate_private_key(self):
-        key_file = "jwt_key.pem"
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        backend_dir = os.path.dirname(os.path.dirname(current_dir))
+        key_file = os.path.join(backend_dir, "jwt_key.pem")
+        print(f"[Aegivion Security] Using key file: {key_file}")
         if os.path.exists(key_file):
             try:
                 with open(key_file, "rb") as f:
