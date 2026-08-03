@@ -4,6 +4,10 @@ import os
 # Append project root to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Load env variables from the root .env
+from dotenv import load_dotenv
+load_dotenv(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env")))
+
 from app.database import SessionLocal
 from app.models import User, Organization, Role
 
