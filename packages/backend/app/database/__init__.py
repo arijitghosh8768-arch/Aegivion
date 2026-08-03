@@ -12,7 +12,8 @@ if not MONGODB_URI:
     else:
         MONGODB_URI = "mongodb://localhost:27017"
 
-client = MongoClient(MONGODB_URI, tlsAllowInvalidCertificates=True)
+import certifi
+client = MongoClient(MONGODB_URI, tlsAllowInvalidCertificates=True, tlsCAFile=certifi.where())
 # Extract db name from URI or default to aegivion
 db_name = "aegivion"
 try:
