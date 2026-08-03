@@ -3,6 +3,14 @@ import uuid
 from datetime import datetime
 from pymongo import MongoClient
 
+# Load root environment variables if not already loaded
+from dotenv import load_dotenv
+db_dir = os.path.dirname(os.path.abspath(__file__)) # app/database
+app_dir = os.path.dirname(db_dir) # app
+backend_dir = os.path.dirname(app_dir) # packages/backend
+packages_dir = os.path.dirname(backend_dir) # packages
+load_dotenv(os.path.join(os.path.dirname(packages_dir), ".env"))
+
 # Use MONGODB_URI or fallback to DATABASE_URL if it contains a mongodb scheme
 MONGODB_URI = os.getenv("MONGODB_URI", "")
 if not MONGODB_URI:

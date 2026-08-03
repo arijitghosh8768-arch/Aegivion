@@ -9,6 +9,10 @@ packages_dir = os.path.dirname(backend_dir)  # packages
 if packages_dir not in sys.path:
     sys.path.append(packages_dir)
 
+# Load root environment variables
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(packages_dir), ".env"))
+
 import uuid
 from datetime import datetime
 from typing import Any, Optional
