@@ -39,7 +39,11 @@ class APIResponse(BaseModel):
 # Register Exception Handlers
 app.add_exception_handler(AegivionException, aegivion_exception_handler)
 
-# CORS middleware config
+# Import and register Security Headers Middleware first (will execute after CORSMiddleware on responses)
+from .middleware.security import SecurityHeadersMiddleware
+app.add_middleware(SecurityHeadersMiddleware)
+
+# CORS middleware config (registered last, so it executes first on requests and last on responses)
 allowed_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -54,13 +58,12 @@ if env_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Support all Vercel preview deployments
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-from .middleware.security import SecurityHeadersMiddleware
-app.add_middleware(SecurityHeadersMiddleware)
 
 # Include v1 routes under /api
 app.include_router(api_router, prefix="/api")
