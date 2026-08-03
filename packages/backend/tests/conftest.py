@@ -1,38 +1,28 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import mongomock
 from app.main import app
-from app.database.base import Base
-from app.database import get_db
-
-# Use SQLite in-memory database for testing
-TEST_DATABASE_URL = "sqlite:///./test.db"
+from app.database import get_db, MongoSQLSession
 
 @pytest.fixture(scope="session")
-def test_engine():
-    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-    Base.metadata.create_all(bind=engine)
-    yield engine
-    Base.metadata.drop_all(bind=engine)
+def test_db():
+    client = mongomock.MongoClient()
+    return client["aegivion_test"]
 
 @pytest.fixture
-def test_session(test_engine):
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.rollback()
-        session.close()
+def test_session(test_db):
+    # Clear collections before each test for test isolation
+    for col in test_db.list_collection_names():
+        test_db[col].delete_many({})
+    
+    session = MongoSQLSession(test_db)
+    yield session
+    session.rollback()
 
 @pytest.fixture
 def client(test_session):
     def override_get_db():
-        try:
-            yield test_session
-        finally:
-            pass
+        yield test_session
     
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)

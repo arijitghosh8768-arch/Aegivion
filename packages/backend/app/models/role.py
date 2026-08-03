@@ -1,14 +1,18 @@
-from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
 from app.database.base import BaseModel
 
 class Role(BaseModel):
-    __tablename__ = 'roles'
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = kwargs.get("name")
+        self.description = kwargs.get("description")
+        self.organization_id = kwargs.get("organization_id")
 
-    name = Column(String, unique=True, nullable=False, index=True)
-    description = Column(String, nullable=True)
-    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True)
+    def dict(self):
+        res = super().dict()
+        res.update({
+            "name": self.name,
+            "description": self.description,
+            "organization_id": str(self.organization_id) if self.organization_id else None
+        })
+        return res
 
-    users = relationship("User", back_populates="role")
-    organization = relationship("Organization", back_populates="roles")

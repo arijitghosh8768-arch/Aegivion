@@ -1,24 +1,42 @@
 import uuid
-from sqlalchemy import Column, DateTime, Boolean, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import declarative_base
+from datetime import datetime
 
-Base = declarative_base()
+class MockField:
+    def __init__(self, name):
+        self.name = name
 
-class BaseModel(Base):
-    __abstract__ = True
+    def __eq__(self, other):
+        return (self.name, other)
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
-    created_by = Column(UUID(as_uuid=True), nullable=True)
-    updated_by = Column(UUID(as_uuid=True), nullable=True)
+    def __ne__(self, other):
+        return (self.name, {"$ne": other})
+
+    def desc(self):
+        return self
+
+class BaseModelMeta(type):
+    def __getattr__(cls, key):
+        if key.startswith("__") and key.endswith("__"):
+            raise AttributeError
+        return MockField(key)
+
+class BaseModel(metaclass=BaseModelMeta):
+
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id") or str(uuid.uuid4())
+        self.created_at = kwargs.get("created_at") or datetime.utcnow()
+        self.updated_at = kwargs.get("updated_at") or datetime.utcnow()
+        self.is_active = kwargs.get("is_active", True)
+        self.created_by = kwargs.get("created_by")
+        self.updated_by = kwargs.get("updated_by")
 
     def dict(self):
         return {
-            "id": str(self.id) if self.id else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "is_active": self.is_active
+            "id": str(self.id),
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else self.created_at,
+            "updated_at": self.updated_at.isoformat() if isinstance(self.updated_at, datetime) else self.updated_at,
+            "is_active": self.is_active,
+            "created_by": str(self.created_by) if self.created_by else None,
+            "updated_by": str(self.updated_by) if self.updated_by else None
         }
+
