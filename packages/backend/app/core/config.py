@@ -1,9 +1,8 @@
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
 
 class Settings(BaseSettings):
     PORT: int = 8000
-    DATABASE_URL: str = "postgresql://aegivion_user:aegivion_pass@localhost:5432/aegivion_db"
+    DATABASE_URL: str = "mongodb://localhost:27017/aegivion"
     REDIS_URL: str = "redis://localhost:6379/0"
     
     # Security Configuration
@@ -17,11 +16,5 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:8000"
     ]
-
-    @field_validator('DATABASE_URL')
-    def validate_database_url(cls, v: str) -> str:
-        if not v.startswith('postgresql://') and not v.startswith('postgresql+psycopg2://'):
-            raise ValueError('DATABASE_URL must be a PostgreSQL connection string')
-        return v
 
 settings = Settings()
