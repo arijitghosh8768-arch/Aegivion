@@ -242,12 +242,6 @@ function LoginPage() {
             )}
           </button>
         </form>
-
-        <div className="mt-6 pt-6 border-t border-gray-800/60 text-center">
-          <p className="text-[11px] text-gray-500">
-            For development, use <code className="text-gray-400 font-mono">admin@aegivion.com</code> with password <code className="text-gray-400 font-mono">Admin123!</code>
-          </p>
-        </div>
       </div>
     </div>
   );
