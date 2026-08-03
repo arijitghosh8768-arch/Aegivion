@@ -1,7 +1,4 @@
 import enum
-from sqlalchemy import Column, String, JSON, Integer, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
-from sqlalchemy.orm import relationship
 from app.database.base import BaseModel
 
 class KnowledgeCategory(str, enum.Enum):
@@ -13,39 +10,56 @@ class KnowledgeCategory(str, enum.Enum):
     GENERAL = "general"
 
 class KnowledgeBase(BaseModel):
-    __tablename__ = "knowledge_base"
-    
-    title = Column(String(300), nullable=False)
-    content = Column(String(5000), nullable=False)
-    category = Column(Enum(KnowledgeCategory), nullable=False, index=True)
-    tags = Column(JSON().with_variant(ARRAY(String), "postgresql"), default=list)
-    
-    # Embedding for vector search (stored as JSON/ARRAY of floats for compatibility)
-    embedding = Column(JSON, nullable=True)  
-    
-    # Metadata
-    source = Column(String(200), nullable=True)
-    author = Column(String(200), nullable=True)
-    
-    # References & Related findings
-    references = Column(JSON, default=[])
-    related_findings = Column(JSON, default=[]) # Stored list of UUIDs
-    
-    # Versioning
-    version = Column(Integer, default=1)
-    previous_version_id = Column(UUID(as_uuid=True), nullable=True)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.title = kwargs.get("title")
+        self.content = kwargs.get("content")
+        self.category = kwargs.get("category") or KnowledgeCategory.GENERAL
+        self.tags = kwargs.get("tags") or []
+        self.embedding = kwargs.get("embedding")
+        self.source = kwargs.get("source")
+        self.author = kwargs.get("author")
+        self.references = kwargs.get("references") or []
+        self.related_findings = kwargs.get("related_findings") or []
+        self.version = kwargs.get("version") or 1
+        self.previous_version_id = kwargs.get("previous_version_id")
+
+    def dict(self):
+        res = super().dict()
+        res.update({
+            "title": self.title,
+            "content": self.content,
+            "category": self.category,
+            "tags": self.tags,
+            "embedding": self.embedding,
+            "source": self.source,
+            "author": self.author,
+            "references": self.references,
+            "related_findings": self.related_findings,
+            "version": self.version,
+            "previous_version_id": str(self.previous_version_id) if self.previous_version_id else None
+        })
+        return res
 
 class Conversation(BaseModel):
-    __tablename__ = "conversations"
-    
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    title = Column(String(200), nullable=True)
-    messages = Column(JSON, default=[])
-    context = Column(JSON, default={})
-    
-    # Performance metrics
-    tokens_used = Column(Integer, default=0)
-    response_time_ms = Column(Integer, default=0)
-    
-    # Relationships
-    user = relationship("User")
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.user_id = kwargs.get("user_id")
+        self.title = kwargs.get("title")
+        self.messages = kwargs.get("messages") or []
+        self.context = kwargs.get("context") or {}
+        self.tokens_used = kwargs.get("tokens_used") or 0
+        self.response_time_ms = kwargs.get("response_time_ms") or 0
+
+    def dict(self):
+        res = super().dict()
+        res.update({
+            "user_id": str(self.user_id) if self.user_id else None,
+            "title": self.title,
+            "messages": self.messages,
+            "context": self.context,
+            "tokens_used": self.tokens_used,
+            "response_time_ms": self.response_time_ms
+        })
+        return res
+
