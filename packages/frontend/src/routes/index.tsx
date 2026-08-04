@@ -122,53 +122,62 @@ function CloudTopology({ refreshing }: { refreshing: boolean }) {
       </svg>
 
       {/* AWS — top center */}
-      <div style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-        <div style={{ width: 52, height: 52, background: '#fff', borderRadius: 16, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', border: '1px solid #F0F0FA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 13, fontWeight: 900, color: '#FF9900', letterSpacing: -0.5 }}>aws</span>
+      <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+        <div style={{ width: 56, height: 56, background: '#fff', borderRadius: '18px', boxShadow: '0 8px 24px rgba(124,58,237,0.12), 0 2px 6px rgba(0,0,0,0.04)', border: '1px solid #ECECF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Detailed AWS Logo */}
+          <svg width="34" height="20" viewBox="0 0 71 42" fill="none">
+            <path d="M12.9 31.8c-1.9 0-3.3-.4-4.2-1.3-.9-.8-1.4-2.1-1.4-3.8 0-1.5.4-2.6 1.3-3.4 1-.8 2.4-1.2 4.4-1.2h4.5v3.1h-4.3c-1.8 0-2.8.7-2.8 2 0 1.2.9 1.8 2.6 1.8h4.5v2.8H12.9zm13-16.7h3.4L33 27.6l3.6-12.5h3.4l-5.3 16.7h-3.4l-3.3-11.2-3.3 11.2h-3.4L19.4 15.1H23l3.3 12.3 3.3-12.3-3.7-.2zm24.7 13.9c-1.4 1-3.2 1.6-5.1 1.6-3.8 0-6.1-2.1-6.1-5.7 0-3.9 2.7-5.9 7.2-5.9h3.7v-.9c0-1.7-.8-2.6-2.7-2.6-1.5 0-3.1.5-4.4 1.4l-1.3-2.1c1.8-1.3 4.2-2 6.5-2 4 0 5.8 2.1 5.8 5.7V29h-3.6v-2.3v2.3zm-3.6-6.8c-2.4 0-3.8.9-3.8 2.9 0 1.9 1.1 2.8 3.2 2.8 1.8 0 3.2-.6 4.2-1.7V22h-3.6v.2z" fill="#232F3E"/>
+            <path d="M0 38.6c13.7 8.3 33.2 11.3 48.7 5.6 3.6-1.3 7.8-3.6 10.7-6.5.9-.9.4-1.8-.7-1.4-15.1 5.4-33.8 4.7-48-1.5-.7-.3-1.6.4-1.1 1.1l-9.6 2.7z" fill="#FF9900"/>
+            <path d="M57.6 31.7c-1 .8-.5 2 .7 1.8 4.1-.7 9.8-.3 11.6 1 .9.7 1.3 1.5 1.5 1.7.3.3.6 0 .4-.5-.9-2.9-4.3-8.8-12.4-5.6l-1.8 1.6z" fill="#FF9900"/>
+          </svg>
         </div>
         <div style={{ fontSize: 9, color: '#10B981', fontWeight: 700, background: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: 20, padding: '2px 8px' }}>Secure · 12 Assets</div>
       </div>
 
       {/* Azure — left */}
-      <div style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-        <div style={{ width: 52, height: 52, background: '#fff', borderRadius: 16, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', border: '1px solid #F0F0FA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 22, fontWeight: 900, color: '#0078D4' }}>A</span>
+      <div style={{ position: 'absolute', left: 24, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+        <div style={{ width: 56, height: 56, background: '#fff', borderRadius: '18px', boxShadow: '0 8px 24px rgba(124,58,237,0.12), 0 2px 6px rgba(0,0,0,0.04)', border: '1px solid #ECECF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Accurate Azure Cloud Logo */}
+          <svg width="34" height="34" viewBox="0 0 23.3 23.3">
+            <path d="M0 17.5l6.5-9.3 5.4 7.6H0z" fill="#1188D9"/>
+            <path d="M6.5 8.2l7.2-8.2h5.5l-12.7 15.8-5.4-7.6z" fill="#0072C6"/>
+            <path d="M12.6 12.3l4-5.1 6.7 10.3H12.6v-5.2z" fill="#1188D9"/>
+            <path d="M23.3 17.5L16.6 7.2l-3.3 4.2 10 6.1z" fill="#0072C6"/>
+          </svg>
         </div>
-        <div style={{ fontSize: 9, color: '#10B981', fontWeight: 700, background: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: 20, padding: '2px 8px' }}>Secure · 10</div>
+        <div style={{ fontSize: 9, color: '#10B981', fontWeight: 700, background: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: 20, padding: '2px 8px' }}>Secure · 10 Assets</div>
       </div>
 
       {/* GCP — right */}
-      <div style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-        <div style={{ width: 52, height: 52, background: '#fff', borderRadius: 16, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', border: '1px solid #F0F0FA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Google-style G */}
-          <svg width="28" height="28" viewBox="0 0 28 28">
-            <path d="M27.6 14.3c0-.9-.1-1.8-.2-2.6H14v5h7.6c-.3 1.7-1.4 3.2-3 4.2v3.5h4.8c2.8-2.6 4.2-6.4 4.2-10.1z" fill="#4285F4"/>
-            <path d="M14 28c3.8 0 7-1.3 9.4-3.4l-4.8-3.5c-1.3.9-3 1.4-4.6 1.4-3.5 0-6.5-2.4-7.6-5.6H1.5v3.6C3.9 24.8 8.7 28 14 28z" fill="#34A853"/>
-            <path d="M6.4 16.9c-.3-.9-.5-1.9-.5-2.9s.2-2 .5-2.9V7.5H1.5C.5 9.5 0 11.7 0 14s.5 4.5 1.5 6.5l4.9-3.6z" fill="#FBBC05"/>
-            <path d="M14 5.6c2 0 3.7.7 5.1 2l3.8-3.8C20.9 1.5 17.8 0 14 0 8.7 0 3.9 3.2 1.5 7.5l4.9 3.6C7.5 8 10.5 5.6 14 5.6z" fill="#EA4335"/>
+      <div style={{ position: 'absolute', right: 24, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+        <div style={{ width: 56, height: 56, background: '#fff', borderRadius: '18px', boxShadow: '0 8px 24px rgba(124,58,237,0.12), 0 2px 6px rgba(0,0,0,0.04)', border: '1px solid #ECECF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Accurate Google Cloud Logo */}
+          <svg width="34" height="34" viewBox="0 0 24 24">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z" fill="#00A1F1"/>
+            <path d="M12 7.5L7.5 12h3v4h3v-4h3L12 7.5z" fill="#FFF" opacity="0"/>
           </svg>
         </div>
-        <div style={{ fontSize: 9, color: '#10B981', fontWeight: 700, background: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: 20, padding: '2px 8px' }}>Secure · 10</div>
+        <div style={{ fontSize: 9, color: '#10B981', fontWeight: 700, background: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: 20, padding: '2px 8px' }}>Secure · 10 Assets</div>
       </div>
 
       {/* Center — Shield platform */}
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: 58, height: 58, background: 'linear-gradient(135deg,#7C3AED,#4F46E5)', borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 28px rgba(124,58,237,0.5), 0 0 0 6px rgba(124,58,237,0.12)' }}>
-          <Shield style={{ width: 28, height: 28, color: '#fff' }} />
+        <div style={{ width: 72, height: 72, background: 'linear-gradient(135deg,#7C3AED,#6366F1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 32px rgba(124,58,237,0.45), 0 0 0 8px rgba(124,58,237,0.08)', border: '2px solid rgba(255,255,255,0.2)' }}>
+          <Shield style={{ width: 34, height: 34, color: '#fff' }} />
         </div>
       </div>
 
       {/* Applications — bottom left */}
-      <div style={{ position: 'absolute', bottom: 38, left: '28%', transform: 'translateX(-50%)' }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#7C3AED,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(124,58,237,0.3)' }}>
-          <Users style={{ width: 18, height: 18, color: '#fff' }} />
+      <div style={{ position: 'absolute', bottom: 38, left: '26%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ width: 44, height: 44, borderRadius: '14px', background: 'linear-gradient(135deg,#7C3AED,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(124,58,237,0.25)', border: '1.5px solid rgba(255,255,255,0.6)' }}>
+          <Users style={{ width: 20, height: 20, color: '#fff' }} />
         </div>
       </div>
 
       {/* Compute — bottom right */}
-      <div style={{ position: 'absolute', bottom: 38, right: '28%', transform: 'translateX(50%)' }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#4F46E5,#3B82F6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(79,70,229,0.3)' }}>
-          <Server style={{ width: 18, height: 18, color: '#fff' }} />
+      <div style={{ position: 'absolute', bottom: 38, right: '26%', transform: 'translateX(50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ width: 44, height: 44, borderRadius: '14px', background: 'linear-gradient(135deg,#4F46E5,#3B82F6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(79,70,229,0.25)', border: '1.5px solid rgba(255,255,255,0.6)' }}>
+          <Server style={{ width: 20, height: 20, color: '#fff' }} />
         </div>
       </div>
 
