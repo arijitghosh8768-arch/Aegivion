@@ -1,168 +1,185 @@
-﻿import React, { useState } from 'react';
+
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import { useAuthStore } from '@/store/auth-store';
 import {
-  Shield, LayoutDashboard, Settings as SettingsIcon,
-  AlertTriangle, Database, BrainCircuit, BarChart3,
-  FileText, Users, Network, Zap, LogOut, TrendingUp
+  Shield, LayoutDashboard, BrainCircuit, Cloud, AlertTriangle,
+  Database, Users, BarChart3, FileText, Zap, Settings, LogOut
 } from 'lucide-react';
+
+const navItems = [
+  { to: '/', label: 'Command Center', icon: LayoutDashboard },
+  { to: '/ai-assistant', label: 'AI Copilot', icon: BrainCircuit },
+  { to: '/cloud-accounts', label: 'Cloud Topology', icon: Cloud },
+  { to: '/findings', label: 'Threats', icon: AlertTriangle },
+  { to: '/assets', label: 'Assets', icon: Database },
+  { to: '/identities', label: 'Identities', icon: Users },
+  { to: '/compliance', label: 'Compliance', icon: BarChart3 },
+  { to: '/reports', label: 'Reports', icon: FileText },
+  { to: '/incidents', label: 'Automation', icon: Zap },
+  { to: '/settings', label: 'Settings', icon: Settings },
+];
+
+function SparkLine() {
+  const pts = [2, 8, 5, 12, 9, 15, 14];
+  const max = 16; const w = 110; const h = 22;
+  const xs = pts.map((_, i) => (i / (pts.length - 1)) * w);
+  const ys = pts.map(v => h - (v / max) * (h - 2) - 1);
+  let d = `M ${xs[0]} ${ys[0]}`;
+  for (let i = 1; i < pts.length; i++) {
+    const cx2 = (xs[i - 1] + xs[i]) / 2;
+    d += ` C ${cx2} ${ys[i - 1]}, ${cx2} ${ys[i]}, ${xs[i]} ${ys[i]}`;
+  }
+  const fill = d + ` L ${xs[pts.length - 1]} ${h} L ${xs[0]} ${h} Z`;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <defs>
+        <linearGradient id="spkFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#34d399" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fill} fill="url(#spkFill)" />
+      <path d={d} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = useAuthStore((state: any) => state.user);
-  const logout = useAuthStore((state: any) => state.logout);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const user = useAuthStore((s: any) => s.user);
+  const logout = useAuthStore((s: any) => s.logout);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate({ to: '/login' });
-  };
-
-  const userRole = user?.role || 'viewer';
-  const userInitials = user
-    ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() || 'AU'
+  const handleLogout = () => { logout(); navigate({ to: '/login' }); };
+  const initials = user
+    ? (`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`).toUpperCase() || 'AU'
     : 'AU';
+  const userRole = user?.role || 'viewer';
+  const isActive = (to: string) => to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
 
-  const navItems = [
-    { to: '/', label: 'Command Center', icon: LayoutDashboard },
-    { to: '/ai-assistant', label: 'AI Copilot', icon: BrainCircuit },
-    { to: '/cloud-accounts', label: 'Cloud Topology', icon: Network },
-    { to: '/findings', label: 'Threats', icon: AlertTriangle },
-    { to: '/assets', label: 'Assets', icon: Database },
-    { to: '/compliance', label: 'Compliance', icon: BarChart3 },
-    { to: '/reports', label: 'Reports', icon: FileText },
-    { to: '/incidents', label: 'Automation', icon: Zap },
-    { to: '/settings', label: 'Settings', icon: SettingsIcon },
-  ];
-
-  const isActive = (to: string) => {
-    if (to === '/') return location.pathname === '/';
-    return location.pathname.startsWith(to);
-  };
+  const r = 22; const score = 0.92;
+  const arc = 2 * Math.PI * r * score;
+  const full = 2 * Math.PI * r;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F7F8FF]" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: '#F6F7FF' }}>
 
-      {/* â”€â”€â”€ Sidebar â”€â”€â”€ */}
-      <aside className="w-52 shrink-0 bg-white border-r border-gray-100 flex flex-col h-full shadow-sm">
+      {/* ── SIDEBAR ── */}
+      <aside style={{ width: 200, flexShrink: 0, background: '#fff', borderRight: '1px solid #EBEBF5', display: 'flex', flexDirection: 'column', height: '100%', boxShadow: '1px 0 12px rgba(99,102,241,0.05)' }}>
 
         {/* Logo */}
-        <div className="px-5 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-purple-200">
-              <Shield className="w-4 h-4 text-white" aria-hidden="true" />
+        <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid #EBEBF5' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#7C3AED,#4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(124,58,237,0.35)' }}>
+              <Shield style={{ width: 16, height: 16, color: '#fff' }} />
             </div>
             <div>
-              <p className="text-[13px] font-black text-gray-900 leading-tight">Aegivion</p>
-              <p className="text-[9px] text-gray-400 leading-tight">Autonomous Cloud Security</p>
+              <div style={{ fontSize: 13, fontWeight: 900, color: '#111827', lineHeight: 1.2 }}>Aegivion</div>
+              <div style={{ fontSize: 8.5, color: '#9CA3AF', lineHeight: 1.2, marginTop: 1 }}>Autonomous Cloud Security Copilot</div>
             </div>
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="Main navigation">
-          {navItems.map((item) => {
+        {/* Nav items */}
+        <nav style={{ flex: 1, padding: '10px 10px', overflowY: 'auto' }}>
+          {navItems.map(item => {
             const Icon = item.icon;
-            const active = isActive(item.to);
+            const on = isActive(item.to);
             return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-medium transition-all ${
-                  active
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }`}
+              <Link key={item.to} to={item.to}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 9,
+                  padding: '8px 12px', borderRadius: 12, fontSize: 11.5,
+                  fontWeight: on ? 600 : 500,
+                  color: on ? '#fff' : '#6B7280',
+                  background: on ? 'linear-gradient(135deg,#7C3AED,#6366F1)' : 'transparent',
+                  boxShadow: on ? '0 4px 14px rgba(124,58,237,0.28)' : 'none',
+                  marginBottom: 2, textDecoration: 'none',
+                  transition: 'all 0.15s',
+                }}
               >
-                <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <Icon style={{ width: 14, height: 14, flexShrink: 0 }} />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        {/* Security Posture Score */}
-        <div className="px-4 pb-3">
-          <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Security Posture</p>
-            {/* Circular score indicator */}
-            <div className="flex items-center gap-3">
-              <div className="relative w-14 h-14 shrink-0">
-                <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-                  <circle cx="28" cy="28" r="22" fill="none" stroke="#E5E7EB" strokeWidth="5" />
-                  <circle
-                    cx="28" cy="28" r="22" fill="none"
-                    stroke="url(#scoreGrad)" strokeWidth="5"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 22 * 0.92} ${2 * Math.PI * 22}`}
-                  />
+        {/* Security Posture */}
+        <div style={{ padding: '0 12px 12px' }}>
+          <div style={{ background: '#FAFAFF', border: '1px solid #EBEBF5', borderRadius: 16, padding: '12px 12px 8px' }}>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 10 }}>Security Posture</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
+                <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="28" cy="28" r={r} fill="none" stroke="#EBEBF5" strokeWidth="5" />
+                  <circle cx="28" cy="28" r={r} fill="none" stroke="url(#pg)" strokeWidth="5"
+                    strokeLinecap="round" strokeDasharray={`${arc} ${full}`} />
                   <defs>
-                    <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#8B5CF6" />
+                    <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#7C3AED" />
                       <stop offset="100%" stopColor="#6366F1" />
                     </linearGradient>
                   </defs>
                 </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[13px] font-black text-gray-900">92</span>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: '#111827' }}>92</span>
                 </div>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-gray-800">/100</p>
-                <p className="text-[10px] text-green-600 font-semibold">Excellent</p>
-                <p className="text-[9px] text-green-500 mt-0.5">+7.2% vs last week</p>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>/100</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#10B981', marginTop: 1 }}>Excellent</div>
+                <div style={{ fontSize: 9, color: '#10B981', marginTop: 2 }}>+7.2% vs last week</div>
               </div>
             </div>
-            {/* Mini trend line */}
-            <div className="mt-2 flex items-end gap-0.5 h-4">
-              {[40, 55, 45, 60, 58, 70, 75].map((v, i) => (
-                <div key={i} className="flex-1 bg-gradient-to-t from-green-400 to-green-300 rounded-sm opacity-70"
-                  style={{ height: `${(v / 75) * 100}%` }} />
-              ))}
-            </div>
+            <SparkLine />
           </div>
         </div>
 
         {/* User profile */}
-        <div className="px-3 pb-3 border-t border-gray-100 pt-3 relative">
-          <button
-            onClick={() => setUserMenuOpen(!userMenuOpen)}
-            aria-label={`User menu for ${user?.first_name || 'Admin'}`}
-            className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-gray-50 transition-colors"
+        <div style={{ borderTop: '1px solid #EBEBF5', padding: '10px 10px', position: 'relative' }}>
+          <button onClick={() => setMenuOpen(!menuOpen)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 12, background: 'none', border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
-            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-              {userInitials}
+            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#7C3AED,#4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+              {initials}
             </div>
-            <div className="flex-1 min-w-0 text-left">
-              <p className="text-[11px] font-semibold text-gray-800 truncate">{user?.first_name || 'Admin'} {user?.last_name || 'User'}</p>
-              <p className="text-[9px] text-gray-400 capitalize">{userRole === 'admin' ? 'Super Admin' : userRole}</p>
-            </div>
-            <span className="w-2 h-2 bg-green-400 rounded-full shrink-0" />
-          </button>
-
-          {/* User dropdown */}
-          {userMenuOpen && (
-            <div className="absolute bottom-14 left-3 right-3 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50">
-              <div className="px-3 py-2 border-b border-gray-100">
-                <p className="text-[10px] font-semibold text-gray-800 truncate">{user?.email || 'admin@aegivion.io'}</p>
+            <div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user ? `${user.first_name || 'Admin'} ${user.last_name || 'User'}`.trim() : 'Admin User'}
               </div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-3 py-2 text-[10px] text-red-500 hover:bg-red-50 transition-colors"
+              <div style={{ fontSize: 9, color: '#9CA3AF', textTransform: 'capitalize' }}>
+                {userRole === 'admin' ? 'Super Admin' : userRole}
+              </div>
+            </div>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', flexShrink: 0 }} />
+          </button>
+          {menuOpen && (
+            <div style={{ position: 'absolute', bottom: 56, left: 10, right: 10, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 50 }}>
+              <div style={{ padding: '8px 12px', borderBottom: '1px solid #F3F4F6' }}>
+                <div style={{ fontSize: 10, color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'admin@aegivion.io'}</div>
+              </div>
+              <button onClick={handleLogout}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', fontSize: 10, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#FFF5F5')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
               >
-                <LogOut className="w-3 h-3" aria-hidden="true" />
-                Sign out
+                <LogOut style={{ width: 12, height: 12 }} />Sign out
               </button>
             </div>
           )}
         </div>
       </aside>
 
-      {/* â”€â”€â”€ Main content â”€â”€â”€ */}
-      <main className="flex-1 overflow-hidden flex flex-col">
+      {/* ── MAIN ── */}
+      <main style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {children}
       </main>
     </div>
   );
 }
+
