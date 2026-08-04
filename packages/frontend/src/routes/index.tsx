@@ -33,8 +33,10 @@ const defaultTopAssets = [
 
 /* ─────────── CLOUD TOPOLOGY VISUALIZATION ─────────── */
 function CloudTopology({ scanning }: { scanning: boolean }) {
+  const [paused, setPaused] = useState(false);
+
   return (
-    <div className="viz" id="vizBox" style={{ position: 'relative', borderRadius: 12, background: 'radial-gradient(120% 90% at 50% 40%,#101a35 0%,#0b1020 70%)', border: '1px solid #16203a', overflow: 'hidden' }}>
+    <div className={`viz ${paused ? 'paused' : ''}`} id="vizBox" style={{ position: 'relative', borderRadius: 12, background: 'radial-gradient(120% 90% at 50% 40%,#101a35 0%,#0b1020 70%)', border: '1px solid #16203a', overflow: 'hidden' }}>
       <svg viewBox="0 0 760 430" id="vizSvg" style={{ display: 'block', width: '100%', height: 'auto' }}>
         <defs>
           <linearGradient id="gCloud" x1="0" y1="-76" x2="0" y2="-8" gradientUnits="userSpaceOnUse">
@@ -52,17 +54,29 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
           <radialGradient id="gHalo"><stop offset="0" stopColor="#7c3aed" stopOpacity=".5" /><stop offset="1" stopColor="#7c3aed" stopOpacity="0" /></radialGradient>
           <filter id="fGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
           <marker id="mArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f97316" /></marker>
+          {/* orbit motion paths */}
+          <path id="orbitOuter" d="M50,235 a330,130 0 1,0 660,0 a330,130 0 1,0 -660,0"/>
+          <path id="orbitMid"   d="M120,235 a260,102 0 1,0 520,0 a260,102 0 1,0 -520,0"/>
+          <path id="orbitInner" d="M190,235 a190,74 0 1,0 380,0 a190,74 0 1,0 -380,0"/>
+          <path id="orbitCore"  d="M260,235 a120,46 0 1,0 240,0 a120,46 0 1,0 -240,0"/>
         </defs>
 
-        {/* orbital rings */}
-        <g id="rings" fill="none">
-          <ellipse className={`ringE ${scanning ? 'animate-dashmove' : ''}`} cx="380" cy="235" rx="330" ry="130" stroke="rgba(99,102,241,.35)" strokeDasharray="5 7" />
-          <ellipse className="ringE" cx="380" cy="235" rx="260" ry="102" stroke="rgba(59,130,246,.35)" />
+        {/* orbital rings (dashes always flowing) */}
+        <g fill="none">
+          <ellipse className="ringE" cx="380" cy="235" rx="330" ry="130" stroke="rgba(99,102,241,.35)" strokeDasharray="5 7" />
+          <ellipse className="ringE rev" cx="380" cy="235" rx="260" ry="102" stroke="rgba(59,130,246,.35)" strokeDasharray="1 5" />
           <ellipse className="ringE" cx="380" cy="235" rx="190" ry="74" stroke="rgba(59,130,246,.28)" strokeDasharray="3 6" />
-          <ellipse className="ringE" cx="380" cy="235" rx="120" ry="46" stroke="rgba(139,92,246,.4)" strokeDasharray="2 5" />
+          <ellipse className="ringE rev" cx="380" cy="235" rx="120" ry="46" stroke="rgba(139,92,246,.4)" strokeDasharray="2 5" />
           <path d="M62,225 A320,128 0 0 1 168,138" stroke="rgba(59,130,246,.7)" strokeWidth="1.6" />
           <path d="M127,318 A330,130 0 0 0 633,318" stroke="rgba(249,115,22,.25)" strokeWidth="5" />
           <path d="M127,318 A330,130 0 0 0 633,318" stroke="#f97316" strokeWidth="2.2" markerEnd="url(#mArrow)" />
+        </g>
+
+        {/* travelling light pulses (continuous rotation) */}
+        <g>
+          <ellipse className="pulseArc" cx="380" cy="235" rx="330" ry="130" stroke="#f97316" strokeWidth="2.5" opacity=".85" />
+          <ellipse className="pulseArc p2" cx="380" cy="235" rx="260" ry="102" stroke="#60a5fa" strokeWidth="2.5" opacity=".85" />
+          <ellipse className="pulseArc p3" cx="380" cy="235" rx="190" ry="74" stroke="#a78bfa" strokeWidth="2.5" opacity=".85" />
         </g>
 
         {/* ring labels */}
@@ -73,14 +87,14 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
           <text x="556" y="345" transform="rotate(-33 556 345)">COMPUTE</text>
         </g>
 
-        {/* glowing dots */}
+        {/* orbiting glowing dots */}
         <g filter="url(#fGlow)">
-          <circle cx="298" cy="208" r="3" fill="#f472b6" />
-          <circle cx="516" cy="204" r="3" fill="#60a5fa" />
-          <circle cx="612" cy="246" r="3.5" fill="#fb923c" />
-          <circle cx="430" cy="334" r="3.5" fill="#f87171" />
-          <circle cx="218" cy="258" r="3" fill="#fb923c" />
-          <circle cx="340" cy="300" r="2.6" fill="#34d399" />
+          <circle r="3.2" fill="#f472b6"><animateMotion dur="16s" repeatCount="indefinite"><mpath href="#orbitOuter"/></animateMotion></circle>
+          <circle r="3.5" fill="#fb923c"><animateMotion dur="16s" begin="-8s" repeatCount="indefinite"><mpath href="#orbitOuter"/></animateMotion></circle>
+          <circle r="3.2" fill="#60a5fa"><animateMotion dur="11s" repeatCount="indefinite" calcMode="linear" keyPoints="1;0" keyTimes="0;1"><mpath href="#orbitMid"/></animateMotion></circle>
+          <circle r="3.5" fill="#f87171"><animateMotion dur="11s" begin="-5.5s" repeatCount="indefinite" calcMode="linear" keyPoints="1;0" keyTimes="0;1"><mpath href="#orbitMid"/></animateMotion></circle>
+          <circle r="2.8" fill="#34d399"><animateMotion dur="8s" repeatCount="indefinite"><mpath href="#orbitInner"/></animateMotion></circle>
+          <circle r="2.6" fill="#fbbf24"><animateMotion dur="6s" repeatCount="indefinite" calcMode="linear" keyPoints="1;0" keyTimes="0;1"><mpath href="#orbitCore"/></animateMotion></circle>
         </g>
 
         {/* central shield platform */}
@@ -160,17 +174,21 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
         </g>
         <g transform="translate(579,301)">
           <circle r="20" fill="#1d4ed8" stroke="#60a5fa" strokeWidth="1.5" filter="url(#fGlow)" />
-          <g fill="none" stroke="#fff" strokeWidth="1.7" strokeLinecap="round">
+          <g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round">
             <ellipse cx="0" cy="-6" rx="7" ry="2.8" /><path d="M-7,-6v12c0,1.6 3.1,2.9 7,2.9s7-1.3 7-2.9V-6" /><path d="M-7,0c0,1.6 3.1,2.9 7,2.9s7-1.3 7-2.9" />
           </g>
         </g>
       </svg>
       <div className="status-pill animate-blink" style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(10,16,32,.85)', border: '1px solid rgba(34,197,94,.35)', color: '#4ade80', fontSize: '11.5px', fontWeight: 600, padding: '6px 14px', borderRadius: 999, backdropFilter: 'blur(4px)' }}>
-        <i style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 8px var(--green)' }}></i>All Systems Operational
+        <i style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 8px var(--green)' }}></i>
+        <button onClick={() => setPaused(!paused)} style={{ background: 'none', border: 'none', color: 'inherit', fontWeight: 'inherit', fontSize: 'inherit', padding: 0 }}>
+          {paused ? 'Auto-rotation Paused' : 'All Systems Operational'}
+        </button>
       </div>
     </div>
   );
 }
+
 
 
 /* ─────────── MAIN DASHBOARD PAGE ─────────── */
