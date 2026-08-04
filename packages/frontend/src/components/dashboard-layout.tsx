@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import { useAuthStore } from '@/store/auth-store';
 import { useUIStore } from '@/store/ui-store';
@@ -45,13 +45,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const logout = useAuthStore((s: any) => s.logout);
   const { isCollapsed, toggleSidebar } = useUIStore();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openPop, setOpenPop] = useState<'bell' | 'help' | null>(null);
+  const [badge, setBadge] = useState(3);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setOpenPop(null);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('aegivion-theme') as 'dark' | 'light' || 'dark';
     setTheme(savedTheme);
     document.body.className = savedTheme;
   }, []);
+
 
 
   const toggleTheme = (newTheme: 'dark' | 'light') => {
@@ -262,14 +277,91 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <p style={{ color: 'var(--muted)', fontSize: 12.5, marginTop: 3 }}>Aegivion AI is actively protecting your cloud environment.</p>
           </div>
           
-          <div className="top-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 9 }}>
-            <button className="icon-btn" title="Notifications" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center', position: 'relative' }}>
-              <Bell style={{ width: 17, height: 17 }} />
-              <span className="badge" style={{ position: 'absolute', top: -4, right: -4, width: 17, height: 17, borderRadius: '50%', background: 'var(--accent)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'grid', placeItems: 'center' }}>3</span>
-            </button>
-            <button className="icon-btn" title="Help" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center' }}>
-              <HelpCircle style={{ width: 17, height: 17 }} />
-            </button>
+          <div className="top-actions" ref={popoverRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 9 }}>
+            {/* Notifications Group */}
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <button 
+                onClick={() => {
+                  setOpenPop(openPop === 'bell' ? null : 'bell');
+                  if (openPop !== 'bell') setBadge(0);
+                }} 
+                className="icon-btn" 
+                title="Notifications" 
+                style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center', position: 'relative' }}
+              >
+                <Bell style={{ width: 17, height: 17 }} />
+                {badge > 0 && (
+                  <span className="badge" style={{ position: 'absolute', top: -4, right: -4, width: 17, height: 17, borderRadius: '50%', background: 'var(--accent)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'grid', placeItems: 'center' }}>
+                    {badge}
+                  </span>
+                )}
+              </button>
+              {openPop === 'bell' && (
+                <div 
+                  className="popover open" 
+                  style={{ 
+                    position: 'absolute', right: 0, top: 'calc(100% + 12px)', width: 310, 
+                    background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 14, 
+                    boxShadow: '0 18px 50px rgba(0,0,0,.45)', zIndex: 900, overflow: 'hidden' 
+                  }}
+                >
+                  <h3 style={{ fontSize: '11px', letterSpacing: '1.2px', padding: '13px 16px 10px', borderBottom: '1px solid var(--border)', color: 'var(--muted)', fontWeight: 700 }}>NOTIFICATIONS</h3>
+                  <div style={{ display: 'flex', gap: 12, padding: '12px 16px', alignItems: 'flex-start', borderBottom: '1px solid var(--border)' }}>
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', marginTop: 5, flex: 'none', background: '#ef4444' }} />
+                    <div>
+                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text)' }}>Critical misconfiguration</div>
+                      <div style={{ fontSize: '10.5px', color: 'var(--muted)', marginTop: 3 }}>AWS S3 bucket policy exposed · 2m ago</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, padding: '12px 16px', alignItems: 'flex-start', borderBottom: '1px solid var(--border)' }}>
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', marginTop: 5, flex: 'none', background: '#3b82f6' }} />
+                    <div>
+                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text)' }}>New asset discovered</div>
+                      <div style={{ fontSize: '10.5px', color: 'var(--muted)', marginTop: 3 }}>GCP compute instance · 1h ago</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, padding: '12px 16px', alignItems: 'flex-start' }}>
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', marginTop: 5, flex: 'none', background: '#22c55e' }} />
+                    <div>
+                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text)' }}>Compliance report ready</div>
+                      <div style={{ fontSize: '10.5px', color: 'var(--muted)', marginTop: 3 }}>6/8 controls compliant · 3h ago</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Help Group */}
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <button 
+                onClick={() => setOpenPop(openPop === 'help' ? null : 'help')} 
+                className="icon-btn" 
+                title="Help" 
+                style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center' }}
+              >
+                <HelpCircle style={{ width: 17, height: 17 }} />
+              </button>
+              {openPop === 'help' && (
+                <div 
+                  className="popover open" 
+                  style={{ 
+                    position: 'absolute', right: 0, top: 'calc(100% + 12px)', width: 310, 
+                    background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 14, 
+                    boxShadow: '0 18px 50px rgba(0,0,0,.45)', zIndex: 900, overflow: 'hidden' 
+                  }}
+                >
+                  <h3 style={{ fontSize: '11px', letterSpacing: '1.2px', padding: '13px 16px 10px', borderBottom: '1px solid var(--border)', color: 'var(--muted)', fontWeight: 700 }}>QUICK HELP</h3>
+                  <ul style={{ padding: '12px 18px 16px', fontSize: '11.5px', color: 'var(--muted)', margin: 0, listStyleType: 'disc' }}>
+                    <li style={{ marginBottom: 6 }}><b>Hover</b> the orbit to pause rotation.</li>
+                    <li style={{ marginBottom: 6 }}><b>↻</b> resets the orbit position.</li>
+                    <li style={{ marginBottom: 6 }}><b>🌙 / ☀</b> toggles dark / light theme.</li>
+                    <li style={{ marginBottom: 6 }}><b>🔔</b> opens live security alerts.</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Theme Toggle Button */}
             {theme === 'dark' ? (
               <button onClick={() => toggleTheme('light')} className="icon-btn" title="Light mode" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center' }}>
                 <Sun style={{ width: 17, height: 17 }} />
