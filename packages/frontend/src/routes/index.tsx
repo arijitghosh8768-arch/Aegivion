@@ -60,13 +60,13 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
           <ellipse className="ringE" cx="380" cy="235" rx="260" ry="102" stroke="rgba(59,130,246,.35)" />
           <ellipse className="ringE" cx="380" cy="235" rx="190" ry="74" stroke="rgba(59,130,246,.28)" strokeDasharray="3 6" />
           <ellipse className="ringE" cx="380" cy="235" rx="120" ry="46" stroke="rgba(139,92,246,.4)" strokeDasharray="2 5" />
-          <path d="M62,225 A320,128 0 0 1 168,138" stroke="rgba(59,130,246,.7)" stroke-width="1.6" />
-          <path d="M127,318 A330,130 0 0 0 633,318" stroke="rgba(249,115,22,.25)" stroke-width="5" />
-          <path d="M127,318 A330,130 0 0 0 633,318" stroke="#f97316" stroke-width="2.2" marker-end="url(#mArrow)" />
+          <path d="M62,225 A320,128 0 0 1 168,138" stroke="rgba(59,130,246,.7)" strokeWidth="1.6" />
+          <path d="M127,318 A330,130 0 0 0 633,318" stroke="rgba(249,115,22,.25)" strokeWidth="5" />
+          <path d="M127,318 A330,130 0 0 0 633,318" stroke="#f97316" strokeWidth="2.2" markerEnd="url(#mArrow)" />
         </g>
 
         {/* ring labels */}
-        <g fill="#64748b" font-size="10" letter-spacing="3" font-weight="600">
+        <g fill="#64748b" fontSize="10" letterSpacing="3" fontWeight="600">
           <text x="252" y="126" transform="rotate(-21 252 126)">IDENTITIES</text>
           <text x="298" y="163" transform="rotate(-21 298 163)">NETWORK</text>
           <text x="196" y="330" transform="rotate(33 196 330)">APPLICATIONS</text>
@@ -91,8 +91,8 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
           <path d="M0,-30 L96,18 L0,66 L-96,18 Z" fill="url(#gSlab)" stroke="rgba(139,92,246,.4)" />
           <path d="M0,-12 L58,16 L0,44 L-58,16 Z" fill="rgba(99,102,241,.14)" stroke="rgba(139,92,246,.55)" />
           <g filter="url(#fGlow)">
-            <path d="M0,-122 L37,-108 V-74 Q37,-42 0,-24 Q-37,-42 -37,-74 V-108 Z" fill="url(#gShield)" stroke="#c4b5fd" stroke-width="1.6" />
-            <path d="M0,-106 L24,-97 V-74 Q24,-52 0,-40 Q-24,-52 -24,-74 V-97 Z" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.75)" stroke-width="1.4" />
+            <path d="M0,-122 L37,-108 V-74 Q37,-42 0,-24 Q-37,-42 -37,-74 V-108 Z" fill="url(#gShield)" stroke="#c4b5fd" strokeWidth="1.6" />
+            <path d="M0,-106 L24,-97 V-74 Q24,-52 0,-40 Q-24,-52 -24,-74 V-97 Z" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.75)" strokeWidth="1.4" />
           </g>
         </g>
 
@@ -105,11 +105,11 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
             <circle cx="-24" cy="-42" r="19" /><circle cx="0" cy="-52" r="25" /><circle cx="24" cy="-40" r="17" />
             <rect x="-42" y="-42" width="84" height="26" rx="13" />
           </g>
-          <text y="-24" text-anchor="middle" font-size="19" font-weight="800" fill="#101828">aws</text>
-          <path d="M-14,-20 Q0,-12 14,-21" fill="none" stroke="#f97316" stroke-width="2.6" stroke-linecap="round" />
+          <text y="-24" textAnchor="middle" fontSize="19" fontWeight="800" fill="#101828">aws</text>
+          <path d="M-14,-20 Q0,-12 14,-21" fill="none" stroke="#f97316" strokeWidth="2.6" strokeLinecap="round" />
         </g>
-        <g font-size="10.5" text-anchor="start">
-          <text x="448" y="80" fill="#4ade80" font-weight="700">Secure</text>
+        <g fontSize="10.5" textAnchor="start">
+          <text x="448" y="80" fill="#4ade80" fontWeight="700">Secure</text>
           <text x="448" y="95" fill="#8b96ad">12 Assets</text>
         </g>
 
@@ -122,10 +122,10 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
             <circle cx="-23" cy="-41" r="18" /><circle cx="0" cy="-50" r="24" /><circle cx="23" cy="-39" r="16" />
             <rect x="-40" y="-41" width="80" height="25" rx="12.5" />
           </g>
-          <text y="-20" text-anchor="middle" font-size="27" font-weight="800" fill="url(#gAzure)" transform="skewX(-6)">A</text>
+          <text y="-20" textAnchor="middle" fontSize="27" fontWeight="800" fill="url(#gAzure)" transform="skewX(-6)">A</text>
         </g>
-        <g font-size="10.5" text-anchor="middle">
-          <text x="96" y="262" fill="#4ade80" font-weight="700">Secure</text>
+        <g fontSize="10.5" textAnchor="middle">
+          <text x="96" y="262" fill="#4ade80" fontWeight="700">Secure</text>
           <text x="96" y="277" fill="#8b96ad">10 Assets</text>
         </g>
 
@@ -138,29 +138,29 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
             <circle cx="-23" cy="-41" r="18" /><circle cx="0" cy="-50" r="24" /><circle cx="23" cy="-39" r="16" />
             <rect x="-40" y="-41" width="80" height="25" rx="12.5" />
           </g>
-          <g transform="translate(0,-32)" fill="none" stroke-width="5.5">
-            <circle r="10" stroke="#ea4335" stroke-dasharray="15.7 47.1" transform="rotate(-90)" />
-            <circle r="10" stroke="#4285f4" stroke-dasharray="15.7 47.1" />
-            <circle r="10" stroke="#34a853" stroke-dasharray="15.7 47.1" transform="rotate(90)" />
-            <circle r="10" stroke="#fbbc05" stroke-dasharray="15.7 47.1" transform="rotate(180)" />
+          <g transform="translate(0,-32)" fill="none" strokeWidth="5.5">
+            <circle r="10" stroke="#ea4335" strokeDasharray="15.7 47.1" transform="rotate(-90)" />
+            <circle r="10" stroke="#4285f4" strokeDasharray="15.7 47.1" />
+            <circle r="10" stroke="#34a853" strokeDasharray="15.7 47.1" transform="rotate(90)" />
+            <circle r="10" stroke="#fbbc05" strokeDasharray="15.7 47.1" transform="rotate(180)" />
           </g>
         </g>
-        <g font-size="10.5" text-anchor="middle">
-          <text x="664" y="262" fill="#4ade80" font-weight="700">Secure</text>
+        <g fontSize="10.5" textAnchor="middle">
+          <text x="664" y="262" fill="#4ade80" fontWeight="700">Secure</text>
           <text x="664" y="277" fill="#8b96ad">10 Assets</text>
         </g>
 
         {/* node badges */}
         <g transform="translate(181,301)">
-          <circle r="23" fill="#6d28d9" stroke="#a78bfa" stroke-width="1.5" filter="url(#fGlow)" />
-          <g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round">
+          <circle r="23" fill="#6d28d9" stroke="#a78bfa" strokeWidth="1.5" filter="url(#fGlow)" />
+          <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="-3.5" cy="-4" r="3.4" /><path d="M-9.5,7c.6-3.6 3-5.6 6-5.6s5.4 2 6 5.6" />
             <circle cx="5.5" cy="-3" r="2.7" /><path d="M5.5,1.6c2.6,0 4.6,1.8 5.2,4.8" />
           </g>
         </g>
         <g transform="translate(579,301)">
-          <circle r="20" fill="#1d4ed8" stroke="#60a5fa" stroke-width="1.5" filter="url(#fGlow)" />
-          <g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round">
+          <circle r="20" fill="#1d4ed8" stroke="#60a5fa" strokeWidth="1.5" filter="url(#fGlow)" />
+          <g fill="none" stroke="#fff" strokeWidth="1.7" strokeLinecap="round">
             <ellipse cx="0" cy="-6" rx="7" ry="2.8" /><path d="M-7,-6v12c0,1.6 3.1,2.9 7,2.9s7-1.3 7-2.9V-6" /><path d="M-7,0c0,1.6 3.1,2.9 7,2.9s7-1.3 7-2.9" />
           </g>
         </g>
@@ -171,6 +171,7 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
     </div>
   );
 }
+
 
 /* ─────────── MAIN DASHBOARD PAGE ─────────── */
 function DashboardPage() {
