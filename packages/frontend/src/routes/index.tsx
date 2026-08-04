@@ -33,161 +33,288 @@ const defaultTopAssets = [
 
 /* ─────────── CLOUD TOPOLOGY VISUALIZATION ─────────── */
 function CloudTopology({ scanning }: { scanning: boolean }) {
+  const [angle, setAngle] = useState(-90);
   const [paused, setPaused] = useState(false);
+  const [dimensions, setDimensions] = useState({ w: 0, cx: 0, cy: 0, rx: 0, ry: 0 });
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const cloudSVG = `
+    <svg class="cloud-svg" viewBox="0 0 72 48" style="width:100%; height:100%; filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))">
+      <g fill="url(#cg)">
+        <circle cx="24" cy="30" r="13"/>
+        <circle cx="37" cy="19" r="15"/>
+        <circle cx="51" cy="30" r="12"/>
+        <rect x="21" y="27" width="32" height="16" rx="8"/>
+      </g>
+    </svg>`;
+
+  const awsLogo = `
+    <span class="logo aws" style="position:absolute; left:50%; top:56%; transform:translate(-50%,-50%); line-height:1; color:#232f3e; font-weight:800; font-size:1.05rem; letter-spacing:.5px">aws
+      <svg class="smile" viewBox="0 0 60 12" style="position:absolute; left:50%; transform:translateX(-50%); bottom:-7px; width:36px; height:8px">
+        <path d="M3 3 C 18 11, 40 11, 52 4" fill="none" stroke="#ff9900" strokeWidth="3.5" strokeLinecap="round"/>
+        <path d="M52 4 l-7 -1.5 M52 4 l-4.5 5" fill="none" stroke="#ff9900" strokeWidth="3" strokeLinecap="round"/>
+      </svg>
+    </span>`;
+
+  const azureLogo = `<span class="logo azure" style="position:absolute; left:50%; top:56%; transform:translate(-50%,-50%); line-height:1; color:#0078d4; font-weight:800; font-size:1.3rem">A</span>`;
+
+  const googleLogo = `
+    <span class="logo gcp" style="position:absolute; left:50%; top:56%; transform:translate(-50%,-50%); line-height:1">
+      <svg viewBox="0 0 48 48" style="width:24px; height:24px; display:block">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+    </span>`;
+
+  const iconSVG = {
+    identities: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+        <circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.4 2.8-5 5.5-5s4.9 1.6 5.5 5"/>
+        <circle cx="16.5" cy="9" r="2.6"/><path d="M15.5 14.2c2.3.2 4.2 1.7 4.8 4.8"/></svg>`,
+    compute: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+        <ellipse cx="12" cy="5.5" rx="7" ry="3"/><path d="M5 5.5v13c0 1.7 3.1 3 7 3s7-1.3 7-3v-13"/>
+        <path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>`
+  };
+
+  const nodesData = [
+    { kind: 'cloud', logo: awsLogo, assets: 12, label: 'aws' },
+    { kind: 'cloud', logo: azureLogo, assets: 10, label: 'azure' },
+    { kind: 'icon', icon: 'identities', label: 'identities' },
+    { kind: 'cloud', logo: googleLogo, assets: 10, label: 'gcp' },
+    { kind: 'icon', icon: 'compute', label: 'compute' }
+  ];
+
+  const handleResize = () => {
+    if (containerRef.current) {
+      const r = containerRef.current.getBoundingClientRect();
+      const w = r.width;
+      const h = 380; // Fixed stage height inside panel layout
+      const cx = w / 2;
+      const cy = h * 0.52;
+      const rx = Math.min(w * 0.36, 350);
+      const ry = rx * 0.44;
+      setDimensions({ w, cx, cy, rx, ry });
+    }
+  };
+
+  useEffect(() => {
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (paused) return;
+    const SPEED = 14; // degrees per second
+    let lastTime = performance.now();
+    let frameId: number;
+
+    const tick = (now: number) => {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      setAngle(prev => (prev + dt * SPEED) % 360);
+      frameId = requestAnimationFrame(tick);
+    };
+
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, [paused]);
+
+  const resetRotation = () => {
+    setAngle(-90);
+  };
+
+  const STEP = 360 / nodesData.length;
 
   return (
-    <div className={`viz ${paused ? 'paused' : ''}`} id="vizBox" style={{ position: 'relative', borderRadius: 12, background: 'radial-gradient(120% 90% at 50% 40%,#101a35 0%,#0b1020 70%)', border: '1px solid #16203a', overflow: 'hidden' }}>
-      <svg viewBox="0 0 760 430" id="vizSvg" style={{ display: 'block', width: '100%', height: 'auto' }}>
+    <div 
+      className="viz-container" 
+      style={{ 
+        position: 'relative', 
+        borderRadius: 20, 
+        background: 'var(--panel)', 
+        border: '1px solid rgba(99,102,241,.25)', 
+        padding: '20px 24px', 
+        boxShadow: 'var(--shadow)' 
+      }}
+    >
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
-          <linearGradient id="gCloud" x1="0" y1="-76" x2="0" y2="-8" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#b9c3d4" />
+          <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#ffffff"/><stop offset="1" stopColor="#c7d2e6"/>
           </linearGradient>
-          <linearGradient id="gSlab" x1="0" y1="-30" x2="0" y2="40" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#2a3757" /><stop offset="1" stopColor="#141d36" />
+          <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#a78bfa"/><stop offset="1" stopColor="#6d28d9"/>
           </linearGradient>
-          <linearGradient id="gShield" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#a78bfa" /><stop offset=".55" stopColor="#7c3aed" /><stop offset="1" stopColor="#4c1d95" />
+          <linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#ff7a1a"/><stop offset=".5" stopColor="#ffb067"/><stop offset="1" stopColor="#ff7a1a"/>
           </linearGradient>
-          <linearGradient id="gAzure" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#35b6f0" /><stop offset="1" stopColor="#1d4ed8" />
-          </linearGradient>
-          <radialGradient id="gHalo"><stop offset="0" stopColor="#7c3aed" stopOpacity=".5" /><stop offset="1" stopColor="#7c3aed" stopOpacity="0" /></radialGradient>
-          <filter id="fGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-          <marker id="mArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f97316" /></marker>
-          {/* orbit motion paths */}
-          <path id="orbitOuter" d="M50,235 a330,130 0 1,0 660,0 a330,130 0 1,0 -660,0"/>
-          <path id="orbitMid"   d="M120,235 a260,102 0 1,0 520,0 a260,102 0 1,0 -520,0"/>
-          <path id="orbitInner" d="M190,235 a190,74 0 1,0 380,0 a190,74 0 1,0 -380,0"/>
-          <path id="orbitCore"  d="M260,235 a120,46 0 1,0 240,0 a120,46 0 1,0 -240,0"/>
         </defs>
-
-        {/* orbital rings (dashes always flowing) */}
-        <g fill="none">
-          <ellipse className="ringE" cx="380" cy="235" rx="330" ry="130" stroke="rgba(99,102,241,.35)" strokeDasharray="5 7" />
-          <ellipse className="ringE rev" cx="380" cy="235" rx="260" ry="102" stroke="rgba(59,130,246,.35)" strokeDasharray="1 5" />
-          <ellipse className="ringE" cx="380" cy="235" rx="190" ry="74" stroke="rgba(59,130,246,.28)" strokeDasharray="3 6" />
-          <ellipse className="ringE rev" cx="380" cy="235" rx="120" ry="46" stroke="rgba(139,92,246,.4)" strokeDasharray="2 5" />
-          <path d="M62,225 A320,128 0 0 1 168,138" stroke="rgba(59,130,246,.7)" strokeWidth="1.6" />
-          <path d="M127,318 A330,130 0 0 0 633,318" stroke="rgba(249,115,22,.25)" strokeWidth="5" />
-          <path d="M127,318 A330,130 0 0 0 633,318" stroke="#f97316" strokeWidth="2.2" markerEnd="url(#mArrow)" />
-        </g>
-
-        {/* travelling light pulses (continuous rotation) */}
-        <g>
-          <ellipse className="pulseArc" cx="380" cy="235" rx="330" ry="130" stroke="#f97316" strokeWidth="2.5" opacity=".85" />
-          <ellipse className="pulseArc p2" cx="380" cy="235" rx="260" ry="102" stroke="#60a5fa" strokeWidth="2.5" opacity=".85" />
-          <ellipse className="pulseArc p3" cx="380" cy="235" rx="190" ry="74" stroke="#a78bfa" strokeWidth="2.5" opacity=".85" />
-        </g>
-
-        {/* ring labels */}
-        <g fill="#64748b" fontSize="10" letterSpacing="3" fontWeight="600">
-          <text x="252" y="126" transform="rotate(-21 252 126)">IDENTITIES</text>
-          <text x="298" y="163" transform="rotate(-21 298 163)">NETWORK</text>
-          <text x="196" y="330" transform="rotate(33 196 330)">APPLICATIONS</text>
-          <text x="556" y="345" transform="rotate(-33 556 345)">COMPUTE</text>
-        </g>
-
-        {/* orbiting glowing dots */}
-        <g filter="url(#fGlow)">
-          <circle r="3.2" fill="#f472b6"><animateMotion dur="16s" repeatCount="indefinite"><mpath href="#orbitOuter"/></animateMotion></circle>
-          <circle r="3.5" fill="#fb923c"><animateMotion dur="16s" begin="-8s" repeatCount="indefinite"><mpath href="#orbitOuter"/></animateMotion></circle>
-          <circle r="3.2" fill="#60a5fa"><animateMotion dur="11s" repeatCount="indefinite" calcMode="linear" keyPoints="1;0" keyTimes="0;1"><mpath href="#orbitMid"/></animateMotion></circle>
-          <circle r="3.5" fill="#f87171"><animateMotion dur="11s" begin="-5.5s" repeatCount="indefinite" calcMode="linear" keyPoints="1;0" keyTimes="0;1"><mpath href="#orbitMid"/></animateMotion></circle>
-          <circle r="2.8" fill="#34d399"><animateMotion dur="8s" repeatCount="indefinite"><mpath href="#orbitInner"/></animateMotion></circle>
-          <circle r="2.6" fill="#fbbf24"><animateMotion dur="6s" repeatCount="indefinite" calcMode="linear" keyPoints="1;0" keyTimes="0;1"><mpath href="#orbitCore"/></animateMotion></circle>
-        </g>
-
-        {/* central shield platform */}
-        <g transform="translate(380,235)">
-          <circle className="shieldGlow animate-pulse-slow" r="86" cy="-40" fill="url(#gHalo)" />
-          <path d="M-96,18 L-96,30 L0,78 L0,66 Z" fill="#0b1226" />
-          <path d="M96,18 L96,30 L0,78 L0,66 Z" fill="#182444" />
-          <path d="M0,-30 L96,18 L0,66 L-96,18 Z" fill="url(#gSlab)" stroke="rgba(139,92,246,.4)" />
-          <path d="M0,-12 L58,16 L0,44 L-58,16 Z" fill="rgba(99,102,241,.14)" stroke="rgba(139,92,246,.55)" />
-          <g filter="url(#fGlow)">
-            <path d="M0,-122 L37,-108 V-74 Q37,-42 0,-24 Q-37,-42 -37,-74 V-108 Z" fill="url(#gShield)" stroke="#c4b5fd" strokeWidth="1.6" />
-            <path d="M0,-106 L24,-97 V-74 Q24,-52 0,-40 Q-24,-52 -24,-74 V-97 Z" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.75)" strokeWidth="1.4" />
-          </g>
-        </g>
-
-        {/* AWS cloud (top) */}
-        <g transform="translate(380,96)">
-          <ellipse cy="6" rx="62" ry="10" fill="#000" opacity=".35" />
-          <path d="M-56,0 L-56,10 L0,38 L0,28 Z" fill="#0b1226" /><path d="M56,0 L56,10 L0,38 L0,28 Z" fill="#182444" />
-          <path d="M0,-28 L56,0 L0,28 L-56,0 Z" fill="url(#gSlab)" stroke="rgba(59,130,246,.35)" />
-          <g fill="url(#gCloud)">
-            <circle cx="-24" cy="-42" r="19" /><circle cx="0" cy="-52" r="25" /><circle cx="24" cy="-40" r="17" />
-            <rect x="-42" y="-42" width="84" height="26" rx="13" />
-          </g>
-          <text y="-24" textAnchor="middle" fontSize="19" fontWeight="800" fill="#101828">aws</text>
-          <path d="M-14,-20 Q0,-12 14,-21" fill="none" stroke="#f97316" strokeWidth="2.6" strokeLinecap="round" />
-        </g>
-        <g fontSize="10.5" textAnchor="start">
-          <text x="448" y="80" fill="#4ade80" fontWeight="700">Secure</text>
-          <text x="448" y="95" fill="#8b96ad">12 Assets</text>
-        </g>
-
-        {/* Azure cloud (left) */}
-        <g transform="translate(140,178)">
-          <ellipse cy="6" rx="60" ry="9" fill="#000" opacity=".35" />
-          <path d="M-54,0 L-54,10 L0,37 L0,27 Z" fill="#0b1226" /><path d="M54,0 L54,10 L0,37 L0,27 Z" fill="#182444" />
-          <path d="M0,-27 L54,0 L0,27 L-54,0 Z" fill="url(#gSlab)" stroke="rgba(59,130,246,.35)" />
-          <g fill="url(#gCloud)">
-            <circle cx="-23" cy="-41" r="18" /><circle cx="0" cy="-50" r="24" /><circle cx="23" cy="-39" r="16" />
-            <rect x="-40" y="-41" width="80" height="25" rx="12.5" />
-          </g>
-          <text y="-20" textAnchor="middle" fontSize="27" fontWeight="800" fill="url(#gAzure)" transform="skewX(-6)">A</text>
-        </g>
-        <g fontSize="10.5" textAnchor="middle">
-          <text x="96" y="262" fill="#4ade80" fontWeight="700">Secure</text>
-          <text x="96" y="277" fill="#8b96ad">10 Assets</text>
-        </g>
-
-        {/* GCP cloud (right) */}
-        <g transform="translate(620,178)">
-          <ellipse cy="6" rx="60" ry="9" fill="#000" opacity=".35" />
-          <path d="M-54,0 L-54,10 L0,37 L0,27 Z" fill="#0b1226" /><path d="M54,0 L54,10 L0,37 L0,27 Z" fill="#182444" />
-          <path d="M0,-27 L54,0 L0,27 L-54,0 Z" fill="url(#gSlab)" stroke="rgba(59,130,246,.35)" />
-          <g fill="url(#gCloud)">
-            <circle cx="-23" cy="-41" r="18" /><circle cx="0" cy="-50" r="24" /><circle cx="23" cy="-39" r="16" />
-            <rect x="-40" y="-41" width="80" height="25" rx="12.5" />
-          </g>
-          <g transform="translate(0,-32)" fill="none" strokeWidth="5.5">
-            <circle r="10" stroke="#ea4335" strokeDasharray="15.7 47.1" transform="rotate(-90)" />
-            <circle r="10" stroke="#4285f4" strokeDasharray="15.7 47.1" />
-            <circle r="10" stroke="#34a853" strokeDasharray="15.7 47.1" transform="rotate(90)" />
-            <circle r="10" stroke="#fbbc05" strokeDasharray="15.7 47.1" transform="rotate(180)" />
-          </g>
-        </g>
-        <g fontSize="10.5" textAnchor="middle">
-          <text x="664" y="262" fill="#4ade80" fontWeight="700">Secure</text>
-          <text x="664" y="277" fill="#8b96ad">10 Assets</text>
-        </g>
-
-        {/* node badges */}
-        <g transform="translate(181,301)">
-          <circle r="23" fill="#6d28d9" stroke="#a78bfa" strokeWidth="1.5" filter="url(#fGlow)" />
-          <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round">
-            <circle cx="-3.5" cy="-4" r="3.4" /><path d="M-9.5,7c.6-3.6 3-5.6 6-5.6s5.4 2 6 5.6" />
-            <circle cx="5.5" cy="-3" r="2.7" /><path d="M5.5,1.6c2.6,0 4.6,1.8 5.2,4.8" />
-          </g>
-        </g>
-        <g transform="translate(579,301)">
-          <circle r="20" fill="#1d4ed8" stroke="#60a5fa" strokeWidth="1.5" filter="url(#fGlow)" />
-          <g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round">
-            <ellipse cx="0" cy="-6" rx="7" ry="2.8" /><path d="M-7,-6v12c0,1.6 3.1,2.9 7,2.9s7-1.3 7-2.9V-6" /><path d="M-7,0c0,1.6 3.1,2.9 7,2.9s7-1.3 7-2.9" />
-          </g>
-        </g>
       </svg>
-      <div className="status-pill animate-blink" style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(10,16,32,.85)', border: '1px solid rgba(34,197,94,.35)', color: '#4ade80', fontSize: '11.5px', fontWeight: 600, padding: '6px 14px', borderRadius: 999, backdropFilter: 'blur(4px)' }}>
-        <i style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 8px var(--green)' }}></i>
-        <button onClick={() => setPaused(!paused)} style={{ background: 'none', border: 'none', color: 'inherit', fontWeight: 'inherit', fontSize: 'inherit', padding: 0 }}>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div>
+          <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', letterSpacing: '1px' }}>CLOUD ENVIRONMENT OVERVIEW</h3>
+          <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 2 }}>Real-time 360° security visualization — single linked orbit</p>
+        </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button 
+            onClick={resetRotation}
+            style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(30,40,70,.6)', border: '1px solid rgba(99,102,241,.3)', color: '#aeb6d0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+            title="Reset rotation"
+          >
+            ↻
+          </button>
+          <div style={{ background: 'rgba(30,40,70,.6)', border: '1px solid rgba(99,102,241,.3)', padding: '4px 10px', borderRadius: 12, fontSize: 10, fontWeight: 700, color: '#a5b4fc' }}>
+            {Math.round(((angle + 90) % 360 + 360) % 360)}°
+          </div>
+        </div>
+      </div>
+
+      <div 
+        ref={containerRef}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        className="stage" 
+        style={{ 
+          position: 'relative', 
+          height: 380, 
+          borderRadius: 16, 
+          overflow: 'hidden', 
+          background: 'radial-gradient(ellipse at 50% 45%, #10173a 0%, #060a1c 75%)', 
+          border: '1px solid rgba(99,102,241,.15)' 
+        }}
+      >
+        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}>
+          <ellipse 
+            cx={dimensions.cx} 
+            cy={dimensions.cy} 
+            rx={dimensions.rx} 
+            ry={dimensions.ry} 
+            fill="none" 
+            stroke="url(#rg)" 
+            strokeWidth="2.5" 
+            style={{ filter: 'drop-shadow(0 0 6px rgba(255,122,26,.65))' }}
+          />
+          <ellipse 
+            cx={dimensions.cx} 
+            cy={dimensions.cy} 
+            rx={dimensions.rx} 
+            ry={dimensions.ry} 
+            fill="none" 
+            stroke="#ffd9b0" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeDasharray="4 22" 
+            style={{ 
+              opacity: 0.8,
+              animation: paused ? 'none' : 'flow 5s linear infinite',
+            }}
+          />
+        </svg>
+
+        <span className="ring-label" style={{ position: 'absolute', color: 'rgba(160,168,192,.45)', fontSize: '.72rem', fontWeight: 700, letterSpacing: '3px', pointerEvents: 'none', left: '15%', top: '19%', transform: 'rotate(-24deg)' }}>IDENTITIES</span>
+        <span className="ring-label" style={{ position: 'absolute', color: 'rgba(160,168,192,.45)', fontSize: '.72rem', fontWeight: 700, letterSpacing: '3px', pointerEvents: 'none', left: '35%', top: '31%', transform: 'rotate(-14deg)' }}>NETWORK</span>
+        <span className="ring-label" style={{ position: 'absolute', color: 'rgba(160,168,192,.45)', fontSize: '.72rem', fontWeight: 700, letterSpacing: '3px', pointerEvents: 'none', left: '17%', bottom: '13%', transform: 'rotate(24deg)' }}>APPLICATIONS</span>
+        <span className="ring-label" style={{ position: 'absolute', color: 'rgba(160,168,192,.45)', fontSize: '.72rem', fontWeight: 700, letterSpacing: '3px', pointerEvents: 'none', right: '13%', bottom: '15%', transform: 'rotate(-24deg)' }}>COMPUTE</span>
+
+        <div className="core" style={{ position: 'absolute', left: '50%', top: '52%', transform: 'translate(-50%,-50%)', zIndex: 100, width: 220, height: 230, pointerEvents: 'none' }}>
+          <div 
+            className="core-platform" 
+            style={{ 
+              position: 'absolute', left: '50%', bottom: 0, transform: 'translateX(-50%)', width: 190, height: 100, 
+              background: 'linear-gradient(160deg,#1c2749 0%,#0c1226 70%)', clipPath: 'polygon(50% 0,100% 50%,50% 100%,0 50%)',
+              boxShadow: '0 18px 40px rgba(0,0,0,.6)' 
+            }}
+          />
+          <svg 
+            className="core-shield" 
+            viewBox="0 0 100 120" 
+            style={{ 
+              position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)', width: 96, height: 112,
+              animation: 'pulseShield 2.4s ease-in-out infinite' 
+            }}
+          >
+            <path d="M50 4 L92 22 v34 c0 30 -18 48 -42 60 C26 104 8 86 8 56 V22 Z" fill="url(#sg)" stroke="#c4b5fd" strokeWidth="3"/>
+            <path d="M50 22 L76 33 v22 c0 20 -12 33 -26 41 -14 -8 -26 -21 -26 -41 V33 Z" fill="rgba(255,255,255,.14)" stroke="#e9d5ff" strokeWidth="2"/>
+          </svg>
+        </div>
+
+        {nodesData.map((d, i) => {
+          const a = ((angle + i * STEP) * Math.PI) / 180;
+          const x = dimensions.cx + dimensions.rx * Math.cos(a);
+          const y = dimensions.cy + dimensions.ry * Math.sin(a);
+          const depth = (Math.sin(a) + 1) / 2;
+          const s = 0.68 + 0.45 * depth;
+          const isLeft = x > dimensions.w - 150;
+
+          return (
+            <div
+              key={i}
+              className="node"
+              style={{
+                position: 'absolute',
+                left: x,
+                top: y,
+                zIndex: 100 + Math.round(50 * Math.sin(a)),
+                transform: `translate(-50%,-50%) scale(${s})`,
+                filter: `brightness(${0.78 + 0.32 * depth})`,
+                pointerEvents: 'none',
+                transition: 'none'
+              }}
+            >
+              <div className="node-inner" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {d.kind === 'cloud' ? (
+                  <div className="cloud-wrap" style={{ position: 'relative', width: 92, height: 62 }}>
+                    <div dangerouslySetInnerHTML={{ __html: cloudSVG }} style={{ width: '100%', height: '100%' }} />
+                    <div dangerouslySetInnerHTML={{ __html: d.logo || '' }} />
+                    <div 
+                      className={`badge ${isLeft ? 'left' : ''}`}
+                      style={{
+                        position: 'absolute',
+                        left: isLeft ? 'auto' : 'calc(100% + 10px)',
+                        right: isLeft ? 'calc(100% + 10px)' : 'auto',
+                        top: '24%',
+                        whiteSpace: 'nowrap',
+                        textAlign: isLeft ? 'right' : 'left'
+                      }}
+                    >
+                      <div className="sec" style={{ color: 'var(--green)', fontWeight: 700, fontSize: '.8rem', textShadow: '0 0 8px rgba(34,197,94,.5)' }}>Secure</div>
+                      <div className="ast" style={{ color: 'var(--muted)', fontSize: '.72rem', marginTop: 2 }}>{d.assets} Assets</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`round-icon ${d.icon}`} style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: d.icon === 'identities' ? 'linear-gradient(135deg,#a855f7,#6d28d9)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', boxShadow: d.icon === 'identities' ? '0 0 22px rgba(168,85,247,.7)' : '0 0 22px rgba(59,130,246,.7)' }}>
+                    <div dangerouslySetInnerHTML={{ __html: iconSVG[d.icon as 'identities' | 'compute'] }} style={{ display: 'flex' }} />
+                  </div>
+                )}
+                {d.kind === 'cloud' && (
+                  <div 
+                    className="node-platform" 
+                    style={{ 
+                      width: 96, height: 52, marginTop: -14, position: 'relative',
+                      background: 'linear-gradient(160deg,#1d2a52 0%,#0b1124 75%)',
+                      clipPath: 'polygon(50% 0,100% 50%,50% 100%,0 50%)',
+                      boxShadow: '0 10px 24px rgba(0,0,0,.55)' 
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="status-footer" style={{ textAlign: 'center', marginTop: 22 }}>
+        <div className="status-pill animate-blink" style={{ display: 'inline-block', background: 'rgba(16,185,129,.12)', color: 'var(--green)', padding: '10px 32px', borderRadius: 25, fontWeight: 700, fontSize: '.9rem', border: '1px solid rgba(16,185,129,.35)' }}>
           {paused ? 'Auto-rotation Paused' : 'All Systems Operational'}
-        </button>
+        </div>
       </div>
     </div>
   );
 }
+
 
 
 
