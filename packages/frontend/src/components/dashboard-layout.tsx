@@ -61,7 +61,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setTheme(newTheme);
     localStorage.setItem('aegivion-theme', newTheme);
     document.body.className = newTheme;
+    // Dispatch custom event to notify other components (e.g. topology, charts) to redraw
+    window.dispatchEvent(new Event('themechange'));
   };
+
 
   const handleLogout = () => {
     logout();
