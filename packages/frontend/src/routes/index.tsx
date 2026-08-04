@@ -2,37 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { createRoute, Link } from '@tanstack/react-router';
 import { Route as rootRoute } from './__root';
 import { api } from '@/lib/api';
-import { 
-  AlertTriangle, 
-  Database, 
-  CheckCircle2, 
-  Cloud,
-  TrendingDown,
-  TrendingUp,
-  SlidersHorizontal,
-  Download,
-  ArrowUpRight,
-  Brain,
-  Shield,
-  Clock,
-  RotateCw,
-  Cpu
+import {
+  Shield, AlertTriangle, CheckCircle2, Cloud,
+  Bell, HelpCircle, Settings, Search, Brain,
+  ChevronRight, RefreshCw, ArrowRight, Globe, Database
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart, 
-  Pie, 
-  Cell,
-  BarChart,
-  Bar,
-  LineChart,
-  Line
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from 'recharts';
+import { useAuthStore } from '@/store/auth-store';
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -40,425 +18,375 @@ export const Route = createRoute({
   component: DashboardPage,
 });
 
-interface TopRisk {
-  finding_id: string;
-  risk_score: number;
-  title: string;
-  asset_name: string;
-  severity: string;
-  reason: string;
+/* ─── Static mock data ─── */
+const riskTrendData = [
+  { day: 'May 06', score: 78 },
+  { day: 'May 07', score: 72 },
+  { day: 'May 08', score: 80 },
+  { day: 'May 09', score: 68 },
+  { day: 'May 10', score: 75 },
+  { day: 'May 11', score: 60 },
+  { day: 'May 12', score: 55 },
+];
+
+const threats = [
+  { id: 1, title: 'IAM role over-privilege detected', env: 'AWS Production', time: '2m ago', color: '#EF4444' },
+  { id: 2, title: 'Unusual API activity', env: 'Azure Environment', time: '5m ago', color: '#F59E0B' },
+  { id: 3, title: 'Security group - open SSH', env: 'GCP VPC Network', time: '9m ago', color: '#F59E0B' },
+  { id: 4, title: 'Root login attempt', env: 'AWS Production', time: '12m ago', color: '#3B82F6' },
+];
+
+const topRiskyAssets = [
+  { name: 'S3 bucket - public access', env: 'AWS Production', severity: 'Critical', score: 90, icon: '🟠' },
+  { name: 'IAM user without MFA', env: 'AWS Production', severity: 'High', score: 75, icon: '🔐' },
+  { name: 'Security group - open SSH', env: 'Azure Environment', severity: 'High', score: 65, icon: '☁️' },
+  { name: 'Public VM with sensitive data', env: 'GCP Project', severity: 'Medium', score: 45, icon: '💾' },
+];
+
+/* ─── Animated 360° Cloud Topology ─── */
+function CloudTopology({ refreshing }: { refreshing: boolean }) {
+  return (
+    <div className="relative w-full h-64 flex items-center justify-center select-none">
+      {/* Orbit rings */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-52 h-52 rounded-full border border-dashed border-purple-200 opacity-50"
+          style={{ animation: 'spin 22s linear infinite' }} />
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-36 h-36 rounded-full border border-dashed border-blue-200 opacity-40"
+          style={{ animation: 'spin 16s linear infinite reverse' }} />
+      </div>
+
+      {/* Center shield */}
+      <div className="relative z-10 w-14 h-14 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-200">
+        <Shield className="w-7 h-7 text-white" />
+      </div>
+
+      {/* AWS — top */}
+      <div className="absolute top-1 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10">
+        <div className="w-12 h-12 bg-white rounded-2xl shadow-md flex items-center justify-center border border-gray-100">
+          <span className="text-[11px] font-black text-orange-500">aws</span>
+        </div>
+        <span className="text-[9px] text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full border border-green-100">Secure · 12 Assets</span>
+      </div>
+
+      {/* Azure — left */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 z-10">
+        <div className="w-12 h-12 bg-white rounded-2xl shadow-md flex items-center justify-center border border-gray-100">
+          <span className="text-blue-600 font-black text-xl">A</span>
+        </div>
+        <span className="text-[9px] text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full border border-green-100">Secure · 10</span>
+      </div>
+
+      {/* GCP — right */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 z-10">
+        <div className="w-12 h-12 bg-white rounded-2xl shadow-md flex items-center justify-center border border-gray-100">
+          <Globe className="w-6 h-6 text-blue-400" />
+        </div>
+        <span className="text-[9px] text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full border border-green-100">Secure · 10</span>
+      </div>
+
+      {/* Bottom icons */}
+      <div className="absolute bottom-8 left-1/3 z-10">
+        <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shadow-sm">
+          <Database className="w-5 h-5 text-purple-500" />
+        </div>
+      </div>
+      <div className="absolute bottom-8 right-1/3 z-10">
+        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shadow-sm">
+          <Cloud className="w-5 h-5 text-blue-500" />
+        </div>
+      </div>
+
+      {/* Connecting SVG lines */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 256" preserveAspectRatio="xMidYMid meet">
+        <line x1="200" y1="128" x2="200" y2="40" stroke="#a78bfa" strokeWidth="1.5" strokeDasharray="5 4" opacity="0.5" />
+        <line x1="200" y1="128" x2="40" y2="128" stroke="#93c5fd" strokeWidth="1.5" strokeDasharray="5 4" opacity="0.5" />
+        <line x1="200" y1="128" x2="360" y2="128" stroke="#6ee7b7" strokeWidth="1.5" strokeDasharray="5 4" opacity="0.5" />
+        <line x1="200" y1="128" x2="145" y2="208" stroke="#c4b5fd" strokeWidth="1" strokeDasharray="4 4" opacity="0.35" />
+        <line x1="200" y1="128" x2="255" y2="208" stroke="#93c5fd" strokeWidth="1" strokeDasharray="4 4" opacity="0.35" />
+        {/* Animated dots on lines */}
+        <circle r="3" fill="#a78bfa" opacity="0.7">
+          <animateMotion dur="3s" repeatCount="indefinite" path="M200,128 L200,40" />
+        </circle>
+        <circle r="3" fill="#93c5fd" opacity="0.7">
+          <animateMotion dur="3.5s" repeatCount="indefinite" path="M200,128 L40,128" />
+        </circle>
+        <circle r="3" fill="#6ee7b7" opacity="0.7">
+          <animateMotion dur="4s" repeatCount="indefinite" path="M200,128 L360,128" />
+        </circle>
+      </svg>
+
+      {/* Status badge */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-[10px] font-semibold px-3 py-1 rounded-full shadow-sm">
+        <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block animate-pulse" />
+        All Systems Operational
+      </div>
+    </div>
+  );
 }
 
-interface SecurityBrief {
-  overall_posture: string;
-  summary: string;
-  top_risks: TopRisk[];
-  recommended_priorities: string[];
-  statistics: Record<string, number>;
-  confidence: number;
-  generated_at: string;
-}
+/* ─── Severity badge colours ─── */
+const severityColor: Record<string, string> = {
+  Critical: 'bg-red-100 text-red-600',
+  High: 'bg-orange-100 text-orange-600',
+  Medium: 'bg-blue-100 text-blue-600',
+  Low: 'bg-gray-100 text-gray-500',
+};
 
+/* ─── Main Dashboard ─── */
 function DashboardPage() {
-  const [findings, setFindings] = useState([]);
-  const [assets, setAssets] = useState([]);
-  const [scanning, setScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [showBanner, setShowBanner] = useState(false);
-  const [bannerMessage, setBannerMessage] = useState('');
+  const user = useAuthStore((state: any) => state.user);
+  const [findings, setFindings] = useState<any[]>([]);
+  const [assets, setAssets] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // AI Security Brief State
-  const [brief, setBrief] = useState<SecurityBrief | null>(null);
-  const [briefLoading, setBriefLoading] = useState(false);
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
 
   const fetchData = async () => {
     try {
-      const fRes = await api.get('/v1/findings');
-      setFindings(fRes.data.findings || []);
-
-      const aRes = await api.get('/v1/findings/assets');
-      setAssets(aRes.data.assets || []);
-    } catch (e) {
-      console.error(e);
-    }
+      setRefreshing(true);
+      const [fRes, aRes] = await Promise.allSettled([
+        api.get('/v1/findings'),
+        api.get('/v1/findings/assets'),
+      ]);
+      if (fRes.status === 'fulfilled') setFindings(fRes.value.data.findings || []);
+      if (aRes.status === 'fulfilled') setAssets(aRes.value.data.assets || []);
+    } catch (_) {}
+    finally { setRefreshing(false); }
   };
 
-  const fetchSecurityBrief = async () => {
-    setBriefLoading(true);
-    try {
-      const res = await api.post('/v1/ai/security-brief', { cloud_account_id: 'all' });
-      if (res.data) {
-        setBrief(res.data);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setBriefLoading(false);
-    }
-  };
+  useEffect(() => { fetchData(); }, []);
 
-  const triggerScan = async () => {
-    setScanning(true);
-    setScanProgress(5);
-    setBannerMessage('Initiating security graph scan...');
-    setShowBanner(true);
-    
-    const interval = setInterval(() => {
-      setScanProgress(p => {
-        if (p >= 90) {
-          clearInterval(interval);
-          return 90;
-        }
-        return p + 15;
-      });
-    }, 400);
+  const critical = findings.filter((f: any) => f.severity === 'CRITICAL').length;
+  const secScore = Math.max(0, 100 - critical * 4 - findings.filter((f: any) => f.severity === 'HIGH').length * 2) || 92;
+  const totalAssets = assets.length || 32;
 
-    try {
-      await api.post('/v1/findings/scan');
-      await fetchData();
-      await fetchSecurityBrief();
-      clearInterval(interval);
-      setScanProgress(100);
-      setBannerMessage('Scan complete! Assets and vulnerability logs synchronized.');
-      setTimeout(() => setShowBanner(false), 4000);
-    } catch (e) {
-      console.error(e);
-      clearInterval(interval);
-      setBannerMessage('Vulnerability scan failed to contact the security api.');
-    } finally {
-      setScanning(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    fetchSecurityBrief();
-  }, []);
-
-  const totalAssetsCount = assets.length > 0 ? assets.length : 12847;
-  const criticalCount = findings.filter((f: any) => f.severity.toLowerCase() === 'critical').length || 2;
-  const highCount = findings.filter((f: any) => f.severity.toLowerCase() === 'high').length || 4;
-  const mediumCount = findings.filter((f: any) => f.severity.toLowerCase() === 'medium').length || 8;
-  const lowCount = findings.filter((f: any) => f.severity.toLowerCase() === 'low').length || 15;
-
-  // Chart data
-  const areaData = [
-    { name: 'Mar 01', critical: 1, high: 2, medium: 4 },
-    { name: 'Mar 08', critical: 2, high: 3, medium: 6 },
-    { name: 'Mar 15', critical: 2, high: 4, medium: 7 },
-    { name: 'Mar 22', critical: 3, high: 4, medium: 9 },
-    { name: 'Mar 29', critical: criticalCount, high: highCount, medium: mediumCount },
-  ];
-
-  const pieData = [
-    { name: 'Critical', value: criticalCount, color: '#ef4444' },
-    { name: 'High', value: highCount, color: '#f97316' },
-    { name: 'Medium', value: mediumCount, color: '#eab308' },
-    { name: 'Low', value: lowCount, color: '#3b82f6' },
-  ];
-
-  const providerData = [
-    { name: 'AWS', count: assets.filter((a: any) => a.provider === 'aws').length || 8, fill: '#3b82f6' },
-    { name: 'Azure', count: assets.filter((a: any) => a.provider === 'azure').length || 0, fill: '#3b82f6' },
-    { name: 'GCP', count: assets.filter((a: any) => a.provider === 'gcp').length || 0, fill: '#3b82f6' },
-  ];
-
-  const riskTrendData = [
-    { name: 'Mar 01', risk: 75, exposure: 60 },
-    { name: 'Mar 08', risk: 71, exposure: 58 },
-    { name: 'Mar 15', risk: 74, exposure: 61 },
-    { name: 'Mar 22', risk: 68, exposure: 55 },
-    { name: 'Mar 29', risk: 62, exposure: 50 },
-  ];
-
-  const events = [
-    { severity: 'Critical', text: 'Bucket policy changed on customer-exports', time: '12m ago', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-    { severity: 'High', text: 'New IAM role assumed from ap-south-1', time: '54m ago', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-    { severity: 'High', text: 'GuardDuty finding correlated to INC-236', time: '1h ago', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-    { severity: 'Low', text: '12 assets discovered in ml-platform', time: '2h ago', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' }
+  const statCards = [
+    { label: 'TOTAL ASSETS', value: totalAssets, sub: 'Across 3 Clouds', icon: <Database className="w-4.5 h-4.5 text-purple-500" />, bg: 'bg-purple-50' },
+    { label: 'CRITICAL RISKS', value: critical || 2, sub: 'Immediate attention', icon: <AlertTriangle className="w-4.5 h-4.5 text-red-500" />, bg: 'bg-red-50' },
+    { label: 'SECURITY SCORE', value: `${secScore}/100`, sub: 'Excellent', icon: <CheckCircle2 className="w-4.5 h-4.5 text-green-500" />, bg: 'bg-green-50' },
+    { label: 'COMPLIANCE', value: '75%', sub: '6/8 Compliant', icon: <Shield className="w-4.5 h-4.5 text-blue-500" />, bg: 'bg-blue-50' },
+    { label: 'ATTACK SURFACE', value: 'Low', sub: 'Exposure level', icon: <Globe className="w-4.5 h-4.5 text-indigo-500" />, bg: 'bg-indigo-50' },
   ];
 
   return (
-    <div className="space-y-6 text-gray-200 pb-10">
-      {/* Top Header bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-5">
+    <div className="flex flex-col h-full overflow-hidden bg-[#F7F8FF]" style={{ fontFamily: "'Inter', sans-serif" }}>
+
+      {/* ── Top Bar ── */}
+      <header className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-100 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Security overview</h1>
-          <p className="text-gray-400 text-sm mt-1">Live posture across your cloud accounts.</p>
+          <h1 className="text-[15px] font-bold text-gray-900">{greeting}, {user?.first_name || 'Admin'} 👋</h1>
+          <p className="text-[11px] text-gray-400 mt-0.5">Aegivion AI is actively protecting your cloud environment.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={triggerScan}
-            disabled={scanning}
-            className="px-4 py-2 border border-gray-800 bg-[#0d1326] text-gray-300 rounded-lg text-sm hover:text-white transition flex items-center gap-2"
-          >
-            <RotateCw size={14} className={scanning ? 'animate-spin' : ''} />
-            {scanning ? 'Scanning...' : 'Trigger Scan'}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
+            <input
+              type="search"
+              placeholder="Search assets, threats, incidents..."
+              className="pl-9 pr-4 py-2 text-[11px] bg-gray-50 border border-gray-200 rounded-xl w-56 focus:outline-none focus:ring-1 focus:ring-purple-300"
+            />
+          </div>
+          <button aria-label="Open notifications" className="relative p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+            <Bell className="w-4 h-4 text-gray-500" aria-hidden="true" />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-purple-500 rounded-full" />
           </button>
-        </div>
-      </div>
-
-      {showBanner && (
-        <div className="bg-[#0e1428] border border-blue-500/30 rounded-xl p-4 flex flex-col gap-2 transition duration-300 animate-pulse">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-300 font-semibold">{bannerMessage}</span>
-            <span className="text-gray-400 font-mono">{scanProgress}%</span>
-          </div>
-          <div className="w-full bg-gray-850 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-blue-600 h-full rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }}></div>
+          <button aria-label="Help center" className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+            <HelpCircle className="w-4 h-4 text-gray-500" aria-hidden="true" />
+          </button>
+          <button aria-label="Open settings" className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+            <Settings className="w-4 h-4 text-gray-500" aria-hidden="true" />
+          </button>
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-[11px] font-bold shadow">
+            {(user?.first_name?.[0] || 'A').toUpperCase()}
           </div>
         </div>
-      )}
+      </header>
 
-      {/* Stats Grid - Row 1 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#0e1428] border border-gray-800/80 rounded-xl p-5 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center text-gray-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Total Cloud Assets</span>
-            <Database size={16} className="text-blue-400" />
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-white mt-2">{totalAssetsCount.toLocaleString()}</div>
-            <div className="text-xs text-green-500 flex items-center gap-1 mt-1 font-medium">
-              <TrendingUp size={14} />
-              <span>Asset sync active</span>
-            </div>
-          </div>
-        </div>
+      {/* ── Body ── */}
+      <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex gap-4 min-h-full">
 
-        <div className="bg-[#0e1428] border border-gray-800/80 rounded-xl p-5 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center text-gray-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Critical Findings</span>
-            <AlertTriangle size={16} className="text-red-500" />
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-red-500 mt-2">{criticalCount}</div>
-            <div className="text-xs text-red-400 flex items-center gap-1 mt-1 font-medium">
-              <TrendingDown size={14} />
-              <span>Immediate action needed</span>
-            </div>
-          </div>
-        </div>
+          {/* ── Center column ── */}
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
 
-        <div className="bg-[#0e1428] border border-gray-800/80 rounded-xl p-5 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center text-gray-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Security score</span>
-            <Shield size={16} className="text-green-400" />
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-green-400 mt-2">
-              {Math.max(30, 100 - findings.length * 5)}/100
-            </div>
-            <div className="text-xs text-gray-400 mt-1 font-medium">Based on open severity findings</div>
-          </div>
-        </div>
-
-        <div className="bg-[#0e1428] border border-gray-800/80 rounded-xl p-5 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center text-gray-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Monitoring Region</span>
-            <Cloud size={16} className="text-purple-400" />
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-white mt-2">Global</div>
-            <div className="text-xs text-gray-400 mt-1 font-medium">Active AWS STS check</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 2 - Charts & Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5 lg:col-span-2">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-white">Vulnerability findings trend</h3>
-            <p className="text-xs text-gray-400">Historical open issues by severity classification</p>
-          </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={11} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#0d1326', borderColor: '#1f2937' }} />
-                <Area type="monotone" dataKey="medium" stackId="1" stroke="#eab308" fill="#eab308" fillOpacity={0.1} />
-                <Area type="monotone" dataKey="high" stackId="2" stroke="#f97316" fill="#f97316" fillOpacity={0.15} />
-                <Area type="monotone" dataKey="critical" stackId="3" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5 flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-white">Finding Severity Breakdown</h3>
-            <p className="text-xs text-gray-400">Proportion of open vulnerabilities</p>
-          </div>
-          <div className="h-44 w-full relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            {pieData.map((d, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }}></span>
-                <span className="text-gray-400">{d.name} ({d.value})</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Row 3 - Bar Chart, Line Chart, and Events */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-white">Assets by provider</h3>
-            <p className="text-xs text-gray-400">Discovered inventory</p>
-          </div>
-          <div className="h-56 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={providerData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={11} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#0d1326', borderColor: '#1f2937' }} />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {providerData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-white">Risk trend</h3>
-            <p className="text-xs text-gray-400">Aggregate risk vs. exposure</p>
-          </div>
-          <div className="h-56 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={riskTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={11} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#0d1326', borderColor: '#1f2937' }} />
-                <Line type="monotone" dataKey="risk" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="exposure" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-5 flex flex-col justify-between">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-white">Recent security events</h3>
-            <p className="text-xs text-gray-400">Last 3 hours</p>
-          </div>
-          <div className="space-y-3 overflow-y-auto max-h-56 flex-1 pr-1">
-            {events.map((ev, idx) => (
-              <div key={idx} className="flex justify-between items-start gap-3 text-xs border-b border-gray-800 pb-2.5 last:border-0">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 border rounded text-[10px] font-semibold ${ev.color}`}>
-                      {ev.severity}
-                    </span>
-                    <span className="text-gray-400 text-[10px]">{ev.time}</span>
+            {/* Stat cards */}
+            <div className="grid grid-cols-5 gap-3">
+              {statCards.map((c, i) => (
+                <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="text-[9px] font-bold text-gray-400 tracking-widest uppercase leading-tight">{c.label}</p>
+                    <div className={`w-7 h-7 rounded-lg ${c.bg} flex items-center justify-center shrink-0`}>{c.icon}</div>
                   </div>
-                  <p className="text-gray-300 font-medium leading-snug">{ev.text}</p>
+                  <p className="text-[22px] font-black text-gray-900 leading-tight">{c.value}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">{c.sub}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Cloud topology card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h2 className="text-[13px] font-bold text-gray-900">Cloud Environment Overview</h2>
+                  <p className="text-[10px] text-gray-400">Real-time 360° security visualization</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={fetchData} aria-label="Refresh data" className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <RefreshCw className={`w-3.5 h-3.5 text-gray-400 ${refreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
+                  </button>
+                  <span className="text-[10px] font-bold text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full">360°</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Row 4 - AI Security Intelligence widget */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left 2 cols: AI Security Brief */}
-        <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-6 lg:col-span-2 space-y-4">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Brain className="text-blue-500" size={16} />
-            AI Security Intelligence Brief
-          </h3>
-          
-          {briefLoading && (
-            <div className="py-10 text-center">
-              <RotateCw className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-2" />
-              <p className="text-xs text-gray-400">Generating AI security profile...</p>
+              <CloudTopology refreshing={refreshing} />
             </div>
-          )}
 
-          {!brief && !briefLoading && (
-            <div className="text-center py-10">
-              <p className="text-xs text-gray-400 mb-4">No security brief cached for this account.</p>
-              <button 
-                onClick={fetchSecurityBrief}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition"
-              >
-                Generate Security Brief
-              </button>
-            </div>
-          )}
+            {/* Risk Trend + Top Risky Assets */}
+            <div className="grid grid-cols-2 gap-4">
 
-          {brief && (
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-950/10 border border-blue-900/30 rounded-xl text-xs text-blue-300 leading-relaxed">
-                {brief.summary}
+              {/* Risk Trend */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-[12px] font-bold text-gray-900">Risk Trend <span className="font-normal text-gray-400">(Last 7 Days)</span></h3>
+                  </div>
+                  <select className="text-[10px] border border-gray-200 rounded-lg px-2 py-1 text-gray-500 bg-gray-50 focus:outline-none cursor-pointer">
+                    <option>Overall Risk</option>
+                  </select>
+                </div>
+                <ResponsiveContainer width="100%" height={130}>
+                  <AreaChart data={riskTrendData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.18} />
+                        <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                    <XAxis dataKey="day" tick={{ fontSize: 8, fill: '#9CA3AF' }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 8, fill: '#9CA3AF' }} tickLine={false} axisLine={false} domain={[0, 100]} />
+                    <Tooltip
+                      contentStyle={{ fontSize: 10, borderRadius: 10, border: '1px solid #E5E7EB', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                      cursor={{ stroke: '#8B5CF6', strokeWidth: 1, strokeDasharray: '4 3' }}
+                    />
+                    <Area type="monotone" dataKey="score" stroke="#8B5CF6" strokeWidth={2} fill="url(#riskGrad)"
+                      dot={{ r: 3, fill: '#8B5CF6', strokeWidth: 0 }}
+                      activeDot={{ r: 5, fill: '#7C3AED', strokeWidth: 0 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
-              
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Priority Fixes</h4>
-                <div className="space-y-2">
-                  {brief.recommended_priorities.map((priority, idx) => (
-                    <div key={idx} className="bg-[#0b0f19] border border-gray-850 p-3 rounded-xl flex gap-2 items-start text-xs text-gray-300">
-                      <span className="text-blue-400 font-bold">{idx + 1}.</span>
-                      <span>{priority}</span>
+
+              {/* Top Risky Assets */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-[12px] font-bold text-gray-900">Top Risky Assets</h3>
+                  <Link to="/assets" className="text-[10px] text-purple-600 hover:text-purple-800 flex items-center gap-0.5 font-medium">
+                    View All <ChevronRight className="w-3 h-3" aria-hidden="true" />
+                  </Link>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {topRiskyAssets.map((a, i) => (
+                    <div key={i} className="flex items-center gap-2.5 group cursor-pointer">
+                      <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center text-sm shrink-0 group-hover:bg-purple-50 transition-colors">
+                        {a.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-semibold text-gray-800 truncate group-hover:text-purple-700 transition-colors">{a.name}</p>
+                        <p className="text-[9px] text-gray-400">{a.env}</p>
+                      </div>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${severityColor[a.severity]}`}>{a.severity}</span>
+                      <span className="text-[11px] font-black text-gray-700 w-6 text-right shrink-0">{a.score}</span>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
 
-              <div className="flex justify-between items-center text-[10px] text-gray-400 pt-2 border-t border-gray-800/80">
-                <span>Confidence score: {Math.round(brief.confidence * 100)}%</span>
-                <span>Generated: {new Date(brief.generated_at).toLocaleString()}</span>
+          {/* ── Right panel ── */}
+          <div className="w-60 flex flex-col gap-3 shrink-0">
+
+            {/* AI Security Insights */}
+            <div className="rounded-2xl p-4 text-white shadow-lg shadow-purple-200/60"
+              style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)' }}>
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h3 className="text-[12px] font-bold">AI Security Insights</h3>
+                  <p className="text-[9px] text-purple-200 mt-0.5">Powered by Aegivion AI</p>
+                </div>
+                <Brain className="w-5 h-5 text-purple-200 shrink-0" aria-hidden="true" />
+              </div>
+              <p className="text-[10px] text-purple-100 leading-relaxed mb-3">
+                I've analyzed your environment and found{' '}
+                <span className="font-bold text-white">1 critical misconfiguration</span> in{' '}
+                <span className="font-bold text-yellow-300">AWS S3 bucket policy.</span>
+              </p>
+              <div className="mb-3">
+                <p className="text-[9px] text-purple-300 mb-1.5">Risk Level</p>
+                <div className="flex gap-1">
+                  {[0, 1, 2, 3, 4].map(i => (
+                    <div key={i} className={`h-1.5 flex-1 rounded-full ${i < 3 ? 'bg-red-400' : 'bg-purple-500 opacity-30'}`} />
+                  ))}
+                </div>
+                <p className="text-[9px] text-red-300 mt-1 font-bold">High</p>
+              </div>
+              <button className="w-full flex items-center justify-center gap-1.5 bg-white text-purple-700 font-bold text-[10px] py-2 rounded-xl hover:bg-purple-50 active:scale-95 transition-all">
+                View &amp; Resolve <ArrowRight className="w-3 h-3" aria-hidden="true" />
+              </button>
+            </div>
+
+            {/* Live Threat Feed */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex-1">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-[12px] font-bold text-gray-900">Live Threat Feed</h3>
+                  <p className="text-[9px] text-gray-400">Real-time security events</p>
+                </div>
+                <Link to="/findings" className="text-[10px] text-purple-600 hover:text-purple-800 font-medium">View All</Link>
+              </div>
+              <div className="flex flex-col gap-3">
+                {threats.map(t => (
+                  <div key={t.id} className="flex items-start gap-2 group cursor-pointer">
+                    <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: t.color }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-semibold text-gray-800 leading-snug group-hover:text-purple-700 transition-colors">{t.title}</p>
+                      <p className="text-[9px] text-gray-400 mt-0.5">{t.env}</p>
+                    </div>
+                    <span className="text-[9px] text-gray-400 shrink-0 mt-0.5">{t.time}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Right 1 col: Top Risky Assets */}
-        <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Cpu className="text-red-500" size={16} />
-            Top Risky Assets
-          </h3>
-          
-          {brief && brief.top_risks.length > 0 ? (
-            <div className="space-y-3">
-              {brief.top_risks.slice(0, 4).map((risk) => (
-                <div key={risk.finding_id} className="bg-[#0b0f19] border border-gray-850 p-3.5 rounded-xl space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-xs text-white truncate max-w-[150px]">{risk.asset_name}</span>
-                    <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold rounded">
-                      Score: {risk.risk_score}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-400 leading-snug">{risk.reason}</p>
+            {/* Ask AI */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <h3 className="text-[12px] font-bold text-gray-900">Ask Aegivion AI</h3>
+                <div className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-[9px] text-green-600 font-semibold">Online</span>
                 </div>
-              ))}
+              </div>
+              <p className="text-[10px] text-gray-400 mb-2">How can I help you securing your cloud today?</p>
+              {/* Decorative waveform */}
+              <div className="flex items-end gap-0.5 mb-2 h-5">
+                {[2, 5, 8, 4, 9, 3, 7, 10, 5, 3, 8, 4].map((h, i) => (
+                  <div key={i} className="flex-1 rounded-full bg-purple-300 opacity-50"
+                    style={{ height: `${h}px`, animation: `pulse ${1 + i * 0.1}s ease-in-out infinite alternate` }} />
+                ))}
+              </div>
+              <Link
+                to="/ai-assistant"
+                className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-[10px] text-gray-400 hover:border-purple-300 hover:bg-purple-50 transition-all group"
+              >
+                <span>Ask anything...</span>
+                <ArrowRight className="w-3 h-3 text-purple-400 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+              </Link>
             </div>
-          ) : (
-            <p className="text-xs text-gray-400 py-10 text-center">No risky assets identified.</p>
-          )}
+          </div>
         </div>
-
       </div>
     </div>
   );

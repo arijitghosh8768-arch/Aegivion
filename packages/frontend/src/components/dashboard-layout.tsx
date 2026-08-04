@@ -1,55 +1,18 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
+﻿import React, { useState } from 'react';
+import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import { useAuthStore } from '@/store/auth-store';
-import { 
-  Shield, 
-  LayoutDashboard, 
-  Settings as SettingsIcon, 
-  Menu, 
-  X,
-  AlertTriangle,
-  Database,
-  BrainCircuit,
-  BarChart3,
-  Search,
-  Bell,
-  Moon,
-  Sun,
-  ChevronDown,
-  Terminal,
-  FileText,
-  Users,
-  ShieldAlert,
-  LogOut
+import {
+  Shield, LayoutDashboard, Settings as SettingsIcon,
+  AlertTriangle, Database, BrainCircuit, BarChart3,
+  FileText, Users, Network, Zap, LogOut, TrendingUp
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuthStore((state: any) => state.user);
   const logout = useAuthStore((state: any) => state.logout);
-  
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isGrayscale, setIsGrayscale] = useState(false);
-  const [isLightMode, setIsLightMode] = useState(false);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-
-  const toggleGrayscale = () => {
-    setIsGrayscale(!isGrayscale);
-    if (!isGrayscale) {
-      document.documentElement.classList.add('grayscale-mode');
-    } else {
-      document.documentElement.classList.remove('grayscale-mode');
-    }
-  };
-
-  const toggleLightMode = () => {
-    setIsLightMode(!isLightMode);
-    if (!isLightMode) {
-      document.documentElement.classList.add('light-mode');
-    } else {
-      document.documentElement.classList.remove('light-mode');
-    }
-  };
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -57,195 +20,149 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const userRole = user?.role || 'viewer';
-  const isAdmin = userRole === 'admin';
-  const userInitials = user ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() : 'US';
+  const userInitials = user
+    ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() || 'AU'
+    : 'AU';
 
-  const generalTabs = [
-    { to: '/', name: 'Dashboard', icon: LayoutDashboard },
-    { to: '/cloud-accounts', name: 'Cloud Accounts', icon: Shield },
-    { to: '/assets', name: 'Assets', icon: Database },
-    { to: '/findings', name: 'Findings', icon: AlertTriangle, badge: '23' },
-    { to: '/compliance', name: 'Compliance', icon: BarChart3 },
-    { to: '/ai-assistant', name: 'AI Intelligence', icon: BrainCircuit },
-    { to: '/reports', name: 'Reports', icon: FileText },
+  const navItems = [
+    { to: '/', label: 'Command Center', icon: LayoutDashboard },
+    { to: '/ai-assistant', label: 'AI Copilot', icon: BrainCircuit },
+    { to: '/cloud-accounts', label: 'Cloud Topology', icon: Network },
+    { to: '/findings', label: 'Threats', icon: AlertTriangle },
+    { to: '/assets', label: 'Assets', icon: Database },
+    { to: '/compliance', label: 'Compliance', icon: BarChart3 },
+    { to: '/reports', label: 'Reports', icon: FileText },
+    { to: '/incidents', label: 'Automation', icon: Zap },
+    { to: '/settings', label: 'Settings', icon: SettingsIcon },
   ];
 
-  const adminTabs = [
-    { to: '/settings', name: 'Users & Roles', icon: Users },
-    { to: '/settings', name: 'Settings', icon: SettingsIcon },
-  ];
+  const isActive = (to: string) => {
+    if (to === '/') return location.pathname === '/';
+    return location.pathname.startsWith(to);
+  };
 
   return (
-    <div className="flex h-screen bg-[#0b0f19] text-gray-100 font-sans overflow-hidden">
-      {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-[#0d1326] border-r border-gray-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex lg:flex-col justify-between
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div>
-          <div className="h-16 flex items-center px-6 gap-3 border-b border-gray-800">
-            <Shield className="w-6 h-6 text-blue-500 animate-pulse shrink-0" />
+    <div className="flex h-screen overflow-hidden bg-[#F7F8FF]" style={{ fontFamily: "'Inter', sans-serif" }}>
+
+      {/* â”€â”€â”€ Sidebar â”€â”€â”€ */}
+      <aside className="w-52 shrink-0 bg-white border-r border-gray-100 flex flex-col h-full shadow-sm">
+
+        {/* Logo */}
+        <div className="px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-purple-200">
+              <Shield className="w-4 h-4 text-white" aria-hidden="true" />
+            </div>
             <div>
-              <span className="text-sm font-bold tracking-wider text-white block">Aegivion</span>
-              <span className="text-[10px] text-gray-400 block">Cloud Security Platform</span>
+              <p className="text-[13px] font-black text-gray-900 leading-tight">Aegivion</p>
+              <p className="text-[9px] text-gray-400 leading-tight">Autonomous Cloud Security</p>
             </div>
           </div>
-          
-          <nav className="px-4 py-6 space-y-1">
-            <span className="text-[9px] font-bold text-gray-400 tracking-wider uppercase px-4 block mb-2">Security Center</span>
-            {generalTabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <Link
-                  key={tab.name}
-                  to={tab.to}
-                  activeProps={{ className: 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500' }}
-                  inactiveProps={{ className: 'text-gray-400 hover:bg-gray-800/30 hover:text-white' }}
-                  className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-xs font-medium transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon size={14} />
-                    {tab.name}
-                  </div>
-                  {tab.badge && (
-                    <span className="text-[9px] font-bold text-red-500 px-1">{tab.badge}</span>
-                  )}
-                </Link>
-              );
-            })}
-
-            {/* Role-Based Administration Section */}
-            {isAdmin && (
-              <>
-                <div className="border-t border-gray-800/60 my-4" />
-                <span className="text-[9px] font-bold text-gray-400 tracking-wider uppercase px-4 block mb-2">Administration</span>
-                {adminTabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <Link
-                      key={tab.name}
-                      to={tab.to}
-                      activeProps={{ className: 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500' }}
-                      inactiveProps={{ className: 'text-gray-400 hover:bg-gray-800/30 hover:text-white' }}
-                      className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-medium transition-all"
-                    >
-                      <Icon size={14} />
-                      {tab.name}
-                    </Link>
-                  );
-                })}
-              </>
-            )}
-          </nav>
         </div>
 
-        {/* Posture Score Display at Sidebar Bottom */}
-        <div className="p-4 border-t border-gray-800/80">
-          <div className="bg-[#0b0f19]/80 border border-gray-850 rounded-xl p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-gray-400 font-semibold block uppercase">Posture score</span>
-              <span className="text-[9px] bg-blue-900/30 text-blue-400 border border-blue-800/50 rounded px-1.5 py-0.5 capitalize">{userRole}</span>
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="Main navigation">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-medium transition-all ${
+                  active
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Security Posture Score */}
+        <div className="px-4 pb-3">
+          <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Security Posture</p>
+            {/* Circular score indicator */}
+            <div className="flex items-center gap-3">
+              <div className="relative w-14 h-14 shrink-0">
+                <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+                  <circle cx="28" cy="28" r="22" fill="none" stroke="#E5E7EB" strokeWidth="5" />
+                  <circle
+                    cx="28" cy="28" r="22" fill="none"
+                    stroke="url(#scoreGrad)" strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 22 * 0.92} ${2 * Math.PI * 22}`}
+                  />
+                  <defs>
+                    <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#8B5CF6" />
+                      <stop offset="100%" stopColor="#6366F1" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-[13px] font-black text-gray-900">92</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-800">/100</p>
+                <p className="text-[10px] text-green-600 font-semibold">Excellent</p>
+                <p className="text-[9px] text-green-500 mt-0.5">+7.2% vs last week</p>
+              </div>
             </div>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-extrabold text-white">87</span>
-              <span className="text-[10px] text-green-500 font-medium">+5 vs last month</span>
+            {/* Mini trend line */}
+            <div className="mt-2 flex items-end gap-0.5 h-4">
+              {[40, 55, 45, 60, 58, 70, 75].map((v, i) => (
+                <div key={i} className="flex-1 bg-gradient-to-t from-green-400 to-green-300 rounded-sm opacity-70"
+                  style={{ height: `${(v / 75) * 100}%` }} />
+              ))}
             </div>
           </div>
+        </div>
+
+        {/* User profile */}
+        <div className="px-3 pb-3 border-t border-gray-100 pt-3 relative">
+          <button
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            aria-label={`User menu for ${user?.first_name || 'Admin'}`}
+            className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+              {userInitials}
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-[11px] font-semibold text-gray-800 truncate">{user?.first_name || 'Admin'} {user?.last_name || 'User'}</p>
+              <p className="text-[9px] text-gray-400 capitalize">{userRole === 'admin' ? 'Super Admin' : userRole}</p>
+            </div>
+            <span className="w-2 h-2 bg-green-400 rounded-full shrink-0" />
+          </button>
+
+          {/* User dropdown */}
+          {userMenuOpen && (
+            <div className="absolute bottom-14 left-3 right-3 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50">
+              <div className="px-3 py-2 border-b border-gray-100">
+                <p className="text-[10px] font-semibold text-gray-800 truncate">{user?.email || 'admin@aegivion.io'}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-3 py-2 text-[10px] text-red-500 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="w-3 h-3" aria-hidden="true" />
+                Sign out
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
-      {/* Main Content Pane */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Global Top Nav bar */}
-        <header className="h-14 bg-[#0d1326] border-b border-gray-800 px-6 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-4 flex-1">
-            <button 
-              aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              title={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              className="p-1.5 rounded bg-gray-800 border border-gray-700 text-white lg:hidden"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              {sidebarOpen ? <X size={16} aria-hidden="true" /> : <Menu size={16} aria-hidden="true" />}
-            </button>
-
-            {/* Dropdown selector */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#0b0f19] border border-gray-800 rounded-lg text-xs font-semibold hover:border-gray-700 cursor-pointer transition select-none">
-              <Shield size={12} className="text-blue-500" />
-              <span>Aegivion Global</span>
-              <ChevronDown size={12} className="text-gray-500" />
-            </div>
-
-            {/* Search Input */}
-            <div className="relative max-w-md w-full hidden md:block">
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={12} aria-hidden="true" />
-              <input 
-                type="text"
-                placeholder="Search assets, findings, incidents..."
-                className="w-full bg-[#0b0f19] border border-gray-850 rounded-lg pl-8 pr-4 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-800 transition"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              aria-label="Open notifications"
-              title="Notifications"
-              className="relative p-1.5 text-gray-400 hover:text-white transition"
-            >
-              <Bell size={16} aria-hidden="true" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" aria-label="Unread notifications"></span>
-            </button>
-            <button 
-              onClick={toggleGrayscale}
-              aria-label="Toggle grayscale mode"
-              className={`p-1.5 rounded-lg transition ${isGrayscale ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
-              title="Toggle Grayscale Mode"
-            >
-              <Moon size={16} aria-hidden="true" />
-            </button>
-            <button 
-              onClick={toggleLightMode}
-              aria-label="Toggle light/dark mode"
-              className={`p-1.5 rounded-lg transition ${isLightMode ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800/30'}`}
-              title="Toggle Light/Dark Mode"
-            >
-              {isLightMode ? <Sun size={16} aria-hidden="true" /> : <Sun className="rotate-45" size={16} aria-hidden="true" />}
-            </button>
-            
-            {/* User Dropdown / Profile Menu */}
-            <div className="relative">
-              <button 
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                aria-label={`User menu for ${user?.first_name || 'User'}`}
-                title={user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'User menu'}
-                className="w-8 h-8 rounded-full bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold text-xs select-none cursor-pointer transition-all"
-              >
-                {userInitials}
-              </button>
-              {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-[#0d1326] border border-gray-800 rounded-xl shadow-2xl py-1 z-50">
-                  <div className="px-4 py-2 border-b border-gray-800/80">
-                    <p className="text-xs font-semibold text-white truncate">{user?.name}</p>
-                    <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-950/20 hover:text-red-300 flex items-center gap-2 transition"
-                  >
-                    <LogOut size={12} />
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        {/* View content panel */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-[#0b0f19]">
-          {children}
-        </main>
-      </div>
+      {/* â”€â”€â”€ Main content â”€â”€â”€ */}
+      <main className="flex-1 overflow-hidden flex flex-col">
+        {children}
+      </main>
     </div>
   );
 }
