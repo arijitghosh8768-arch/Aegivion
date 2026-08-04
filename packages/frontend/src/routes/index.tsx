@@ -78,11 +78,9 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
   };
 
   const nodesData = [
-    { kind: 'cloud', logo: awsLogo, assets: 12, label: 'aws' },
-    { kind: 'cloud', logo: azureLogo, assets: 10, label: 'azure' },
-    { kind: 'icon', icon: 'identities', label: 'identities' },
-    { kind: 'cloud', logo: googleLogo, assets: 10, label: 'gcp' },
-    { kind: 'icon', icon: 'compute', label: 'compute' }
+    { kind: 'cloud', logo: awsLogo, assets: 12, base: -90 },
+    { kind: 'cloud', logo: googleLogo, assets: 10, base: 30 },
+    { kind: 'cloud', logo: azureLogo, assets: 10, base: 150 }
   ];
 
   const handleResize = () => {
@@ -122,10 +120,8 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
   }, [paused]);
 
   const resetRotation = () => {
-    setAngle(-90);
+    setAngle(0);
   };
-
-  const STEP = 360 / nodesData.length;
 
   return (
     <div 
@@ -156,7 +152,7 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
           <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', letterSpacing: '1px' }}>CLOUD ENVIRONMENT OVERVIEW</h3>
-          <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 2 }}>Real-time 360° security visualization — single linked orbit</p>
+          <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 2 }}>Real-time 360° security visualization — AWS · Azure · GCP on one linked orbit</p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <button 
@@ -167,7 +163,7 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
             ↻
           </button>
           <div style={{ background: 'rgba(30,40,70,.6)', border: '1px solid rgba(99,102,241,.3)', padding: '4px 10px', borderRadius: 12, fontSize: 10, fontWeight: 700, color: '#a5b4fc' }}>
-            {Math.round(((angle + 90) % 360 + 360) % 360)}°
+            {Math.round(((angle) % 360 + 360) % 360)}°
           </div>
         </div>
       </div>
@@ -242,7 +238,7 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
         </div>
 
         {nodesData.map((d, i) => {
-          const a = ((angle + i * STEP) * Math.PI) / 180;
+          const a = ((angle + d.base) * Math.PI) / 180;
           const x = dimensions.cx + dimensions.rx * Math.cos(a);
           const y = dimensions.cy + dimensions.ry * Math.sin(a);
           const depth = (Math.sin(a) + 1) / 2;
@@ -265,41 +261,33 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
               }}
             >
               <div className="node-inner" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                {d.kind === 'cloud' ? (
-                  <div className="cloud-wrap" style={{ position: 'relative', width: 92, height: 62 }}>
-                    <div dangerouslySetInnerHTML={{ __html: cloudSVG }} style={{ width: '100%', height: '100%' }} />
-                    <div dangerouslySetInnerHTML={{ __html: d.logo || '' }} />
-                    <div 
-                      className={`badge ${isLeft ? 'left' : ''}`}
-                      style={{
-                        position: 'absolute',
-                        left: isLeft ? 'auto' : 'calc(100% + 10px)',
-                        right: isLeft ? 'calc(100% + 10px)' : 'auto',
-                        top: '24%',
-                        whiteSpace: 'nowrap',
-                        textAlign: isLeft ? 'right' : 'left'
-                      }}
-                    >
-                      <div className="sec" style={{ color: 'var(--green)', fontWeight: 700, fontSize: '.8rem', textShadow: '0 0 8px rgba(34,197,94,.5)' }}>Secure</div>
-                      <div className="ast" style={{ color: 'var(--muted)', fontSize: '.72rem', marginTop: 2 }}>{d.assets} Assets</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`round-icon ${d.icon}`} style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: d.icon === 'identities' ? 'linear-gradient(135deg,#a855f7,#6d28d9)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', boxShadow: d.icon === 'identities' ? '0 0 22px rgba(168,85,247,.7)' : '0 0 22px rgba(59,130,246,.7)' }}>
-                    <div dangerouslySetInnerHTML={{ __html: iconSVG[d.icon as 'identities' | 'compute'] }} style={{ display: 'flex' }} />
-                  </div>
-                )}
-                {d.kind === 'cloud' && (
+                <div className="cloud-wrap" style={{ position: 'relative', width: 92, height: 62 }}>
+                  <div dangerouslySetInnerHTML={{ __html: cloudSVG }} style={{ width: '100%', height: '100%' }} />
+                  <div dangerouslySetInnerHTML={{ __html: d.logo || '' }} />
                   <div 
-                    className="node-platform" 
-                    style={{ 
-                      width: 96, height: 52, marginTop: -14, position: 'relative',
-                      background: 'linear-gradient(160deg,#1d2a52 0%,#0b1124 75%)',
-                      clipPath: 'polygon(50% 0,100% 50%,50% 100%,0 50%)',
-                      boxShadow: '0 10px 24px rgba(0,0,0,.55)' 
+                    className={`badge ${isLeft ? 'left' : ''}`}
+                    style={{
+                      position: 'absolute',
+                      left: isLeft ? 'auto' : 'calc(100% + 10px)',
+                      right: isLeft ? 'calc(100% + 10px)' : 'auto',
+                      top: '24%',
+                      whiteSpace: 'nowrap',
+                      textAlign: isLeft ? 'right' : 'left'
                     }}
-                  />
-                )}
+                  >
+                    <div className="sec" style={{ color: 'var(--green)', fontWeight: 700, fontSize: '.8rem', textShadow: '0 0 8px rgba(34,197,94,.5)' }}>Secure</div>
+                    <div className="ast" style={{ color: 'var(--muted)', fontSize: '.72rem', marginTop: 2 }}>{d.assets} Assets</div>
+                  </div>
+                </div>
+                <div 
+                  className="node-platform" 
+                  style={{ 
+                    width: 96, height: 52, marginTop: -14, position: 'relative',
+                    background: 'linear-gradient(160deg,#1d2a52 0%,#0b1124 75%)',
+                    clipPath: 'polygon(50% 0,100% 50%,50% 100%,0 50%)',
+                    boxShadow: '0 10px 24px rgba(0,0,0,.55)' 
+                  }}
+                />
               </div>
             </div>
           );
