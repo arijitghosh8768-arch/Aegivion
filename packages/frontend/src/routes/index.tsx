@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { createRoute, Link } from '@tanstack/react-router';
+import { createRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Route as rootRoute } from './__root';
 import { api } from '@/lib/api';
 import {
@@ -10,9 +9,6 @@ import {
   ShieldCheck, FileCheck, Target, Users, Cloud,
   Server
 } from 'lucide-react';
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
-} from 'recharts';
 import { useAuthStore } from '@/store/auth-store';
 
 export const Route = createRoute({
@@ -21,195 +17,169 @@ export const Route = createRoute({
   component: DashboardPage,
 });
 
-const riskData = [
-  { d: 'May 06', v: 78 }, { d: 'May 07', v: 55 }, { d: 'May 08', v: 68 },
-  { d: 'May 09', v: 45 }, { d: 'May 10', v: 60 }, { d: 'May 11', v: 40 }, { d: 'May 12', v: 52 },
-];
-const threats = [
+const defaultThreats = [
   { id: 1, title: 'IAM role over-privilege detected', env: 'AWS Production', time: '2m ago', dot: '#EF4444' },
   { id: 2, title: 'Unusual API activity', env: 'Azure Environment', time: '5m ago', dot: '#F59E0B' },
   { id: 3, title: 'Security group - open SSH', env: 'GCP VPC Network', time: '9m ago', dot: '#F59E0B' },
   { id: 4, title: 'Root login attempt', env: 'AWS Production', time: '12m ago', dot: '#3B82F6' },
 ];
-const topAssets = [
-  { name: 'S3 bucket - public access', env: 'AWS Production', sev: 'Critical', sevC: '#EF4444', sevBg: '#FEF2F2', score: 90 },
-  { name: 'IAM user without MFA', env: 'AWS Production', sev: 'High', sevC: '#F59E0B', sevBg: '#FFFBEB', score: 75 },
-  { name: 'Security group - open SSH', env: 'Azure Environment', sev: 'High', sevC: '#F59E0B', sevBg: '#FFFBEB', score: 65 },
-  { name: 'Public VM with sensitive data', env: 'GCP Project', sev: 'Medium', sevC: '#3B82F6', sevBg: '#EFF6FF', score: 45 },
+
+const defaultTopAssets = [
+  { name: 'S3 bucket - public access', env: 'AWS Production', sev: 'Critical', sevC: '#EF4444', sevBg: '#FEF2F2', score: 100 },
+  { name: 'IAM user without MFA', env: 'AWS Production', sev: 'High', sevC: '#F59E0B', sevBg: '#FFFBEB', score: 90 },
+  { name: 'Security group - open SSH', env: 'Azure Environment', sev: 'High', sevC: '#F59E0B', sevBg: '#FFFBEB', score: 70 },
+  { name: 'Public VM with sensitive data', env: 'GCP Project', sev: 'High', sevC: '#F59E0B', sevBg: '#FFFBEB', score: 70 },
 ];
 
 /* ─────────── CLOUD TOPOLOGY VISUALIZATION ─────────── */
-function CloudTopology({ refreshing }: { refreshing: boolean }) {
+function CloudTopology({ scanning }: { scanning: boolean }) {
   return (
-    <div style={{ position: 'relative', width: '100%', height: 280, background: 'linear-gradient(180deg,#F0EEFF 0%,#F7F8FF 60%,#fff 100%)', borderRadius: 12, overflow: 'hidden' }}>
-
-      {/* SVG base layer: orbit rings + lines + labels */}
-      <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} viewBox="0 0 580 280" preserveAspectRatio="xMidYMid meet">
+    <div className="viz" id="vizBox" style={{ position: 'relative', borderRadius: 12, background: 'radial-gradient(120% 90% at 50% 40%,#101a35 0%,#0b1020 70%)', border: '1px solid #16203a', overflow: 'hidden' }}>
+      <svg viewBox="0 0 760 430" id="vizSvg" style={{ display: 'block', width: '100%', height: 'auto' }}>
         <defs>
-          <linearGradient id="orb1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.08" />
-            <stop offset="50%" stopColor="#6366F1" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.08" />
+          <linearGradient id="gCloud" x1="0" y1="-76" x2="0" y2="-8" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#b9c3d4" />
           </linearGradient>
-          <linearGradient id="orb2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#A78BFA" stopOpacity="0.06" />
-            <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#A78BFA" stopOpacity="0.06" />
+          <linearGradient id="gSlab" x1="0" y1="-30" x2="0" y2="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#2a3757" /><stop offset="1" stopColor="#141d36" />
           </linearGradient>
-          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
-          </radialGradient>
-          {/* Path for arc text labels */}
-          <path id="topArcPath" d="M 95,140 A 195,92 0 0 1 485,140" fill="none" />
-          <path id="botArcPath" d="M 95,140 A 195,92 0 0 0 485,140" fill="none" />
-          <path id="leftArcPath" d="M 95,90 A 120,60 0 0 0 95,190" fill="none" />
-          <path id="rightArcPath" d="M 485,90 A 120,60 0 0 1 485,190" fill="none" />
+          <linearGradient id="gShield" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#a78bfa" /><stop offset=".55" stopColor="#7c3aed" /><stop offset="1" stopColor="#4c1d95" />
+          </linearGradient>
+          <linearGradient id="gAzure" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#35b6f0" /><stop offset="1" stopColor="#1d4ed8" />
+          </linearGradient>
+          <radialGradient id="gHalo"><stop offset="0" stopColor="#7c3aed" stopOpacity=".5" /><stop offset="1" stopColor="#7c3aed" stopOpacity="0" /></radialGradient>
+          <filter id="fGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+          <marker id="mArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f97316" /></marker>
         </defs>
 
-        {/* Glow blob */}
-        <ellipse cx="290" cy="140" rx="120" ry="60" fill="url(#glow)" />
+        {/* orbital rings */}
+        <g id="rings" fill="none">
+          <ellipse className={`ringE ${scanning ? 'animate-dashmove' : ''}`} cx="380" cy="235" rx="330" ry="130" stroke="rgba(99,102,241,.35)" strokeDasharray="5 7" />
+          <ellipse className="ringE" cx="380" cy="235" rx="260" ry="102" stroke="rgba(59,130,246,.35)" />
+          <ellipse className="ringE" cx="380" cy="235" rx="190" ry="74" stroke="rgba(59,130,246,.28)" strokeDasharray="3 6" />
+          <ellipse className="ringE" cx="380" cy="235" rx="120" ry="46" stroke="rgba(139,92,246,.4)" strokeDasharray="2 5" />
+          <path d="M62,225 A320,128 0 0 1 168,138" stroke="rgba(59,130,246,.7)" stroke-width="1.6" />
+          <path d="M127,318 A330,130 0 0 0 633,318" stroke="rgba(249,115,22,.25)" stroke-width="5" />
+          <path d="M127,318 A330,130 0 0 0 633,318" stroke="#f97316" stroke-width="2.2" marker-end="url(#mArrow)" />
+        </g>
 
-        {/* Outer orbit ellipse */}
-        <ellipse cx="290" cy="140" rx="195" ry="92"
-          fill="none" stroke="url(#orb1)" strokeWidth="1.5" strokeDasharray="8 5" />
-        {/* Inner orbit ellipse */}
-        <ellipse cx="290" cy="140" rx="120" ry="55"
-          fill="none" stroke="url(#orb2)" strokeWidth="1" strokeDasharray="5 4" />
+        {/* ring labels */}
+        <g fill="#64748b" font-size="10" letter-spacing="3" font-weight="600">
+          <text x="252" y="126" transform="rotate(-21 252 126)">IDENTITIES</text>
+          <text x="298" y="163" transform="rotate(-21 298 163)">NETWORK</text>
+          <text x="196" y="330" transform="rotate(33 196 330)">APPLICATIONS</text>
+          <text x="556" y="345" transform="rotate(-33 556 345)">COMPUTE</text>
+        </g>
 
-        {/* Arc text labels */}
-        <text fontSize="8.5" fill="#A78BFA" letterSpacing="4" fontWeight="700" fontFamily="Inter,sans-serif">
-          <textPath href="#topArcPath" startOffset="30%">IDENTITIES</textPath>
-        </text>
-        <text fontSize="8" fill="#93C5FD" letterSpacing="3.5" fontWeight="700" fontFamily="Inter,sans-serif">
-          <textPath href="#topArcPath" startOffset="5%">NETWORK</textPath>
-        </text>
-        <text fontSize="8" fill="#C4B5FD" letterSpacing="3" fontWeight="700" fontFamily="Inter,sans-serif">
-          <textPath href="#botArcPath" startOffset="8%">APPLICATIONS</textPath>
-        </text>
-        <text fontSize="8" fill="#6EE7B7" letterSpacing="3" fontWeight="700" fontFamily="Inter,sans-serif">
-          <textPath href="#botArcPath" startOffset="70%">COMPUTE</textPath>
-        </text>
+        {/* glowing dots */}
+        <g filter="url(#fGlow)">
+          <circle cx="298" cy="208" r="3" fill="#f472b6" />
+          <circle cx="516" cy="204" r="3" fill="#60a5fa" />
+          <circle cx="612" cy="246" r="3.5" fill="#fb923c" />
+          <circle cx="430" cy="334" r="3.5" fill="#f87171" />
+          <circle cx="218" cy="258" r="3" fill="#fb923c" />
+          <circle cx="340" cy="300" r="2.6" fill="#34d399" />
+        </g>
 
-        {/* Connecting lines from center to providers */}
-        <line x1="290" y1="140" x2="290" y2="50" stroke="#C4B5FD" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.7" />
-        <line x1="290" y1="140" x2="95" y2="140" stroke="#93C5FD" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.7" />
-        <line x1="290" y1="140" x2="485" y2="140" stroke="#6EE7B7" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.7" />
-        <line x1="290" y1="140" x2="175" y2="215" stroke="#C4B5FD" strokeWidth="1" strokeDasharray="4 4" opacity="0.5" />
-        <line x1="290" y1="140" x2="405" y2="215" stroke="#93C5FD" strokeWidth="1" strokeDasharray="4 4" opacity="0.5" />
+        {/* central shield platform */}
+        <g transform="translate(380,235)">
+          <circle className="shieldGlow animate-pulse-slow" r="86" cy="-40" fill="url(#gHalo)" />
+          <path d="M-96,18 L-96,30 L0,78 L0,66 Z" fill="#0b1226" />
+          <path d="M96,18 L96,30 L0,78 L0,66 Z" fill="#182444" />
+          <path d="M0,-30 L96,18 L0,66 L-96,18 Z" fill="url(#gSlab)" stroke="rgba(139,92,246,.4)" />
+          <path d="M0,-12 L58,16 L0,44 L-58,16 Z" fill="rgba(99,102,241,.14)" stroke="rgba(139,92,246,.55)" />
+          <g filter="url(#fGlow)">
+            <path d="M0,-122 L37,-108 V-74 Q37,-42 0,-24 Q-37,-42 -37,-74 V-108 Z" fill="url(#gShield)" stroke="#c4b5fd" stroke-width="1.6" />
+            <path d="M0,-106 L24,-97 V-74 Q24,-52 0,-40 Q-24,-52 -24,-74 V-97 Z" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.75)" stroke-width="1.4" />
+          </g>
+        </g>
 
-        {/* Animated data flow dots */}
-        <circle r="3.5" fill="#A78BFA" opacity="0.8">
-          <animateMotion dur="2.5s" repeatCount="indefinite" path="M290,140 L290,50" />
-        </circle>
-        <circle r="3.5" fill="#60A5FA" opacity="0.8">
-          <animateMotion dur="3s" repeatCount="indefinite" path="M290,140 L95,140" />
-        </circle>
-        <circle r="3.5" fill="#34D399" opacity="0.8">
-          <animateMotion dur="3.5s" repeatCount="indefinite" path="M290,140 L485,140" />
-        </circle>
-        <circle r="2.5" fill="#C4B5FD" opacity="0.7">
-          <animateMotion dur="2.8s" repeatCount="indefinite" path="M290,140 L175,215" />
-        </circle>
-        <circle r="2.5" fill="#93C5FD" opacity="0.7">
-          <animateMotion dur="3.2s" repeatCount="indefinite" path="M290,140 L405,215" />
-        </circle>
+        {/* AWS cloud (top) */}
+        <g transform="translate(380,96)">
+          <ellipse cy="6" rx="62" ry="10" fill="#000" opacity=".35" />
+          <path d="M-56,0 L-56,10 L0,38 L0,28 Z" fill="#0b1226" /><path d="M56,0 L56,10 L0,38 L0,28 Z" fill="#182444" />
+          <path d="M0,-28 L56,0 L0,28 L-56,0 Z" fill="url(#gSlab)" stroke="rgba(59,130,246,.35)" />
+          <g fill="url(#gCloud)">
+            <circle cx="-24" cy="-42" r="19" /><circle cx="0" cy="-52" r="25" /><circle cx="24" cy="-40" r="17" />
+            <rect x="-42" y="-42" width="84" height="26" rx="13" />
+          </g>
+          <text y="-24" text-anchor="middle" font-size="19" font-weight="800" fill="#101828">aws</text>
+          <path d="M-14,-20 Q0,-12 14,-21" fill="none" stroke="#f97316" stroke-width="2.6" stroke-linecap="round" />
+        </g>
+        <g font-size="10.5" text-anchor="start">
+          <text x="448" y="80" fill="#4ade80" font-weight="700">Secure</text>
+          <text x="448" y="95" fill="#8b96ad">12 Assets</text>
+        </g>
 
-        {/* Small connection dots at intersections */}
-        <circle cx="290" cy="50" r="3" fill="#A78BFA" opacity="0.4" />
-        <circle cx="95" cy="140" r="3" fill="#60A5FA" opacity="0.4" />
-        <circle cx="485" cy="140" r="3" fill="#34D399" opacity="0.4" />
+        {/* Azure cloud (left) */}
+        <g transform="translate(140,178)">
+          <ellipse cy="6" rx="60" ry="9" fill="#000" opacity=".35" />
+          <path d="M-54,0 L-54,10 L0,37 L0,27 Z" fill="#0b1226" /><path d="M54,0 L54,10 L0,37 L0,27 Z" fill="#182444" />
+          <path d="M0,-27 L54,0 L0,27 L-54,0 Z" fill="url(#gSlab)" stroke="rgba(59,130,246,.35)" />
+          <g fill="url(#gCloud)">
+            <circle cx="-23" cy="-41" r="18" /><circle cx="0" cy="-50" r="24" /><circle cx="23" cy="-39" r="16" />
+            <rect x="-40" y="-41" width="80" height="25" rx="12.5" />
+          </g>
+          <text y="-20" text-anchor="middle" font-size="27" font-weight="800" fill="url(#gAzure)" transform="skewX(-6)">A</text>
+        </g>
+        <g font-size="10.5" text-anchor="middle">
+          <text x="96" y="262" fill="#4ade80" font-weight="700">Secure</text>
+          <text x="96" y="277" fill="#8b96ad">10 Assets</text>
+        </g>
+
+        {/* GCP cloud (right) */}
+        <g transform="translate(620,178)">
+          <ellipse cy="6" rx="60" ry="9" fill="#000" opacity=".35" />
+          <path d="M-54,0 L-54,10 L0,37 L0,27 Z" fill="#0b1226" /><path d="M54,0 L54,10 L0,37 L0,27 Z" fill="#182444" />
+          <path d="M0,-27 L54,0 L0,27 L-54,0 Z" fill="url(#gSlab)" stroke="rgba(59,130,246,.35)" />
+          <g fill="url(#gCloud)">
+            <circle cx="-23" cy="-41" r="18" /><circle cx="0" cy="-50" r="24" /><circle cx="23" cy="-39" r="16" />
+            <rect x="-40" y="-41" width="80" height="25" rx="12.5" />
+          </g>
+          <g transform="translate(0,-32)" fill="none" stroke-width="5.5">
+            <circle r="10" stroke="#ea4335" stroke-dasharray="15.7 47.1" transform="rotate(-90)" />
+            <circle r="10" stroke="#4285f4" stroke-dasharray="15.7 47.1" />
+            <circle r="10" stroke="#34a853" stroke-dasharray="15.7 47.1" transform="rotate(90)" />
+            <circle r="10" stroke="#fbbc05" stroke-dasharray="15.7 47.1" transform="rotate(180)" />
+          </g>
+        </g>
+        <g font-size="10.5" text-anchor="middle">
+          <text x="664" y="262" fill="#4ade80" font-weight="700">Secure</text>
+          <text x="664" y="277" fill="#8b96ad">10 Assets</text>
+        </g>
+
+        {/* node badges */}
+        <g transform="translate(181,301)">
+          <circle r="23" fill="#6d28d9" stroke="#a78bfa" stroke-width="1.5" filter="url(#fGlow)" />
+          <g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="-3.5" cy="-4" r="3.4" /><path d="M-9.5,7c.6-3.6 3-5.6 6-5.6s5.4 2 6 5.6" />
+            <circle cx="5.5" cy="-3" r="2.7" /><path d="M5.5,1.6c2.6,0 4.6,1.8 5.2,4.8" />
+          </g>
+        </g>
+        <g transform="translate(579,301)">
+          <circle r="20" fill="#1d4ed8" stroke="#60a5fa" stroke-width="1.5" filter="url(#fGlow)" />
+          <g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round">
+            <ellipse cx="0" cy="-6" rx="7" ry="2.8" /><path d="M-7,-6v12c0,1.6 3.1,2.9 7,2.9s7-1.3 7-2.9V-6" /><path d="M-7,0c0,1.6 3.1,2.9 7,2.9s7-1.3 7-2.9" />
+          </g>
+        </g>
       </svg>
-
-      {/* AWS — top center */}
-      <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-        <div style={{ width: 56, height: 56, background: '#fff', borderRadius: '18px', boxShadow: '0 8px 24px rgba(124,58,237,0.12), 0 2px 6px rgba(0,0,0,0.04)', border: '1px solid #ECECF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Detailed AWS Logo */}
-          <svg width="34" height="20" viewBox="0 0 71 42" fill="none">
-            <path d="M12.9 31.8c-1.9 0-3.3-.4-4.2-1.3-.9-.8-1.4-2.1-1.4-3.8 0-1.5.4-2.6 1.3-3.4 1-.8 2.4-1.2 4.4-1.2h4.5v3.1h-4.3c-1.8 0-2.8.7-2.8 2 0 1.2.9 1.8 2.6 1.8h4.5v2.8H12.9zm13-16.7h3.4L33 27.6l3.6-12.5h3.4l-5.3 16.7h-3.4l-3.3-11.2-3.3 11.2h-3.4L19.4 15.1H23l3.3 12.3 3.3-12.3-3.7-.2zm24.7 13.9c-1.4 1-3.2 1.6-5.1 1.6-3.8 0-6.1-2.1-6.1-5.7 0-3.9 2.7-5.9 7.2-5.9h3.7v-.9c0-1.7-.8-2.6-2.7-2.6-1.5 0-3.1.5-4.4 1.4l-1.3-2.1c1.8-1.3 4.2-2 6.5-2 4 0 5.8 2.1 5.8 5.7V29h-3.6v-2.3v2.3zm-3.6-6.8c-2.4 0-3.8.9-3.8 2.9 0 1.9 1.1 2.8 3.2 2.8 1.8 0 3.2-.6 4.2-1.7V22h-3.6v.2z" fill="#232F3E"/>
-            <path d="M0 38.6c13.7 8.3 33.2 11.3 48.7 5.6 3.6-1.3 7.8-3.6 10.7-6.5.9-.9.4-1.8-.7-1.4-15.1 5.4-33.8 4.7-48-1.5-.7-.3-1.6.4-1.1 1.1l-9.6 2.7z" fill="#FF9900"/>
-            <path d="M57.6 31.7c-1 .8-.5 2 .7 1.8 4.1-.7 9.8-.3 11.6 1 .9.7 1.3 1.5 1.5 1.7.3.3.6 0 .4-.5-.9-2.9-4.3-8.8-12.4-5.6l-1.8 1.6z" fill="#FF9900"/>
-          </svg>
-        </div>
-        <div style={{ fontSize: 9, color: '#10B981', fontWeight: 700, background: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: 20, padding: '2px 8px' }}>Secure · 12 Assets</div>
-      </div>
-
-      {/* Azure — left */}
-      <div style={{ position: 'absolute', left: 24, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-        <div style={{ width: 56, height: 56, background: '#fff', borderRadius: '18px', boxShadow: '0 8px 24px rgba(124,58,237,0.12), 0 2px 6px rgba(0,0,0,0.04)', border: '1px solid #ECECF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Accurate Azure Cloud Logo */}
-          <svg width="34" height="34" viewBox="0 0 23.3 23.3">
-            <path d="M0 17.5l6.5-9.3 5.4 7.6H0z" fill="#1188D9"/>
-            <path d="M6.5 8.2l7.2-8.2h5.5l-12.7 15.8-5.4-7.6z" fill="#0072C6"/>
-            <path d="M12.6 12.3l4-5.1 6.7 10.3H12.6v-5.2z" fill="#1188D9"/>
-            <path d="M23.3 17.5L16.6 7.2l-3.3 4.2 10 6.1z" fill="#0072C6"/>
-          </svg>
-        </div>
-        <div style={{ fontSize: 9, color: '#10B981', fontWeight: 700, background: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: 20, padding: '2px 8px' }}>Secure · 10 Assets</div>
-      </div>
-
-      {/* GCP — right */}
-      <div style={{ position: 'absolute', right: 24, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-        <div style={{ width: 56, height: 56, background: '#fff', borderRadius: '18px', boxShadow: '0 8px 24px rgba(124,58,237,0.12), 0 2px 6px rgba(0,0,0,0.04)', border: '1px solid #ECECF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Accurate Google Cloud Logo */}
-          <svg width="34" height="34" viewBox="0 0 24 24">
-            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z" fill="#00A1F1"/>
-            <path d="M12 7.5L7.5 12h3v4h3v-4h3L12 7.5z" fill="#FFF" opacity="0"/>
-          </svg>
-        </div>
-        <div style={{ fontSize: 9, color: '#10B981', fontWeight: 700, background: '#ECFDF5', border: '1px solid #D1FAE5', borderRadius: 20, padding: '2px 8px' }}>Secure · 10 Assets</div>
-      </div>
-
-      {/* Center — Shield platform */}
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: 72, height: 72, background: 'linear-gradient(135deg,#7C3AED,#6366F1)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 32px rgba(124,58,237,0.45), 0 0 0 8px rgba(124,58,237,0.08)', border: '2px solid rgba(255,255,255,0.2)' }}>
-          <Shield style={{ width: 34, height: 34, color: '#fff' }} />
-        </div>
-      </div>
-
-      {/* Applications — bottom left */}
-      <div style={{ position: 'absolute', bottom: 38, left: '26%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: 44, height: 44, borderRadius: '14px', background: 'linear-gradient(135deg,#7C3AED,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(124,58,237,0.25)', border: '1.5px solid rgba(255,255,255,0.6)' }}>
-          <Users style={{ width: 20, height: 20, color: '#fff' }} />
-        </div>
-      </div>
-
-      {/* Compute — bottom right */}
-      <div style={{ position: 'absolute', bottom: 38, right: '26%', transform: 'translateX(50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: 44, height: 44, borderRadius: '14px', background: 'linear-gradient(135deg,#4F46E5,#3B82F6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(79,70,229,0.25)', border: '1.5px solid rgba(255,255,255,0.6)' }}>
-          <Server style={{ width: 20, height: 20, color: '#fff' }} />
-        </div>
-      </div>
-
-      {/* "All Systems Operational" badge */}
-      <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #D1FAE5', borderRadius: 20, padding: '4px 14px', boxShadow: '0 2px 12px rgba(16,185,129,0.12)' }}>
-        <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10B981', display: 'inline-block', animation: 'pulse 2s infinite' }} />
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#059669' }}>All Systems Operational</span>
-      </div>
-
-      {/* Refresh + 360° controls */}
-      <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 6 }}>
-        <button aria-label="Refresh" style={{ width: 28, height: 28, borderRadius: 8, background: '#fff', border: '1px solid #EBEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <RefreshCw style={{ width: 13, height: 13, color: '#9CA3AF' }} className={refreshing ? 'animate-spin' : ''} />
-        </button>
-        <div style={{ height: 28, borderRadius: 8, background: '#fff', border: '1px solid #EBEBF5', display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: 10, fontWeight: 700, color: '#7C3AED', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>360°</div>
-        <button aria-label="Expand" style={{ width: 28, height: 28, borderRadius: 8, background: '#fff', border: '1px solid #EBEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 5V1h4M8 1h4v4M12 8v4H8M5 12H1V8" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        </button>
+      <div className="status-pill animate-blink" style={{ position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(10,16,32,.85)', border: '1px solid rgba(34,197,94,.35)', color: '#4ade80', fontSize: '11.5px', fontWeight: 600, padding: '6px 14px', borderRadius: 999, backdropFilter: 'blur(4px)' }}>
+        <i style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 8px var(--green)' }}></i>All Systems Operational
       </div>
     </div>
   );
 }
 
-/* ─────────── MAIN DASHBOARD ─────────── */
+/* ─────────── MAIN DASHBOARD PAGE ─────────── */
 function DashboardPage() {
-  const user = useAuthStore((s: any) => s.user);
+  const navigate = useNavigate();
   const [findings, setFindings] = useState<any[]>([]);
   const [assets, setAssets] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+  const [scanning, setScanning] = useState(false);
+  const [eventDetailOpen, setEventDetailOpen] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -217,245 +187,279 @@ function DashboardPage() {
       const [fR, aR] = await Promise.allSettled([api.get('/v1/findings'), api.get('/v1/findings/assets')]);
       if (fR.status === 'fulfilled') setFindings(fR.value.data.findings || []);
       if (aR.status === 'fulfilled') setAssets(aR.value.data.assets || []);
-    } catch (_) {} finally { setRefreshing(false); }
+    } catch (_) {
+    } finally {
+      setRefreshing(false);
+    }
   };
-  useEffect(() => { fetchData(); }, []);
 
-  const critical = findings.filter((f: any) => f.severity === 'CRITICAL').length || 2;
-  const secScore = Math.max(60, 100 - critical * 4 - findings.filter((f: any) => f.severity === 'HIGH').length * 2) || 92;
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const triggerScan = async () => {
+    setScanning(true);
+    try {
+      await api.post('/v1/findings/scan');
+      await fetchData();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const critical = findings.filter((f: any) => f.severity?.toUpperCase() === 'CRITICAL').length || 2;
+  const high = findings.filter((f: any) => f.severity?.toUpperCase() === 'HIGH').length || 2;
+  const medium = findings.filter((f: any) => f.severity?.toUpperCase() === 'MEDIUM').length || 2;
+  const low = findings.filter((f: any) => f.severity?.toUpperCase() === 'LOW').length || 15;
+
+  const totalFindings = findings.length || 21;
+  const secScore = Math.max(10, 100 - findings.length * 10);
   const totalAssets = assets.length || 32;
 
-  /* Stat card definitions */
-  const stats = [
-    {
-      label: 'TOTAL ASSETS', value: totalAssets, sub: 'Across 3 Clouds',
-      icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2L2 7l9 5 9-5-9-5z" fill="#6366F1" opacity="0.8"/><path d="M2 15l9 5 9-5M2 11l9 5 9-5" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-      iconBg: '#EEF2FF',
-    },
-    {
-      label: 'CRITICAL RISKS', value: critical, sub: 'Immediate attention',
-      icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#EF4444" strokeWidth="1.5"/><circle cx="11" cy="11" r="5" stroke="#EF4444" strokeWidth="1.5"/><circle cx="11" cy="11" r="1.5" fill="#EF4444"/><line x1="11" y1="2" x2="11" y2="5" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round"/><line x1="11" y1="17" x2="11" y2="20" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round"/><line x1="2" y1="11" x2="5" y2="11" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round"/><line x1="17" y1="11" x2="20" y2="11" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-      iconBg: '#FEF2F2',
-    },
-    {
-      label: 'SECURITY SCORE', value: `${secScore}/100`, sub: 'Excellent',
-      icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2L4 5v6c0 4.4 3 8.5 7 9.5 4-1 7-5.1 7-9.5V5L11 2z" fill="#10B981" opacity="0.2"/><path d="M11 2L4 5v6c0 4.4 3 8.5 7 9.5 4-1 7-5.1 7-9.5V5L11 2z" stroke="#10B981" strokeWidth="1.5" strokeLinejoin="round"/><path d="M7.5 11l2.5 2.5 5-5" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-      iconBg: '#ECFDF5',
-    },
-    {
-      label: 'COMPLIANCE', value: '75%', sub: '6/8 Compliant',
-      icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="2" width="14" height="18" rx="2" stroke="#3B82F6" strokeWidth="1.5"/><path d="M7 7h8M7 11h8M7 15h5" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-      iconBg: '#EFF6FF',
-    },
-    {
-      label: 'ATTACK SURFACE', value: 'Low', sub: 'Exposure level',
-      icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#6366F1" strokeWidth="1.5"/><ellipse cx="11" cy="11" rx="4" ry="9" stroke="#6366F1" strokeWidth="1.2"/><line x1="2" y1="11" x2="20" y2="11" stroke="#6366F1" strokeWidth="1.2"/></svg>,
-      iconBg: '#EEF2FF',
-    },
-  ];
-
-  const S = {
-    card: { background: '#fff', border: '1px solid #F0F0F8', borderRadius: 16, boxShadow: '0 2px 12px rgba(99,102,241,0.06)' } as React.CSSProperties,
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#F6F7FF', fontFamily: "'Inter','Segoe UI',system-ui,sans-serif" }}>
-
-      {/* ═══ HEADER ═══ */}
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', background: '#fff', borderBottom: '1px solid #F0F0F8', flexShrink: 0, gap: 16 }}>
-        <div style={{ flexShrink: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#111827' }}>{greeting}, {user?.first_name || 'Admin'} 👋</div>
-          <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>Aegivion AI is actively protecting your cloud environment.</div>
-        </div>
-        {/* Search — centered */}
-        <div style={{ flex: 1, maxWidth: 340, position: 'relative' }}>
-          <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#9CA3AF' }} />
-          <input type="search" placeholder="Search assets, threats, incidents..."
-            style={{ width: '100%', paddingLeft: 36, paddingRight: 14, paddingTop: 8, paddingBottom: 8, fontSize: 11, background: '#F8F8FF', border: '1px solid #EBEBF5', borderRadius: 12, outline: 'none', color: '#374151', boxSizing: 'border-box' }} />
-        </div>
-        {/* Right icons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <button aria-label="Notifications" style={{ position: 'relative', width: 36, height: 36, borderRadius: 10, background: '#F8F8FF', border: '1px solid #EBEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <Bell style={{ width: 16, height: 16, color: '#6B7280' }} />
-            <span style={{ position: 'absolute', top: 7, right: 7, width: 8, height: 8, background: '#7C3AED', borderRadius: '50%', border: '2px solid #fff' }} />
-          </button>
-          <button aria-label="Help" style={{ width: 36, height: 36, borderRadius: 10, background: '#F8F8FF', border: '1px solid #EBEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <HelpCircle style={{ width: 16, height: 16, color: '#6B7280' }} />
-          </button>
-          <button aria-label="Settings" style={{ width: 36, height: 36, borderRadius: 10, background: '#F8F8FF', border: '1px solid #EBEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <Settings style={{ width: 16, height: 16, color: '#6B7280' }} />
-          </button>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#7C3AED,#4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(124,58,237,0.4)' }}>
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l1.5 4.5H15l-3.75 2.75 1.5 4.5L9 11l-3.75 2.75 1.5-4.5L3 6.5h4.5L9 2z" fill="white"/></svg>
+    <div className="space-y-6" style={{ color: 'var(--text)' }}>
+      
+      {/* STATS ROW */}
+      <section className="stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(215px,1fr))', gap: 16 }}>
+        <div className="stat animate-rise" style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="stat-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span className="stat-label" style={{ fontSize: '10.5px', letterSpacing: '.12em', fontWeight: 700, color: 'var(--muted)' }}>TOTAL ASSETS</span>
+            <span className="stat-ic purple" style={{ width: 40, height: 40, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'rgba(139,92,246,.14)', color: '#a78bfa' }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5z" /><path d="M3 8v8l9 5 9-5V8" /><path d="M12 13v8" /></svg>
+            </span>
+          </div>
+          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>{totalAssets}</div>
+          <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
+            <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>Across 3 Clouds</span>
+            <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,14 14,12 26,16 38,10 50,14 62,9 74,13 86,11 90,12" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" /></svg>
           </div>
         </div>
-      </header>
 
-      {/* ═══ BODY ═══ */}
-      <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-        <div style={{ display: 'flex', gap: 14, minHeight: '100%' }}>
-
-          {/* ── CENTER COLUMN ── */}
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-            {/* Stat cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
-              {stats.map((s, i) => (
-                <div key={i} style={{ ...S.card, padding: '14px 14px 12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#9CA3AF', lineHeight: 1.3 }}>{s.label}</div>
-                    <div style={{ width: 34, height: 34, borderRadius: 10, background: s.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.icon}</div>
-                  </div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: '#111827', lineHeight: 1 }}>{s.value}</div>
-                  <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 6 }}>{s.sub}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Cloud Topology Card */}
-            <div style={{ ...S.card, padding: '14px 16px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#111827', letterSpacing: '-0.01em' }}>Cloud Environment Overview</div>
-                  <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>Real-time 360° security visualization</div>
-                </div>
-              </div>
-              <CloudTopology refreshing={refreshing} />
-            </div>
-
-            {/* Risk Trend + Top Risky Assets */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-
-              {/* Risk Trend */}
-              <div style={{ ...S.card, padding: '14px 14px 10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Risk Trend </span>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>(Last 7 Days)</span>
-                  </div>
-                  <select style={{ fontSize: 10, border: '1px solid #EBEBF5', borderRadius: 8, padding: '4px 8px', color: '#6B7280', background: '#FAFAFE', outline: 'none', cursor: 'pointer' }}>
-                    <option>Overall Risk</option>
-                  </select>
-                </div>
-                <ResponsiveContainer width="100%" height={130}>
-                  <AreaChart data={riskData} margin={{ top: 4, right: 4, left: -26, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="rg" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                    <XAxis dataKey="d" tick={{ fontSize: 8, fill: '#9CA3AF' }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 8, fill: '#9CA3AF' }} tickLine={false} axisLine={false} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} />
-                    <Tooltip contentStyle={{ fontSize: 10, borderRadius: 10, border: '1px solid #EBEBF5', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }} cursor={{ stroke: '#7C3AED', strokeWidth: 1, strokeDasharray: '4 3' }} />
-                    <Area type="monotone" dataKey="v" stroke="#7C3AED" strokeWidth={2.5} fill="url(#rg)"
-                      dot={{ r: 3.5, fill: '#7C3AED', strokeWidth: 0 }}
-                      activeDot={{ r: 5, fill: '#5B21B6', strokeWidth: 0 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Top Risky Assets */}
-              <div style={{ ...S.card, padding: '14px 14px 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Top Risky Assets</span>
-                  <Link to="/assets" style={{ fontSize: 10, color: '#7C3AED', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
-                    View All <ChevronRight style={{ width: 12, height: 12 }} />
-                  </Link>
-                </div>
-                {topAssets.map((a, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: i < topAssets.length - 1 ? 12 : 0 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: '#F8F8FF', border: '1px solid #EBEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
-                      {i === 0 ? '🟠' : i === 1 ? '🔐' : i === 2 ? '☁️' : '💾'}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</div>
-                      <div style={{ fontSize: 9.5, color: '#9CA3AF', marginTop: 1 }}>{a.env}</div>
-                    </div>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: a.sevC, background: a.sevBg, padding: '2px 8px', borderRadius: 6, flexShrink: 0 }}>{a.sev}</span>
-                    <span style={{ fontSize: 12, fontWeight: 900, color: '#374151', width: 22, textAlign: 'right', flexShrink: 0 }}>{a.score}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <div className="stat animate-rise" style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="stat-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span className="stat-label" style={{ fontSize: '10.5px', letterSpacing: '.12em', fontWeight: 700, color: 'var(--muted)' }}>CRITICAL RISKS</span>
+            <span className="stat-ic red" style={{ width: 40, height: 40, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'rgba(239,68,68,.13)', color: '#f87171' }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2.5" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg>
+            </span>
           </div>
+          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>{critical}</div>
+          <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
+            <span className="t-red" style={{ color: 'var(--red)', fontSize: '11.5px' }}>Immediate attention</span>
+            <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,16 14,15 26,18 38,14 50,17 62,12 74,16 86,14 90,15" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" /></svg>
+          </div>
+        </div>
 
-          {/* ── RIGHT PANEL ── */}
-          <div style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="stat animate-rise" style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="stat-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span className="stat-label" style={{ fontSize: '10.5px', letterSpacing: '.12em', fontWeight: 700, color: 'var(--muted)' }}>SECURITY SCORE</span>
+            <span className="stat-ic green" style={{ width: 40, height: 40, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'rgba(34,197,94,.13)', color: '#4ade80' }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 3.5v5c0 5-3.4 9.4-8 11.5-4.6-2.1-8-6.5-8-11.5v-5L12 2z" /><path d="M9 12l2.2 2.2L15.5 10" /></svg>
+            </span>
+          </div>
+          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>{secScore} <small style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600 }}>/100</small></div>
+          <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
+            <span className="t-green" style={{ color: 'var(--green)', fontSize: '11.5px' }}>Excellent</span>
+            <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,15 14,13 26,16 38,11 50,14 62,10 74,13 86,9 90,10" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" /></svg>
+          </div>
+        </div>
 
-            {/* AI Security Insights */}
-            <div style={{ borderRadius: 18, padding: '16px 16px 14px', background: 'linear-gradient(145deg,#7C3AED 0%,#4F46E5 100%)', boxShadow: '0 8px 28px rgba(124,58,237,0.35)' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: '#fff' }}>AI Security Insights</div>
-                  <div style={{ fontSize: 9, color: '#C4B5FD', marginTop: 2 }}>Powered by Aegivion AI</div>
-                </div>
-                <Brain style={{ width: 22, height: 22, color: '#C4B5FD' }} />
-              </div>
-              <p style={{ fontSize: 10.5, color: '#DDD6FE', lineHeight: 1.55, marginBottom: 12 }}>
-                I've analyzed your environment and found{' '}
-                <strong style={{ color: '#fff' }}>1 critical misconfiguration</strong> in{' '}
-                <strong style={{ color: '#FCD34D' }}>AWS S3 bucket policy.</strong>
-              </p>
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 9, color: '#C4B5FD', marginBottom: 6 }}>Risk Level</div>
-                <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
-                  {[0, 1, 2, 3, 4].map(i => (
-                    <div key={i} style={{ height: 5, flex: 1, borderRadius: 3, background: i < 3 ? '#F87171' : 'rgba(255,255,255,0.2)' }} />
-                  ))}
-                </div>
-                <div style={{ fontSize: 10, color: '#FCA5A5', fontWeight: 700 }}>High</div>
-              </div>
-              <button style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#fff', color: '#7C3AED', fontWeight: 700, fontSize: 11, padding: '9px', borderRadius: 12, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                View &amp; Resolve <ArrowRight style={{ width: 13, height: 13 }} />
+        <div className="stat animate-rise" style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="stat-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span className="stat-label" style={{ fontSize: '10.5px', letterSpacing: '.12em', fontWeight: 700, color: 'var(--muted)' }}>COMPLIANCE</span>
+            <span className="stat-ic blue" style={{ width: 40, height: 40, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'rgba(59,130,246,.13)', color: '#60a5fa' }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4a3 3 0 0 1 6 0" /><path d="M9 11h6M9 15h6" /></svg>
+            </span>
+          </div>
+          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>75<small style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600 }}>%</small></div>
+          <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
+            <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>6/8 Compliant</span>
+            <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,14 14,15 26,12 38,15 50,11 62,14 74,10 86,13 90,11" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" /></svg>
+          </div>
+        </div>
+
+        <div className="stat animate-rise" style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="stat-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span className="stat-label" style={{ fontSize: '10.5px', letterSpacing: '.12em', fontWeight: 700, color: 'var(--muted)' }}>ATTACK SURFACE</span>
+            <span className="stat-ic purple" style={{ width: 40, height: 40, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'rgba(139,92,246,.14)', color: '#a78bfa' }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z" /></svg>
+            </span>
+          </div>
+          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>Low</div>
+          <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
+            <span className="t-muted" style={{ color: 'var(--muted)', fontSize: '11.5px' }}>Exposure level</span>
+            <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,15 14,14 26,17 38,13 50,16 62,12 74,15 86,13 90,14" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" /></svg>
+          </div>
+        </div>
+      </section>
+
+      {/* DUAL PANELS */}
+      <section className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12,1fr)', gap: 16 }}>
+        
+        {/* CLOUD ENVIRONMENT OVERVIEW */}
+        <div className="panel s6" style={{ gridColumn: 'span 6', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>CLOUD ENVIRONMENT OVERVIEW</h3>
+              <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 3 }}>Real-time 360° security visualization</p>
+            </div>
+            <div className="tools" style={{ display: 'flex', gap: 8 }}>
+              <button onClick={fetchData} className="tool-btn" title="Refresh" style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center', transition: '.18s' }}>
+                <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+              </button>
+              <button onClick={triggerScan} disabled={scanning} className={`tool-btn pill ${scanning ? 'on' : ''}`} style={{ width: 'auto', padding: '0 10px', fontSize: 11, fontWeight: 700, borderRadius: 8, border: '1px solid var(--border)', background: scanning ? 'rgba(99,102,241,.16)' : 'transparent', color: scanning ? '#a5b4fc' : 'var(--muted)', borderColor: scanning ? 'rgba(99,102,241,.5)' : 'var(--border)' }}>
+                {scanning ? 'Scanning...' : '360°'}
               </button>
             </div>
+          </div>
+          <CloudTopology scanning={scanning || refreshing} />
+        </div>
 
-            {/* Live Threat Feed */}
-            <div style={{ ...S.card, padding: '14px 14px 12px', flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Live Threat Feed</div>
-                <Link to="/findings" style={{ fontSize: 10, color: '#7C3AED', fontWeight: 600, textDecoration: 'none' }}>View All</Link>
-              </div>
-              <div style={{ fontSize: 9.5, color: '#9CA3AF', marginBottom: 12 }}>Real-time security events</div>
-              {threats.map(t => (
-                <div key={t.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: t.dot, marginTop: 3, flexShrink: 0, boxShadow: `0 0 6px ${t.dot}80` }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 10.5, fontWeight: 600, color: '#1F2937', lineHeight: 1.35 }}>{t.title}</div>
-                    <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{t.env}</div>
-                  </div>
-                  <div style={{ fontSize: 9, color: '#9CA3AF', flexShrink: 0, marginTop: 1 }}>{t.time}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Ask AI */}
-            <div style={{ ...S.card, padding: '14px 14px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Ask Aegivion AI</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', display: 'inline-block' }} />
-                  <span style={{ fontSize: 9.5, color: '#10B981', fontWeight: 600 }}>Online</span>
-                </div>
-              </div>
-              <div style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10 }}>How can I help you securing your cloud today?</div>
-              {/* Waveform decoration */}
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 20, marginBottom: 10 }}>
-                {[4, 8, 12, 7, 14, 5, 10, 16, 8, 5, 11, 7].map((h, i) => (
-                  <div key={i} style={{ flex: 1, background: 'linear-gradient(to top,#7C3AED,#A78BFA)', borderRadius: 2, opacity: 0.5, height: h }} />
-                ))}
-              </div>
-              <Link to="/ai-assistant" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F8F8FF', border: '1px solid #EBEBF5', borderRadius: 10, padding: '8px 12px', textDecoration: 'none' }}>
-                <span style={{ fontSize: 10, color: '#9CA3AF' }}>Ask anything...</span>
-                <ArrowRight style={{ width: 13, height: 13, color: '#7C3AED' }} />
-              </Link>
+        {/* FINDINGS SEVERITY BREAKDOWN */}
+        <div className="panel s3" style={{ gridColumn: 'span 3', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>FINDINGS SEVERITY</h3>
+              <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 3 }}>Proportion of open vulnerabilities</p>
             </div>
           </div>
+          <div className="donut-row" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
+            <div className="donut" style={{ position: 'relative', width: 130, margin: '4px auto' }}>
+              <svg width="130" height="130" viewBox="0 0 150 150">
+                <g fill="none" stroke-width="17" transform="rotate(-90 75 75)">
+                  <circle cx="75" cy="75" r="57" stroke="#ef4444" stroke-dasharray="34.1 358.1" />
+                  <circle cx="75" cy="75" r="57" stroke="#f97316" stroke-dasharray="34.1 358.1" transform="rotate(34.3 75 75)" />
+                  <circle cx="75" cy="75" r="57" stroke="#f59e0b" stroke-dasharray="34.1 358.1" transform="rotate(68.6 75 75)" />
+                  <circle cx="75" cy="75" r="57" stroke="#3b82f6" stroke-dasharray="256 358.1" transform="rotate(102.9 75 75)" />
+                </g>
+              </svg>
+              <div className="ctr" style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <b style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)' }}>{totalFindings}</b>
+                <span style={{ fontSize: 11, color: 'var(--muted)' }}>Total</span>
+              </div>
+            </div>
+            <ul className="legend" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8, padding: 0 }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, listStyle: 'none' }}><i style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }}></i>Critical ({critical}) <span style={{ marginLeft: 'auto', color: 'var(--muted)' }}>9.5%</span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, listStyle: 'none' }}><i style={{ width: 8, height: 8, borderRadius: '50%', background: '#f97316' }}></i>High ({high}) <span style={{ marginLeft: 'auto', color: 'var(--muted)' }}>9.5%</span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, listStyle: 'none' }}><i style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }}></i>Medium ({medium}) <span style={{ marginLeft: 'auto', color: 'var(--muted)' }}>9.5%</span></li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, listStyle: 'none' }}><i style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }}></i>Low ({low}) <span style={{ marginLeft: 'auto', color: 'var(--muted)' }}>71.4%</span></li>
+            </ul>
+          </div>
         </div>
-      </div>
+
+        {/* AI SECURITY INSIGHTS */}
+        <div className="panel s3" style={{ gridColumn: 'span 3', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>AI INSIGHTS</h3>
+            </div>
+            <span style={{ color: '#a78bfa' }}>
+              <Brain size={22} />
+            </span>
+          </div>
+          <div className="powered" style={{ color: '#a5b4fc', fontSize: '11.5px', fontWeight: 600, marginBottom: 10 }}>Powered by Aegivion AI</div>
+          <p className="insight-txt" style={{ fontSize: '12.5px', lineHeight: 1.65, color: 'var(--muted)' }}>I've analyzed your environment and found <span className="hot" style={{ color: '#f87171', fontWeight: 600 }}>1 critical misconfiguration</span> in AWS S3 bucket policy.</p>
+          <div className="risk-lbl" style={{ fontSize: '11.5px', color: 'var(--muted)', margin: '14px 0 8px' }}>Risk Level</div>
+          <div className="risk-row" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <b style={{ color: 'var(--red)', fontSize: 13 }}>High</b>
+            <div className="segs" style={{ display: 'flex', gap: 6, flex: 1 }}>
+              <i className="on" style={{ height: 5, flex: 1, borderRadius: 4, background: 'linear-gradient(90deg,#ef4444,#f97316)', boxShadow: '0 0 8px rgba(239,68,68,.5)' }}></i>
+              <i className="on" style={{ height: 5, flex: 1, borderRadius: 4, background: 'linear-gradient(90deg,#ef4444,#f97316)', boxShadow: '0 0 8px rgba(239,68,68,.5)' }}></i>
+              <i className="on" style={{ height: 5, flex: 1, borderRadius: 4, background: 'linear-gradient(90deg,#ef4444,#f97316)', boxShadow: '0 0 8px rgba(239,68,68,.5)' }}></i>
+              <i style={{ height: 5, flex: 1, borderRadius: 4, background: '#2b3650' }}></i>
+              <i style={{ height: 5, flex: 1, borderRadius: 4, background: '#2b3650' }}></i>
+            </div>
+          </div>
+          <Link to="/ai-assistant">
+            <button className="btn-primary" style={{ marginTop: 16, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', background: 'linear-gradient(90deg,#6366f1,#7c3aed)', color: '#fff', fontWeight: 700, fontSize: 13, padding: 11, borderRadius: 10, transition: '.2s', boxShadow: '0 8px 20px rgba(99,102,241,.35)' }}>
+              View &amp; Resolve <ArrowRight size={15} />
+            </button>
+          </Link>
+        </div>
+
+      </section>
+
+      {/* SECOND GRID BLOCK */}
+      <section className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12,1fr)', gap: 16 }}>
+        
+        {/* RECENT SECURITY EVENTS */}
+        <div className="panel s6" style={{ gridColumn: 'span 6', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>RECENT SECURITY EVENTS</h3>
+              <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 3 }}>Last 3 hours</p>
+            </div>
+            <Link to="/findings" className="link" style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>View All</Link>
+          </div>
+          <div className="events" style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="event" onClick={() => setEventDetailOpen(!eventDetailOpen)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 2px', borderRadius: 8, cursor: 'pointer' }}>
+              <i className="dot" style={{ width: 7, height: 7, borderRadius: '50%', flex: 'none', background: '#ef4444', boxShadow: '0 0 7px #ef4444' }}></i>
+              <span className="sev critical" style={{ fontSize: 11, fontWeight: 700, color: '#fff', padding: '4px 0', width: 74, textAlign: 'center', borderRadius: 6, flex: 'none', background: '#b91c1c' }}>Critical</span>
+              <span className="time" style={{ color: 'var(--muted)', fontSize: 12, width: 72, flex: 'none' }}>15m ago</span>
+              <span className="desc" style={{ fontSize: '12.5px', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Bucket policy changed on customer-exports</span>
+              <button className="chev" title="Expand" style={{ background: 'none', border: 'none', color: 'var(--muted)', padding: 4 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6" /></svg>
+              </button>
+            </div>
+            <div className={`event-detail ${eventDetailOpen ? 'open' : ''}`} style={{ display: eventDetailOpen ? 'block' : 'none', fontSize: '11.5px', color: 'var(--muted)', padding: '2px 0 8px 96px' }}>
+              ↳ Policy now allows <b style={{ color: '#f87171' }}>s3:GetObject *</b> for principal "AWS:*" — review recommended. Correlated with GuardDuty finding INC-236.
+            </div>
+
+            {defaultThreats.slice(1).map((t) => (
+              <div key={t.id} className="event" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 2px', borderRadius: 8 }}>
+                <i className="dot" style={{ width: 7, height: 7, borderRadius: '50%', flex: 'none', background: t.dot, boxShadow: `0 0 7px ${t.dot}` }}></i>
+                <span className="sev high" style={{ fontSize: 11, fontWeight: 700, color: '#fff', padding: '4px 0', width: 74, textAlign: 'center', borderRadius: 6, flex: 'none', background: t.dot === '#EF4444' ? '#b91c1c' : '#c2570a' }}>High</span>
+                <span className="time" style={{ color: 'var(--muted)', fontSize: 12, width: 72, flex: 'none' }}>{t.time}</span>
+                <span className="desc" style={{ fontSize: '12.5px', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RISKY ASSETS */}
+        <div className="panel s6" style={{ gridColumn: 'span 6', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>TOP RISKY ASSETS</h3>
+            </div>
+            <Link to="/assets" className="link" style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>View All</Link>
+          </div>
+          <table className="tbl" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, textAlign: 'left', padding: '8px 8px', borderBottom: '1px solid var(--border)' }}>Asset / Issue</th>
+                <th style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, textAlign: 'left', padding: '8px 8px', borderBottom: '1px solid var(--border)' }}>Severity</th>
+                <th style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, textAlign: 'left', padding: '8px 8px', borderBottom: '1px solid var(--border)' }}>Risk Score</th>
+                <th style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, textAlign: 'left', padding: '8px 8px', borderBottom: '1px solid var(--border)' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {defaultTopAssets.map((asset, index) => (
+                <tr key={index}>
+                  <td style={{ fontSize: '12.5px', padding: '10px 8px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle' }}>
+                    <div style={{ fontWeight: 600 }}>{asset.name}</div>
+                    <div style={{ fontSize: 10, color: 'var(--muted)' }}>{asset.env}</div>
+                  </td>
+                  <td style={{ fontSize: '12.5px', padding: '10px 8px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle' }}>
+                    <span className="sev critical" style={{ fontSize: 11, fontWeight: 700, color: '#fff', padding: '3px 8px', borderRadius: 6, background: asset.sev === 'Critical' ? '#b91c1c' : '#c2570a' }}>{asset.sev}</span>
+                  </td>
+                  <td style={{ fontSize: '12.5px', padding: '10px 8px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle', color: 'var(--muted)' }}>{asset.score}</td>
+                  <td style={{ fontSize: '12.5px', padding: '10px 8px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle' }}>
+                    <button className="eye-btn" title="View details" style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center', transition: '.18s' }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
     </div>
   );
 }
+
 

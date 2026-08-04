@@ -1,14 +1,15 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import { useAuthStore } from '@/store/auth-store';
+import { useUIStore } from '@/store/ui-store';
 import {
   Shield, LayoutDashboard, BrainCircuit, Cloud, AlertTriangle,
-  Database, Users, BarChart3, FileText, Zap, Settings, LogOut
+  Database, Users, BarChart3, FileText, Zap, Settings, LogOut,
+  ChevronLeft, Bell, HelpCircle, Sun, Moon
 } from 'lucide-react';
 
 const navItems = [
-  { to: '/', label: 'Command Center', icon: LayoutDashboard },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/ai-assistant', label: 'AI Copilot', icon: BrainCircuit },
   { to: '/cloud-accounts', label: 'Cloud Topology', icon: Cloud },
   { to: '/findings', label: 'Threats', icon: AlertTriangle },
@@ -21,8 +22,8 @@ const navItems = [
 ];
 
 function SparkLine() {
-  const pts = [2, 8, 5, 12, 9, 15, 14];
-  const max = 16; const w = 110; const h = 22;
+  const pts = [26, 24, 27, 20, 22, 16, 19, 13, 15, 9, 10, 4];
+  const max = 30; const w = 150; const h = 34;
   const xs = pts.map((_, i) => (i / (pts.length - 1)) * w);
   const ys = pts.map(v => h - (v / max) * (h - 2) - 1);
   let d = `M ${xs[0]} ${ys[0]}`;
@@ -30,17 +31,9 @@ function SparkLine() {
     const cx2 = (xs[i - 1] + xs[i]) / 2;
     d += ` C ${cx2} ${ys[i - 1]}, ${cx2} ${ys[i]}, ${xs[i]} ${ys[i]}`;
   }
-  const fill = d + ` L ${xs[pts.length - 1]} ${h} L ${xs[0]} ${h} Z`;
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-      <defs>
-        <linearGradient id="spkFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#34d399" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={fill} fill="url(#spkFill)" />
-      <path d={d} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" />
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ marginTop: 8 }}>
+      <path d={d} fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -50,136 +43,252 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const location = useLocation();
   const user = useAuthStore((s: any) => s.user);
   const logout = useAuthStore((s: any) => s.logout);
+  const { isCollapsed, toggleSidebar } = useUIStore();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  const handleLogout = () => { logout(); navigate({ to: '/login' }); };
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('aegivion-theme') as 'dark' | 'light';
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.body.className = savedTheme;
+    } else {
+      document.body.className = 'dark';
+    }
+  }, []);
+
+  const toggleTheme = (newTheme: 'dark' | 'light') => {
+    setTheme(newTheme);
+    localStorage.setItem('aegivion-theme', newTheme);
+    document.body.className = newTheme;
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate({ to: '/login' });
+  };
+
   const initials = user
     ? (`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`).toUpperCase() || 'AU'
-    : 'AU';
-  const userRole = user?.role || 'viewer';
+    : 'AD';
+  const userRole = user?.role || 'Super Admin';
   const isActive = (to: string) => to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
 
-  const r = 22; const score = 0.92;
-  const arc = 2 * Math.PI * r * score;
-  const full = 2 * Math.PI * r;
+  // Security Posture gauge setup
+  const [gaugeValue, setGaugeValue] = useState(0);
+  const TOTAL_LEN = 282.74;
+  const TARGET = 92;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setGaugeValue(TARGET);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const dashOffset = (TOTAL_LEN * (1 - gaugeValue / 100)).toFixed(2);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: '#F6F7FF' }}>
-
-      {/* ── SIDEBAR ── */}
-      <aside style={{ width: 200, flexShrink: 0, background: '#fff', borderRight: '1px solid #EBEBF5', display: 'flex', flexDirection: 'column', height: '100%', boxShadow: '1px 0 12px rgba(99,102,241,0.05)' }}>
-
-        {/* Logo */}
-        <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid #EBEBF5' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#7C3AED,#4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(124,58,237,0.35)' }}>
-              <Shield style={{ width: 16, height: 16, color: '#fff' }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: '#111827', lineHeight: 1.2 }}>Aegivion</div>
-              <div style={{ fontSize: 8.5, color: '#9CA3AF', lineHeight: 1.2, marginTop: 1 }}>Autonomous Cloud Security Copilot</div>
-            </div>
+    <div className="app min-h-screen flex w-full" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+      {/* ============ SIDEBAR ============ */}
+      <aside
+        className="sidebar flex-shrink-0"
+        style={{
+          width: isCollapsed ? 76 : 252,
+          minWidth: isCollapsed ? 76 : 252,
+          background: 'var(--side)',
+          borderRight: '1px solid var(--border)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+          padding: '18px 14px 16px',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflowY: 'auto',
+          transition: 'width 0.2s, min-width 0.2s',
+        }}
+      >
+        <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '2px 6px 16px' }}>
+          <div
+            className="brand-logo"
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              background: 'linear-gradient(135deg,#6366f1,#7c3aed)',
+              display: 'grid',
+              placeItems: 'center',
+              boxShadow: '0 6px 18px rgba(99,102,241,.4)',
+              flex: 'none',
+              cursor: 'pointer'
+            }}
+            onClick={toggleSidebar}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2l8 3.5v5c0 5-3.4 9.4-8 11.5-4.6-2.1-8-6.5-8-11.5v-5L12 2z" />
+              <path d="M12 8v5" />
+              <circle cx="12" cy="15.5" r="0.5" fill="#fff" />
+            </svg>
           </div>
+          {!isCollapsed && (
+            <div>
+              <h1 style={{ fontSize: 17, fontWeight: 800, letterSpacing: '.2px', color: 'var(--text)' }}>Aegivion</h1>
+              <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>Cloud Security Platform</span>
+            </div>
+          )}
         </div>
 
-        {/* Nav items */}
-        <nav style={{ flex: 1, padding: '10px 10px', overflowY: 'auto' }}>
-          {navItems.map(item => {
+        {!isCollapsed && <div className="nav-label" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--faint)', fontWeight: 700, padding: '6px 10px 6px' }}>SECURITY CENTER</div>}
+        
+        <nav className="nav" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {navItems.map((item) => {
             const Icon = item.icon;
-            const on = isActive(item.to);
+            const active = isActive(item.to);
             return (
-              <Link key={item.to} to={item.to}
+              <Link
+                key={item.to}
+                to={item.to}
+                className={active ? 'active' : ''}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 9,
-                  padding: '8px 12px', borderRadius: 12, fontSize: 11.5,
-                  fontWeight: on ? 600 : 500,
-                  color: on ? '#fff' : '#6B7280',
-                  background: on ? 'linear-gradient(135deg,#7C3AED,#6366F1)' : 'transparent',
-                  boxShadow: on ? '0 4px 14px rgba(124,58,237,0.28)' : 'none',
-                  marginBottom: 2, textDecoration: 'none',
-                  transition: 'all 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 11,
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  fontWeight: 500,
+                  fontSize: '13.5px',
+                  transition: '.18s',
+                  border: '1px solid transparent',
+                  textDecoration: 'none',
+                  color: active ? '#fff' : 'var(--muted)',
+                  background: active ? 'linear-gradient(90deg,#6366f1,#7c3aed)' : 'transparent',
+                  boxShadow: active ? '0 6px 18px rgba(99,102,241,.35)' : 'none',
                 }}
               >
-                <Icon style={{ width: 14, height: 14, flexShrink: 0 }} />
-                {item.label}
+                <Icon style={{ width: 17, height: 17, flex: 'none' }} />
+                {!isCollapsed && <span>{item.label}</span>}
               </Link>
             );
           })}
         </nav>
 
-        {/* Security Posture */}
-        <div style={{ padding: '0 12px 12px' }}>
-          <div style={{ background: '#FAFAFF', border: '1px solid #EBEBF5', borderRadius: 16, padding: '12px 12px 8px' }}>
-            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 10 }}>Security Posture</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
-                <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="28" cy="28" r={r} fill="none" stroke="#EBEBF5" strokeWidth="5" />
-                  <circle cx="28" cy="28" r={r} fill="none" stroke="url(#pg)" strokeWidth="5"
-                    strokeLinecap="round" strokeDasharray={`${arc} ${full}`} />
-                  <defs>
-                    <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#7C3AED" />
-                      <stop offset="100%" stopColor="#6366F1" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 15, fontWeight: 900, color: '#111827' }}>92</span>
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>/100</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#10B981', marginTop: 1 }}>Excellent</div>
-                <div style={{ fontSize: 9, color: '#10B981', marginTop: 2 }}>+7.2% vs last week</div>
+        {!isCollapsed && (
+          <div className="posture" style={{ marginTop: 14, background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 14px', textAlign: 'center' }}>
+            <h4 style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--muted)', fontWeight: 700, marginBottom: 8 }}>SECURITY POSTURE</h4>
+            <div className="gauge-wrap" style={{ position: 'relative', width: 132, margin: '0 auto' }}>
+              <svg width="132" height="120" viewBox="0 0 150 136">
+                <defs>
+                  <linearGradient id="gGauge" x1="0" y1="1" x2="1" y2="0">
+                    <stop offset="0" stopColor="#7c3aed" />
+                    <stop offset=".5" stopColor="#3b82f6" />
+                    <stop offset="1" stopColor="#22c55e" />
+                  </linearGradient>
+                </defs>
+                <path d="M32.57 117.43 A60 60 0 1 1 117.43 117.43" fill="none" stroke="#233052" strokeWidth="10" strokeLinecap="round" />
+                <path
+                  id="gaugeVal"
+                  d="M32.57 117.43 A60 60 0 1 1 117.43 117.43"
+                  fill="none"
+                  stroke="url(#gGauge)"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray={`${TOTAL_LEN}`}
+                  strokeDashoffset={dashOffset}
+                  style={{ transition: 'stroke-dashoffset 1.4s cubic-bezier(.22,.8,.32,1)' }}
+                />
+              </svg>
+              <div className="gauge-num" style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <b id="gaugeNum" style={{ fontSize: 30, fontWeight: 800, color: 'var(--text)' }}>{Math.round(gaugeValue)}</b>
+                <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: -2 }}>/100</span>
               </div>
             </div>
+            <div className="exc" style={{ color: 'var(--green)', fontWeight: 700, marginTop: 6 }}>Excellent</div>
+            <div className="delta" style={{ color: 'var(--green)', fontSize: 11, marginTop: 6 }}>+7.2% vs last week</div>
             <SparkLine />
           </div>
-        </div>
+        )}
 
-        {/* User profile */}
-        <div style={{ borderTop: '1px solid #EBEBF5', padding: '10px 10px', position: 'relative' }}>
-          <button onClick={() => setMenuOpen(!menuOpen)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 12, background: 'none', border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#F9FAFB')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+        <div className="user-card" style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 12, padding: '9px 10px', position: 'relative' }}>
+          <div
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 13,
+              display: 'grid',
+              placeItems: 'center',
+              cursor: 'pointer'
+            }}
           >
-            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#7C3AED,#4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-              {initials}
-            </div>
-            <div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {initials}
+          </div>
+          {!isCollapsed && (
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <b style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {user ? `${user.first_name || 'Admin'} ${user.last_name || 'User'}`.trim() : 'Admin User'}
-              </div>
-              <div style={{ fontSize: 9, color: '#9CA3AF', textTransform: 'capitalize' }}>
-                {userRole === 'admin' ? 'Super Admin' : userRole}
-              </div>
+              </b>
+              <span style={{ fontSize: 11, color: 'var(--muted)' }}>{userRole}</span>
             </div>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', flexShrink: 0 }} />
-          </button>
+          )}
+          <i className="online" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 8px var(--green)' }} />
+
           {menuOpen && (
-            <div style={{ position: 'absolute', bottom: 56, left: 10, right: 10, background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 50 }}>
-              <div style={{ padding: '8px 12px', borderBottom: '1px solid #F3F4F6' }}>
-                <div style={{ fontSize: 10, color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'admin@aegivion.io'}</div>
+            <div style={{ position: 'absolute', bottom: 56, left: 10, right: 10, background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: 'var(--shadow)', zIndex: 50 }}>
+              <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 10, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'admin@aegivion.io'}</div>
               </div>
-              <button onClick={handleLogout}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', fontSize: 10, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#FFF5F5')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              <button
+                onClick={handleLogout}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', fontSize: 11, color: 'var(--red)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
               >
-                <LogOut style={{ width: 12, height: 12 }} />Sign out
+                <LogOut style={{ width: 12, height: 12 }} /> Sign out
               </button>
             </div>
           )}
         </div>
       </aside>
 
-      {/* ── MAIN ── */}
-      <main style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {children}
+      {/* ============ MAIN CONTENT AREA ============ */}
+      <main className="main flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+        {/* Top Header Bar */}
+        <div className="topbar" style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 24px 10px', background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
+          <div className="greet" style={{ flex: 1, minWidth: 0 }}>
+            <h2 style={{ fontSize: 19, fontWeight: 800, color: 'var(--text)' }}>Good Morning, {user?.first_name || 'Admin'} 👋</h2>
+            <p style={{ color: 'var(--muted)', fontSize: 12.5, marginTop: 3 }}>Aegivion AI is actively protecting your cloud environment.</p>
+          </div>
+          
+          <div className="top-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 9 }}>
+            <button className="icon-btn" title="Notifications" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center', position: 'relative' }}>
+              <Bell style={{ width: 17, height: 17 }} />
+              <span className="badge" style={{ position: 'absolute', top: -4, right: -4, width: 17, height: 17, borderRadius: '50%', background: 'var(--accent)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'grid', placeItems: 'center' }}>3</span>
+            </button>
+            <button className="icon-btn" title="Help" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center' }}>
+              <HelpCircle style={{ width: 17, height: 17 }} />
+            </button>
+            {theme === 'dark' ? (
+              <button onClick={() => toggleTheme('light')} className="icon-btn" title="Light mode" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center' }}>
+                <Sun style={{ width: 17, height: 17 }} />
+              </button>
+            ) : (
+              <button onClick={() => toggleTheme('dark')} className="icon-btn" title="Dark mode" style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', display: 'grid', placeItems: 'center' }}>
+                <Moon style={{ width: 16, height: 16 }} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Children routers */}
+        <div style={{ flex: 1, padding: '16px 24px' }}>
+          {children}
+        </div>
       </main>
     </div>
   );
 }
+
 
