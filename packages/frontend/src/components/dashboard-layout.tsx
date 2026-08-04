@@ -48,14 +48,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('aegivion-theme') as 'dark' | 'light';
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.body.className = savedTheme;
-    } else {
-      document.body.className = 'dark';
-    }
+    const savedTheme = localStorage.getItem('aegivion-theme') as 'dark' | 'light' || 'dark';
+    setTheme(savedTheme);
+    document.body.className = savedTheme;
   }, []);
+
 
   const toggleTheme = (newTheme: 'dark' | 'light') => {
     setTheme(newTheme);
