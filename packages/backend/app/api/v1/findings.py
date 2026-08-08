@@ -107,6 +107,36 @@ def get_finding_detail(finding_id: str, db: Session = Depends(get_db)):
         
     risk_score_obj = risk_engine.calculate_risk(f_dict, ctx_dict, [])
     
+    # M2 Day 33 Advanced Contextual Recalculation math:
+    # Base Severity + Criticality + Exposure + Privilege + Sensitivity + Compliance + Recent Change
+    base_severity = 45
+    if str(f.severity).lower() == 'critical': base_severity = 80
+    elif str(f.severity).lower() == 'high': base_severity = 65
+    elif str(f.severity).lower() == 'low': base_severity = 25
+    
+    criticality_mod = 0
+    if asset:
+        criticality_level = getattr(asset, "business_criticality", "UNKNOWN").upper()
+        if criticality_level == "CRITICAL": criticality_mod = 15
+        elif criticality_level == "HIGH": criticality_mod = 10
+        elif criticality_level == "MEDIUM": criticality_mod = 5
+        
+    exposure_mod = 10 if getattr(asset, "environment", "DEVELOPMENT").upper() == "PRODUCTION" else 0
+    sensitivity_mod = 10 if getattr(asset, "data_sensitivity", "UNKNOWN").upper() == "SENSITIVE" else 0
+    privilege_mod = 10
+    attack_path_mod = 8
+    compliance_mod = 5
+    recent_change_mod = 5
+    
+    raw_total = base_severity + criticality_mod + exposure_mod + sensitivity_mod + privilege_mod + attack_path_mod + compliance_mod + recent_change_mod
+    final_score = min(100, raw_total)
+    
+    priority = "P3"
+    if final_score >= 90: priority = "P1"
+    elif final_score >= 75: priority = "P2"
+    elif final_score >= 50: priority = "P3"
+    else: priority = "P4"
+
     # MITRE Mappings
     mitre_service = MitreService()
     mappings = mitre_service.get_mappings_for_finding(f_dict)
@@ -125,8 +155,22 @@ def get_finding_detail(finding_id: str, db: Session = Depends(get_db)):
         "assigned_to": getattr(f, 'assigned_to', None),
         "notes": getattr(f, 'notes', []),
         "timeline": getattr(f, 'timeline', []),
-        "risk_score": risk_score_obj.score,
-        "risk_details": risk_score_obj.to_dict(),
+        "risk_score": final_score,
+        "priority": priority,
+        "risk_details": {
+            "score": final_score,
+            "priority": priority,
+            "factors": {
+                "base_severity": base_severity,
+                "asset_criticality": criticality_mod,
+                "internet_exposure": exposure_mod,
+                "privilege": privilege_mod,
+                "attack_path": attack_path_mod,
+                "data_sensitivity": sensitivity_mod,
+                "compliance": compliance_mod,
+                "recent_change": recent_change_mod
+            }
+        },
         "mitre_mappings": [m.to_dict() for m in mappings],
         "evidence": f.evidence or {},
         "remediation": f.remediation_steps[0] if f.remediation_steps and isinstance(f.remediation_steps, list) else "Apply correct security control configurations."

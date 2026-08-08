@@ -7,7 +7,7 @@ import {
   Shield, AlertTriangle, CheckCircle2, Globe,
   RefreshCw, ArrowRight, Database, Brain,
   ShieldCheck, FileCheck, Target, Users, Cloud,
-  Server, Calendar, HelpCircle, Activity, Info
+  Server, Calendar, HelpCircle, Activity, Info, BarChart3, AlertOctagon
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -33,6 +33,32 @@ interface ForecastResponse {
   limitations: string[];
 }
 
+interface CompliancePrediction {
+  day: number;
+  predicted_compliance: number;
+  lower_bound: number;
+  upper_bound: number;
+}
+
+interface ComplianceForecastResponse {
+  status: string;
+  current_value: number;
+  predicted_value: number;
+  predictions: CompliancePrediction[];
+  limitations: string[];
+}
+
+interface SyncQualityResponse {
+  sync_id: string;
+  status: string;
+  assets_discovered: number;
+  assets_normalized: number;
+  collection_errors: number;
+  unsupported_resources: number;
+  last_successful_sync: string;
+  freshness: string;
+}
+
 const defaultThreats = [
   { id: 1, title: 'IAM role over-privilege detected', env: 'AWS Production', time: '2m ago', dot: '#EF4444' },
   { id: 2, title: 'Unusual API activity', env: 'Azure Environment', time: '5m ago', dot: '#F59E0B' },
@@ -53,16 +79,6 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
   const [paused, setPaused] = useState(false);
   const [dimensions, setDimensions] = useState({ w: 0, cx: 0, cy: 0, rx: 0, ry: 0 });
   const containerRef = React.useRef<HTMLDivElement>(null);
-
-  const cloudSVG = `
-    <svg class="cloud-svg" viewBox="0 0 72 48" style="width:100%; height:100%; filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))">
-      <g fill="url(#cg)">
-        <circle cx="24" cy="30" r="13"/>
-        <circle cx="37" cy="19" r="15"/>
-        <circle cx="51" cy="30" r="12"/>
-        <rect x="21" y="27" width="32" height="16" rx="8"/>
-      </g>
-    </svg>`;
 
   const awsLogo = `
     <span class="logo aws" style="position:absolute; left:50%; top:56%; transform:translate(-50%,-50%); line-height:1; color:#232f3e; font-weight:800; font-size:1.05rem; letter-spacing:.5px">aws
@@ -292,11 +308,29 @@ function DashboardPage() {
   const [scanning, setScanning] = useState(false);
   const [eventDetailOpen, setEventDetailOpen] = useState(false);
 
-  // M3/M4: Baseline forecasting dataset state queries
+  // M3/M4: Risk Posture forecasting dataset query hook
   const { data: forecastData } = useQuery<ForecastResponse>({
     queryKey: ['risk-forecast'],
     queryFn: async () => {
       const res = await api.get('/v1/history/risk-telemetry/forecast');
+      return res.data;
+    }
+  });
+
+  // M3/M4: Compliance prediction data query hook
+  const { data: complianceForecast } = useQuery<ComplianceForecastResponse>({
+    queryKey: ['compliance-forecast'],
+    queryFn: async () => {
+      const res = await api.get('/v1/history/compliance/forecast');
+      return res.data;
+    }
+  });
+
+  // M1: Sync quality discovery data query hook
+  const { data: syncQuality } = useQuery<SyncQualityResponse>({
+    queryKey: ['sync-quality'],
+    queryFn: async () => {
+      const res = await api.get('/v1/history/syncs/quality');
       return res.data;
     }
   });
@@ -342,9 +376,28 @@ function DashboardPage() {
   const totalFindings = findings.length || 21;
   const totalAssets = assets.length || 32;
 
+  // Calculate discovered collection coverage percentage (M1 freshness metrics)
+  const coveragePercent = syncQuality 
+    ? Math.round((syncQuality.assets_normalized / syncQuality.assets_discovered) * 100)
+    : 97;
+
   return (
     <div className="space-y-6" style={{ color: 'var(--text)' }}>
       
+      {/* M1/M4: Sync quality collection coverage partial warning banners */}
+      {syncQuality && syncQuality.status === 'PARTIAL' && (
+        <div className="p-3.5 bg-yellow-950/20 border border-yellow-900/30 text-xs text-yellow-400 rounded-xl flex items-start gap-2.5">
+          <AlertOctagon size={16} className="shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold">Scan completed with partial coverage (Freshness: {syncQuality.freshness})</span>
+            <p className="text-[10px] text-yellow-500/80 mt-0.5">
+              Successfully normalized {syncQuality.assets_normalized} of {syncQuality.assets_discovered} discovered assets. 
+              Encountered {syncQuality.collection_errors} API errors. Some security findings and attack paths may be incomplete.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* STATS ROW */}
       <section className="stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(215px,1fr))', gap: 16 }}>
         <div className="stat animate-rise" style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
@@ -356,7 +409,7 @@ function DashboardPage() {
           </div>
           <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>{totalAssets}</div>
           <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
-            <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>Across AWS Accounts</span>
+            <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>Coverage: {coveragePercent}%</span>
             <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,14 14,12 26,16 38,10 50,14 62,9 74,13 86,11 90,12" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" /></svg>
           </div>
         </div>
@@ -398,7 +451,7 @@ function DashboardPage() {
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4a3 3 0 0 1 6 0" /><path d="M9 11h6M9 15h6" /></svg>
             </span>
           </div>
-          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>75<small style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600 }}>%</small></div>
+          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>{complianceForecast?.current_value || 75}<small style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600 }}>%</small></div>
           <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
             <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>CIS AWS v3</span>
             <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,14 14,15 26,12 38,15 50,11 62,14 74,10 86,13 90,11" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" /></svg>
@@ -478,6 +531,52 @@ function DashboardPage() {
             </div>
           ) : (
             <p className="text-xs text-gray-500 text-center py-10">Insufficient scanning telemetry to project baseline forecasts.</p>
+          )}
+        </div>
+      </section>
+
+      {/* THIRD GRID PANEL: Compliance Forecast Overlay Panel (M3/M4 dashboard) */}
+      <section className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12,1fr)', gap: 16 }}>
+        <div className="panel s12" style={{ gridColumn: 'span 12', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>COMPLIANCE PASS RATE FORECAST</h3>
+              <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 3 }}>Linear moving average forecast projection of compliance score pass rates</p>
+            </div>
+            <BarChart3 className="text-blue-400" size={18} />
+          </div>
+
+          {complianceForecast?.status === 'COMPLETED' ? (
+            <div className="space-y-4">
+              <div className="flex justify-between items-baseline text-xs bg-[#0b0f19] p-3 rounded-xl border border-gray-850">
+                <div>
+                  <span className="text-gray-500 block text-[10px]">Current Pass Rate</span>
+                  <span className="text-lg font-bold text-white">{complianceForecast.current_value}%</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-gray-500 block text-[10px]">Projected 7-Day Forecast</span>
+                  <span className="text-lg font-bold text-blue-400">~{complianceForecast.predicted_value}%</span>
+                </div>
+              </div>
+
+              {/* Bar charts projection */}
+              <div className="h-16 flex items-end gap-2 pt-2 border-b border-gray-850">
+                {complianceForecast.predictions.map((p) => (
+                  <div key={p.day} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    <span className="absolute -top-6 bg-[#0b0f19] px-1 py-0.5 rounded text-[8px] font-bold text-blue-300 opacity-0 group-hover:opacity-100 transition">
+                      {p.predicted_compliance}%
+                    </span>
+                    <div 
+                      className="w-full bg-blue-600/30 hover:bg-blue-500 rounded-t transition" 
+                      style={{ height: `${p.predicted_compliance * 0.5}px` }}
+                    />
+                    <span className="text-[8px] text-gray-550 font-mono">D+{p.day}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-550 text-center py-10">Insufficient GRC snapshots to calculate compliance trend.</p>
           )}
         </div>
       </section>

@@ -137,4 +137,33 @@ class SecurityChange(BaseModel):
         })
         return res
 
+class SyncQuality(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.organization_id = kwargs.get("organization_id")
+        self.sync_id = kwargs.get("sync_id") or f"SYNC-{uuid.uuid4().hex[:6].upper()}"
+        self.status = kwargs.get("status") or "SUCCESS"
+        self.assets_discovered = kwargs.get("assets_discovered") or 0
+        self.assets_normalized = kwargs.get("assets_normalized") or 0
+        self.collection_errors = kwargs.get("collection_errors") or 0
+        self.unsupported_resources = kwargs.get("unsupported_resources") or 0
+        self.last_successful_sync = kwargs.get("last_successful_sync") or datetime.utcnow()
+        self.freshness = kwargs.get("freshness") or "FRESH"
+
+    def dict(self) -> Dict[str, Any]:
+        res = super().dict()
+        res.update({
+            "organization_id": str(self.organization_id) if self.organization_id else None,
+            "sync_id": self.sync_id,
+            "status": self.status,
+            "assets_discovered": self.assets_discovered,
+            "assets_normalized": self.assets_normalized,
+            "collection_errors": self.collection_errors,
+            "unsupported_resources": self.unsupported_resources,
+            "last_successful_sync": self.last_successful_sync.isoformat() if isinstance(self.last_successful_sync, datetime) else self.last_successful_sync,
+            "freshness": self.freshness
+        })
+        return res
+
+
 
