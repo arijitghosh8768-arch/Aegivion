@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 from app.database import get_db
 from app.core.security import get_current_user
-from app.models.history import AssetSnapshot, SecurityRiskSnapshot, FindingSuppression, SecurityChange
+from app.models.history import AssetSnapshot, SecurityRiskSnapshot, FindingSuppression, SecurityChange, SyncQuality, EvaluationResult
 from app.models.cloud import CloudAsset
 from security.models.finding import Finding
 from datetime import datetime, timedelta
