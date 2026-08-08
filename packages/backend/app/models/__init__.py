@@ -27,3 +27,6 @@ from security.models.finding import Finding, FindingStatus, FindingSeverity, Fin
 # Import AI domain models
 from ai.models.knowledge import KnowledgeBase, Conversation, KnowledgeCategory
 
+# Import Compliance models
+from app.models.compliance import ComplianceControlResult, ComplianceStatus
+
