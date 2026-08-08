@@ -1,0 +1,32 @@
+id: AWS-SG-003
+version: 1
+enabled: true
+title: Database Port Exposed to Internet
+description: Security group allows unrestricted access to common database ports
+provider: aws
+service: ec2
+resource_type: security_group
+severity: medium
+
+condition:
+  field: configuration.exposed_services
+  operator: network_exposure
+  value: 
+    severity: medium
+
+remediation:
+  summary: Restrict database port access to authorized application networks
+  steps:
+    - Review and restrict access to database ports
+    - Ensure database resources are in private subnets
+    - Use security groups for application-tier access control
+  references:
+    - "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html"
+
+mitre_techniques:
+  - T1190
+
+tags:
+  - network
+  - database
+  - internet-exposure

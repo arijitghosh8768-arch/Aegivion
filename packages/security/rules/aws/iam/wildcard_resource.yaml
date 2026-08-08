@@ -1,0 +1,31 @@
+id: AWS-IAM-006
+version: 1
+enabled: true
+title: IAM Policy Contains Wildcard Resources
+description: IAM policy allows access to all resources
+provider: aws
+service: iam
+resource_type: iam_policy
+severity: high
+
+condition:
+  field: configuration.has_wildcard_resources
+  operator: equals
+  value: true
+
+remediation:
+  summary: Restrict wildcard resources
+  steps:
+    - Review the policy statements
+    - Specify exact resource ARNs
+    - Use resource constraints
+  references:
+    - "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_understand.html"
+
+mitre_techniques:
+  - T1098
+
+tags:
+  - iam
+  - wildcard
+  - resource

@@ -210,3 +210,35 @@ class Relationship(BaseModel):
         })
         return res
 
+class AssetRelationship(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.organization_id = kwargs.get("organization_id")
+        self.cloud_account_id = kwargs.get("cloud_account_id")
+        self.source_asset_id = kwargs.get("source_asset_id")
+        self.target_asset_id = kwargs.get("target_asset_id")
+        self.relationship_type = kwargs.get("relationship_type")
+        self.account_id = kwargs.get("account_id")
+        self.region = kwargs.get("region")
+        self.evidence = kwargs.get("evidence") or {}
+        self.confidence = kwargs.get("confidence") or "UNKNOWN"
+        self.first_seen_at = kwargs.get("first_seen_at") or datetime.utcnow()
+        self.last_seen_at = kwargs.get("last_seen_at") or datetime.utcnow()
+
+    def dict(self):
+        res = super().dict()
+        res.update({
+            "organization_id": str(self.organization_id) if self.organization_id else None,
+            "cloud_account_id": str(self.cloud_account_id) if self.cloud_account_id else None,
+            "source_asset_id": self.source_asset_id,
+            "target_asset_id": self.target_asset_id,
+            "relationship_type": self.relationship_type,
+            "account_id": self.account_id,
+            "region": self.region,
+            "evidence": self.evidence,
+            "confidence": self.confidence,
+            "first_seen_at": self.first_seen_at.isoformat() if isinstance(self.first_seen_at, datetime) else self.first_seen_at,
+            "last_seen_at": self.last_seen_at.isoformat() if isinstance(self.last_seen_at, datetime) else self.last_seen_at,
+        })
+        return res
+

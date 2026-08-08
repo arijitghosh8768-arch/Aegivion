@@ -54,6 +54,10 @@ function FindingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [serviceFilter, setServiceFilter] = useState('All');
+  const [sortFilter, setSortFilter] = useState('risk_desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Selected Finding / Drawer details
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
@@ -155,13 +159,40 @@ function FindingsPage() {
   const mediumCount = findings.filter(f => f.severity.toLowerCase() === 'medium').length;
   const lowCount = findings.filter(f => f.severity.toLowerCase() === 'low').length;
 
+  const openCount = findings.filter(f => f.status.toLowerCase() === 'open').length;
+  const inProgressCount = findings.filter(f => f.status.toLowerCase() === 'in progress' || f.status.toLowerCase() === 'in_progress').length;
+  const resolvedCount = findings.filter(f => f.status.toLowerCase() === 'resolved').length;
+  const suppressedCount = findings.filter(f => f.status.toLowerCase() === 'suppressed' || f.status.toLowerCase() === 'false_positive').length;
+
+  const serviceOptions = Array.from(new Set(findings.map(f => f.resource_type || 'Unknown').filter(Boolean)));
+
   const filteredFindings = findings.filter(f => {
     const matchesSearch = f.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           f.finding_id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSeverity = severityFilter === 'All' || f.severity.toLowerCase() === severityFilter.toLowerCase();
     const matchesStatus = statusFilter === 'All' || f.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesSeverity && matchesStatus;
+    const matchesService = serviceFilter === 'All' || (f.resource_type || 'Unknown').toLowerCase() === serviceFilter.toLowerCase();
+    return matchesSearch && matchesSeverity && matchesStatus && matchesService;
   });
+
+  const sortedFindings = [...filteredFindings].sort((a, b) => {
+    if (sortFilter === 'risk_desc') {
+      return (b.risk_score || 0) - (a.risk_score || 0);
+    }
+    if (sortFilter === 'risk_asc') {
+      return (a.risk_score || 0) - (b.risk_score || 0);
+    }
+    if (sortFilter === 'latest') {
+      return b.finding_id.localeCompare(a.finding_id);
+    }
+    if (sortFilter === 'oldest') {
+      return a.finding_id.localeCompare(b.finding_id);
+    }
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedFindings.length / pageSize) || 1;
+  const paginatedFindings = sortedFindings.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const getSeverityBadge = (severity: string) => {
     const sev = severity.toLowerCase();
@@ -207,6 +238,21 @@ function FindingsPage() {
         ))}
       </div>
 
+      {/* Status Breakdown */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Open', value: openCount, color: 'border-red-500 text-red-400' },
+          { label: 'In Progress', value: inProgressCount, color: 'border-yellow-500 text-yellow-400' },
+          { label: 'Resolved', value: resolvedCount, color: 'border-green-500 text-green-400' },
+          { label: 'Suppressed / False Positive', value: suppressedCount, color: 'border-blue-500 text-blue-400' }
+        ].map(card => (
+          <div key={card.label} className={`border-l-4 rounded-xl p-4 bg-[#0e1428] border-gray-800 ${card.color}`}>
+            <span className="text-[10px] text-gray-500 uppercase tracking-wider block">{card.label}</span>
+            <span className="text-xl font-bold text-white mt-1 block">{card.value}</span>
+          </div>
+        ))}
+      </div>
+
       {/* Toolbar filters */}
       <div className="flex flex-wrap gap-4 items-center justify-between bg-[#0e1428] border border-[#1e293b] p-4 rounded-xl">
         <div className="relative flex-1 max-w-md">
@@ -215,7 +261,10 @@ function FindingsPage() {
             type="text"
             placeholder="Search findings by ID or keyword..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full bg-[#0b0f19] border border-gray-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-gray-700 transition"
           />
         </div>
@@ -223,7 +272,10 @@ function FindingsPage() {
         <div className="flex items-center gap-3">
           <select
             value={severityFilter}
-            onChange={(e) => setSeverityFilter(e.target.value)}
+            onChange={(e) => {
+              setSeverityFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             className="bg-[#0b0f19] border border-gray-800 text-xs text-gray-300 rounded-lg px-3 py-1.5 focus:outline-none"
           >
             <option value="All">All Severities</option>
@@ -234,14 +286,45 @@ function FindingsPage() {
           </select>
 
           <select
+            value={serviceFilter}
+            onChange={(e) => {
+              setServiceFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="bg-[#0b0f19] border border-gray-800 text-xs text-gray-300 rounded-lg px-3 py-1.5 focus:outline-none"
+          >
+            <option value="All">All Services</option>
+            {serviceOptions.map(service => (
+              <option key={service} value={service}>{service.toUpperCase()}</option>
+            ))}
+          </select>
+
+          <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             className="bg-[#0b0f19] border border-gray-800 text-xs text-gray-300 rounded-lg px-3 py-1.5 focus:outline-none"
           >
             <option value="All">All Statuses</option>
             <option value="Open">Open</option>
             <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
+          </select>
+
+          <select
+            value={sortFilter}
+            onChange={(e) => {
+              setSortFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="bg-[#0b0f19] border border-gray-800 text-xs text-gray-300 rounded-lg px-3 py-1.5 focus:outline-none"
+          >
+            <option value="risk_desc">Risk (High → Low)</option>
+            <option value="risk_asc">Risk (Low → High)</option>
+            <option value="latest">Newest First</option>
+            <option value="oldest">Oldest First</option>
           </select>
         </div>
       </div>
@@ -260,13 +343,13 @@ function FindingsPage() {
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/60">
-              {filteredFindings.length === 0 ? (
+             <tbody className="divide-y divide-gray-800/60">
+              {paginatedFindings.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-10 text-gray-500">No security findings found.</td>
                 </tr>
               ) : (
-                filteredFindings.map((f) => (
+                paginatedFindings.map((f) => (
                   <tr key={f.finding_id} className="hover:bg-gray-800/10 transition group">
                     <td className="px-6 py-4 font-mono font-bold text-blue-400">{f.finding_id}</td>
                     <td className="px-6 py-4 font-semibold text-white max-w-sm">{f.title}</td>
@@ -297,6 +380,30 @@ function FindingsPage() {
               )}
             </tbody>
           </table>
+        </div>
+        
+        {/* Pagination Controls */}
+        <div className="flex justify-between items-center px-6 py-4 bg-[#0d1326] border-t border-gray-800 text-xs text-gray-400">
+          <div>
+            Showing {Math.min(filteredFindings.length, (currentPage - 1) * pageSize + 1)}-{Math.min(filteredFindings.length, currentPage * pageSize)} of {filteredFindings.length} findings
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded bg-[#0b0f19] border border-gray-800 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-800 text-white transition"
+            >
+              Previous
+            </button>
+            <span className="font-semibold text-white">Page {currentPage} of {totalPages}</span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded bg-[#0b0f19] border border-gray-800 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-800 text-white transition"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

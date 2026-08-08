@@ -9,7 +9,12 @@ import { Route as complianceRoute } from './routes/compliance';
 import { Route as settingsRoute } from './routes/settings';
 import { Route as reportsRoute } from './routes/reports';
 import { Route as incidentsRoute } from './routes/incidents';
+import { Route as remediationRoute } from './routes/remediation';
+import { Route as riskRoute } from './routes/risk';
+import { Route as identitiesRoute } from './routes/identities';
 import { Route as findingsDetailRoute } from './routes/findings.$findingId';
+import { Route as incidentsDetailRoute } from './routes/incidents.$incidentId';
+import { Route as attackGraphRoute } from './routes/attack-graph';
 import { Route as cloudAccountsScanRoute } from './routes/cloud-accounts.$accountId.scan';
 import { Route as loginRoute } from './routes/login';
 
@@ -26,6 +31,11 @@ const routeTree = rootRoute.addChildren([
   settingsRoute,
   reportsRoute,
   incidentsRoute,
+  incidentsDetailRoute,
+  attackGraphRoute,
+  remediationRoute,
+  riskRoute,
+  identitiesRoute,
 ]);
 
 export const router = createRouter({ routeTree });

@@ -1,0 +1,31 @@
+id: AWS-IAM-005
+version: 1
+enabled: true
+title: IAM Policy Contains Wildcard Actions
+description: IAM policy allows wildcard actions, potentially granting broad permissions
+provider: aws
+service: iam
+resource_type: iam_policy
+severity: high
+
+condition:
+  field: configuration.has_wildcard_actions
+  operator: equals
+  value: true
+
+remediation:
+  summary: Restrict wildcard actions
+  steps:
+    - Review the policy statements
+    - Restrict actions to specific services
+    - Use conditions for fine-grained access
+  references:
+    - "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_understand.html"
+
+mitre_techniques:
+  - T1098
+
+tags:
+  - iam
+  - wildcard
+  - privilege

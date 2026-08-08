@@ -1,19 +1,31 @@
 id: AWS-IAM-004
 version: 1
 enabled: true
-title: IAM Identity Has Administrator Access
+title: IAM Identity Has Administrative Access
+description: IAM policy grants broad administrator-level permissions
 provider: aws
+service: iam
 resource_type: iam_policy
-severity: high
-description: IAM policy grants broad administrator-level permissions.
-conditions:
-  - field: configuration.is_admin_policy
-    operator: equals
-    value: true
-mitre_technique: T1098
-mitre_tactic: privilege_escalation
+severity: critical
+
+condition:
+  field: configuration.is_admin_policy
+  operator: equals
+  value: true
+
 remediation:
-  - Review the policy statements
-  - Implement least privilege access
-  - Use IAM groups instead of individual policies
-  - Remove broad wildcard permissions
+  summary: Review and restrict administrative permissions
+  steps:
+    - Review the policy statements
+    - Implement least-privilege access
+    - Use IAM groups for access control
+  references:
+    - "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"
+
+mitre_techniques:
+  - T1098
+
+tags:
+  - iam
+  - admin
+  - privilege

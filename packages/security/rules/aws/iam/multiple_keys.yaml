@@ -1,0 +1,31 @@
+id: AWS-IAM-008
+version: 1
+enabled: true
+title: Multiple Active Access Keys
+description: IAM user has multiple active access keys
+provider: aws
+service: iam
+resource_type: iam_user
+severity: low
+
+condition:
+  field: configuration.active_key_count
+  operator: greater_than
+  value: 1
+
+remediation:
+  summary: Review and consolidate access keys
+  steps:
+    - Review all active keys
+    - Keep only one key per user
+    - Rotate keys regularly
+  references:
+    - "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html"
+
+mitre_techniques:
+  - T1098
+
+tags:
+  - iam
+  - access-keys
+  - best-practice

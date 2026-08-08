@@ -1,10 +1,34 @@
 from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, asdict
 from datetime import datetime
 from botocore.exceptions import ClientError
-from app.cloud.aws.collectors.base import BaseCollector
+import logging
+from app.cloud.aws.collectors.base import BaseCollector, UNKNOWN
+
+logger = logging.getLogger(__name__)
+
+@dataclass
+class NetworkRule:
+    """Normalized network rule representation"""
+    protocol: str
+    from_port: Optional[int]
+    to_port: Optional[int]
+    source_type: str  # 'ipv4', 'ipv6', 'security_group'
+    source_value: str
+    direction: str  # 'ingress', 'egress'
+    description: str
+    is_public: bool
+    is_ipv6: bool
+    
+    def is_internet_exposed(self) -> bool:
+        """Check if rule exposes to internet"""
+        if self.source_type in ['ipv4', 'ipv6']:
+            if self.source_value in ['0.0.0.0/0', '::/0']:
+                return True
+        return False
 
 class SecurityGroupCollector(BaseCollector):
-    """Security Group collector with relationship mapping"""
+    """Enhanced Security Group collector with IPv6 support"""
     
     def __init__(self, session, region: str):
         super().__init__(session, region)
@@ -12,42 +36,42 @@ class SecurityGroupCollector(BaseCollector):
         self.collector_name = "security_group"
     
     async def collect(self) -> List[Dict[str, Any]]:
-        """Collect all security groups with their rules"""
+        """Collect security groups with full rule details"""
         try:
             security_groups = []
             paginator = self.ec2_client.get_paginator('describe_security_groups')
             
             for page in paginator.paginate():
                 for sg in page.get('SecurityGroups', []):
-                    normalized = await self._normalize_security_group(sg)
+                    normalized = await self._normalize_sg(sg)
                     security_groups.append(normalized)
             
+            logger.info(f"Collected {len(security_groups)} security groups from {self.region}")
             return security_groups
             
-        except ClientError:
+        except ClientError as e:
+            if e.response['Error']['Code'] in ['UnauthorizedOperation', 'AccessDenied']:
+                logger.error(f"Access denied for security groups in {self.region}")
+                return []
+            logger.error(f"Security group collection failed: {str(e)}")
             return []
-        except Exception:
+        except Exception as e:
+            logger.error(f"Security group collection failed: {str(e)}")
             return []
     
-    async def _normalize_security_group(self, sg: Dict) -> Dict[str, Any]:
-        """Normalize security group to Aegivion asset format"""
+    async def _normalize_sg(self, sg: Dict) -> Dict[str, Any]:
+        """Normalize security group with full rule details"""
         
-        # Parse ingress rules
-        ingress_rules = []
-        for rule in sg.get('IpPermissions', []):
-            parsed = self._parse_rule(rule, 'ingress')
-            if parsed:
-                ingress_rules.extend(parsed)
+        # Parse all rules
+        ingress_rules = await self._parse_rules(sg.get('IpPermissions', []), 'ingress')
+        egress_rules = await self._parse_rules(sg.get('IpPermissionsEgress', []), 'egress')
         
-        # Parse egress rules
-        egress_rules = []
-        for rule in sg.get('IpPermissionsEgress', []):
-            parsed = self._parse_rule(rule, 'egress')
-            if parsed:
-                egress_rules.extend(parsed)
+        # Check exposure
+        internet_exposed = any(r.is_internet_exposed() for r in ingress_rules)
+        ipv6_exposed = any(r.is_ipv6 and r.is_internet_exposed() for r in ingress_rules)
         
-        # Check for internet exposure
-        internet_exposure = self._check_internet_exposure(ingress_rules)
+        # Get exposed protocols/ports
+        exposed_services = await self._identify_exposed_services(ingress_rules)
         
         return {
             "asset_id": f"sg:{sg['GroupId']}",
@@ -61,10 +85,22 @@ class SecurityGroupCollector(BaseCollector):
                 "description": sg.get('Description', ''),
                 "vpc_id": sg.get('VpcId'),
                 "owner_id": sg.get('OwnerId'),
-                "ingress_rules": ingress_rules,
-                "egress_rules": egress_rules,
-                "has_internet_exposure": internet_exposure,
-                "internet_exposure_details": self._get_exposure_details(ingress_rules)
+                "ingress_rules": [asdict(r) for r in ingress_rules],
+                "egress_rules": [asdict(r) for r in egress_rules],
+                "internet_exposed": internet_exposed,
+                "ipv6_exposed": ipv6_exposed,
+                "exposed_services": exposed_services,
+                "has_all_traffic": any(
+                    r.protocol == '-1' and r.is_internet_exposed()
+                    for r in ingress_rules
+                ),
+                "has_all_tcp": any(
+                    r.protocol == 'tcp' and 
+                    r.from_port == 0 and 
+                    r.to_port == 65535 and 
+                    r.is_internet_exposed()
+                    for r in ingress_rules
+                )
             },
             "relationships": [
                 {
@@ -72,95 +108,90 @@ class SecurityGroupCollector(BaseCollector):
                     "target_id": sg.get('VpcId'),
                     "target_type": "vpc"
                 }
-            ] + self._get_security_group_references(sg)
+            ],
+            "metadata": {
+                "collected_at": datetime.utcnow().isoformat(),
+                "collector_version": "2.0.0"
+            }
         }
     
-    def _parse_rule(self, rule: Dict, direction: str) -> List[Dict]:
-        """Parse a security group rule into a consistent format"""
-        rules = []
+    async def _parse_rules(self, rules: List[Dict], direction: str) -> List[NetworkRule]:
+        """Parse security group rules with full detail"""
+        parsed = []
         
-        ip_protocol = rule.get('IpProtocol', '-1')
-        from_port = rule.get('FromPort', 0)
-        to_port = rule.get('ToPort', 65535)
-        
-        # Parse IPv4 ranges
-        for ip_range in rule.get('IpRanges', []):
-            rules.append({
-                "direction": direction,
-                "protocol": ip_protocol,
-                "from_port": from_port,
-                "to_port": to_port,
-                "source": ip_range.get('CidrIp'),
-                "description": ip_range.get('Description', ''),
-                "type": "ipv4"
-            })
-        
-        # Parse IPv6 ranges
-        for ip_range in rule.get('Ipv6Ranges', []):
-            rules.append({
-                "direction": direction,
-                "protocol": ip_protocol,
-                "from_port": from_port,
-                "to_port": to_port,
-                "source": ip_range.get('CidrIpv6'),
-                "description": ip_range.get('Description', ''),
-                "type": "ipv6"
-            })
-        
-        # Parse referenced security groups
-        for ref in rule.get('UserIdGroupPairs', []):
-            rules.append({
-                "direction": direction,
-                "protocol": ip_protocol,
-                "from_port": from_port,
-                "to_port": to_port,
-                "source": ref.get('GroupId'),
-                "source_account": ref.get('UserId'),
-                "description": ref.get('Description', ''),
-                "type": "security_group_ref"
-            })
-        
-        return rules
-    
-    def _check_internet_exposure(self, rules: List[Dict]) -> bool:
-        """Check if any rule allows internet exposure"""
         for rule in rules:
-            if rule.get('type') in ['ipv4', 'ipv6']:
-                source = rule.get('source', '')
-                if source == '0.0.0.0/0' or source == '::/0':
-                    return True
-        return False
+            protocol = rule.get('IpProtocol', '-1')
+            from_port = rule.get('FromPort')
+            to_port = rule.get('ToPort')
+            
+            # Parse IPv4 ranges
+            for ip_range in rule.get('IpRanges', []):
+                cidr = ip_range.get('CidrIp')
+                parsed.append(NetworkRule(
+                    protocol=protocol,
+                    from_port=from_port,
+                    to_port=to_port,
+                    source_type="ipv4",
+                    source_value=cidr,
+                    direction=direction,
+                    description=ip_range.get('Description', ''),
+                    is_public=cidr == '0.0.0.0/0',
+                    is_ipv6=False
+                ))
+            
+            # Parse IPv6 ranges
+            for ip_range in rule.get('Ipv6Ranges', []):
+                cidr = ip_range.get('CidrIpv6')
+                parsed.append(NetworkRule(
+                    protocol=protocol,
+                    from_port=from_port,
+                    to_port=to_port,
+                    source_type="ipv6",
+                    source_value=cidr,
+                    direction=direction,
+                    description=ip_range.get('Description', ''),
+                    is_public=cidr == '::/0',
+                    is_ipv6=True
+                ))
+            
+            # Parse referenced security groups
+            for ref in rule.get('UserIdGroupPairs', []):
+                parsed.append(NetworkRule(
+                    protocol=protocol,
+                    from_port=from_port,
+                    to_port=to_port,
+                    source_type="security_group",
+                    source_value=ref.get('GroupId'),
+                    direction=direction,
+                    description=ref.get('Description', ''),
+                    is_public=False,
+                    is_ipv6=False
+                ))
+        
+        return parsed
     
-    def _get_exposure_details(self, rules: List[Dict]) -> List[Dict]:
-        """Get detailed internet exposure information"""
+    async def _identify_exposed_services(self, rules: List[NetworkRule]) -> List[Dict]:
+        """Identify exposed services from rules"""
+        service_map = {
+            22: {'name': 'SSH', 'severity': 'high'},
+            3389: {'name': 'RDP', 'severity': 'high'},
+            3306: {'name': 'MySQL', 'severity': 'medium'},
+            5432: {'name': 'PostgreSQL', 'severity': 'medium'},
+            27017: {'name': 'MongoDB', 'severity': 'medium'},
+            6379: {'name': 'Redis', 'severity': 'medium'},
+            9200: {'name': 'Elasticsearch', 'severity': 'medium'},
+            1433: {'name': 'MSSQL', 'severity': 'medium'}
+        }
+        
         exposed = []
         for rule in rules:
-            if rule.get('type') in ['ipv4', 'ipv6']:
-                source = rule.get('source', '')
-                if source in ['0.0.0.0/0', '::/0']:
+            if rule.is_public and rule.protocol == 'tcp':
+                port = rule.to_port
+                if port in service_map:
                     exposed.append({
-                        "protocol": rule.get('protocol'),
-                        "from_port": rule.get('from_port'),
-                        "to_port": rule.get('to_port'),
-                        "source": source,
-                        "direction": rule.get('direction')
+                        'port': port,
+                        'service': service_map[port]['name'],
+                        'severity': service_map[port]['severity']
                     })
+        
         return exposed
-    
-    def _get_security_group_references(self, sg: Dict) -> List[Dict]:
-        """Extract security group references from rules"""
-        references = []
-        
-        for rule in sg.get('IpPermissions', []):
-            for ref in rule.get('UserIdGroupPairs', []):
-                references.append({
-                    "type": "references",
-                    "target_id": ref.get('GroupId'),
-                    "target_type": "security_group",
-                    "metadata": {
-                        "source_account": ref.get('UserId'),
-                        "direction": "ingress"
-                    }
-                })
-        
-        return references

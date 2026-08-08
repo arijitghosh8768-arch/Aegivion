@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { createRoute } from '@tanstack/react-router';
+import { createRoute, Link } from '@tanstack/react-router';
 import { Route as rootRoute } from './__root';
-import { ShieldAlert, User, CheckCircle, RefreshCw } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { 
+  ShieldAlert, 
+  RotateCw, 
+  Search, 
+  SlidersHorizontal, 
+  AlertTriangle,
+  Info,
+  Clock
+} from 'lucide-react';
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -9,206 +19,229 @@ export const Route = createRoute({
   component: IncidentsPage,
 });
 
+interface Incident {
+  incident_id: str;
+  id: string;
+  title: string;
+  severity: string;
+  risk_score: number;
+  affected_assets_count: number;
+  findings_count: number;
+  status: string;
+  account_id: string;
+  region: string;
+  updated_at: string;
+}
+
 function IncidentsPage() {
-  const [selectedIncidentIdx, setSelectedIncidentIdx] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSeverity, setSelectedSeverity] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedRegion, setSelectedRegion] = useState('All');
 
-  const incidents = [
-    {
-      id: 'INC-238',
-      title: 'Public exposure of customer export bucket',
-      sub: '3 findings · opened 2h ago',
-      severity: 'Critical',
-      severityColor: 'bg-red-500/20 text-red-400 border-red-500/30',
-      status: 'Investigating',
-      statusColor: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-      owner: 'R. Okafor',
-      timeline: [
-        { title: 'Incident opened from finding AEG-1041', time: '2h ago' },
-        { title: 'Assigned to Rana Okafor', time: '1h 40m ago' },
-        { title: 'Bucket policy snapshot captured for evidence', time: '1h 05m ago' },
-        { title: 'Public access block enabled in staging', time: '40m ago' },
-        { title: 'Awaiting change approval for production', time: '12m ago' }
-      ]
-    },
-    {
-      id: 'INC-236',
-      title: 'Unrestricted SSH ingress across production',
-      sub: '2 findings · opened 6h ago',
-      severity: 'Critical',
-      severityColor: 'bg-red-500/20 text-red-400 border-red-500/30',
-      status: 'Contained',
-      statusColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-      owner: 'J. Doe',
-      timeline: [
-        { title: 'Incident triggered by port 22 open rule violation', time: '6h ago' },
-        { title: 'Assigned to security triage team', time: '5h 30m ago' },
-        { title: 'Temporary firewall ingress block applied', time: '4h ago' }
-      ]
-    },
-    {
-      id: 'INC-231',
-      title: 'Stale administrator credentials in CI',
-      sub: '4 findings · opened 1d ago',
-      severity: 'High',
-      severityColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-      status: 'Triage',
-      statusColor: 'bg-red-500/10 text-red-400 border-red-500/20',
-      owner: 'A. Patel',
-      timeline: [
-        { title: 'Credential age audit threshold exceeded', time: '1d ago' },
-        { title: 'Notification sent to CI owner', time: '20h ago' }
-      ]
-    },
-    {
-      id: 'INC-229',
-      title: 'Anomalous IAM role assumption from new region',
-      sub: '1 finding · opened 1d ago',
-      severity: 'High',
-      severityColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-      status: 'Investigating',
-      statusColor: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-      owner: 'R. Okafor',
-      timeline: [
-        { title: 'Anomalous API logs flagged in CloudTrail', time: '1d ago' },
-        { title: 'Assigned to Rana Okafor', time: '22h ago' }
-      ]
-    },
-    {
-      id: 'INC-224',
-      title: 'Unencrypted reporting database',
-      sub: '2 findings · opened 3d ago',
-      severity: 'Medium',
-      severityColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-      status: 'Contained',
-      statusColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-      owner: 'M. Chen',
-      timeline: [
-        { title: 'Database resource encryption status check failed', time: '3d ago' },
-        { title: 'Remediation plan approved', time: '2d ago' }
-      ]
-    },
-    {
-      id: 'INC-217',
-      title: 'Build cache retention gap',
-      sub: '1 finding · opened 6d ago',
-      severity: 'Low',
-      severityColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      status: 'Resolved',
-      statusColor: 'bg-green-500/10 text-green-400 border-green-500/20',
-      owner: 'S. Miller',
-      timeline: [
-        { title: 'Vulnerability scan complete', time: '6d ago' },
-        { title: 'Retention policy patched via CLI', time: '5d ago' },
-        { title: 'Closed incident', time: '5d ago' }
-      ]
+  // Query incidents from backend
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['incidents'],
+    queryFn: async () => {
+      const res = await api.get('/v1/incidents');
+      return res.data;
     }
-  ];
+  });
 
-  const activeInc = incidents[selectedIncidentIdx];
+  const rawIncidents: Incident[] = data?.incidents || [];
+
+  // Filter logic
+  const filteredIncidents = rawIncidents.filter(inc => {
+    const matchesSearch = inc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          inc.incident_id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSeverity = selectedSeverity === 'All' || inc.severity.toLowerCase() === selectedSeverity.toLowerCase();
+    const matchesStatus = selectedStatus === 'All' || inc.status.toLowerCase() === selectedStatus.toLowerCase();
+    const matchesRegion = selectedRegion === 'All' || inc.region.toLowerCase() === selectedRegion.toLowerCase();
+    return matchesSearch && matchesSeverity && matchesStatus && matchesRegion;
+  });
+
+  // KPI Calculations
+  const totalCount = rawIncidents.length;
+  const criticalCount = rawIncidents.filter(i => i.severity.toLowerCase() === 'critical').length;
+  const highCount = rawIncidents.filter(i => i.severity.toLowerCase() === 'high').length;
+  const openCount = rawIncidents.filter(i => i.status.toLowerCase() === 'open').length;
+
+  const getSeverityBadge = (severity: string) => {
+    const sev = severity.toLowerCase();
+    if (sev === 'critical') return 'bg-red-500/10 text-red-400 border-red-500/20';
+    if (sev === 'high') return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+    if (sev === 'medium') return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+    return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+  };
 
   return (
-    <div className="space-y-6 text-gray-200">
+    <div className="space-y-6 text-gray-200 pb-16">
       {/* Header bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Incidents</h1>
-          <p className="text-gray-400 text-sm mt-1">6 active investigations across the estate.</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <ShieldAlert size={22} className="text-red-500" />
+            Security Incidents
+          </h1>
+          <p className="text-gray-400 text-sm mt-1">Correlated security risks requiring prioritization and response.</p>
         </div>
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm transition flex items-center gap-2">
-          <ShieldAlert size={16} />
-          Declare incident
+        <button 
+          onClick={() => refetch()}
+          className="px-4 py-2 bg-blue-600/10 border border-blue-500/20 text-blue-400 hover:text-white hover:bg-blue-600 rounded-lg text-xs font-semibold transition flex items-center gap-1.5"
+        >
+          <RotateCw size={14} className={isLoading ? 'animate-spin' : ''} />
+          Sync Incidents
         </button>
       </div>
 
-      {/* Split Screen Master-Detail */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Left: Incident Queue */}
-        <div className="lg:col-span-3 bg-[#0e1428] border border-gray-800 rounded-xl p-5 flex flex-col gap-4">
-          <div>
-            <h2 className="text-sm font-bold text-white">Incident queue</h2>
-            <p className="text-xs text-gray-500">Select an incident to review the response timeline</p>
-          </div>
-          
-          <div className="space-y-2 overflow-y-auto max-h-[500px] pr-1">
-            {incidents.map((inc, idx) => (
-              <div 
-                key={inc.id}
-                onClick={() => setSelectedIncidentIdx(idx)}
-                className={`p-4 border rounded-xl cursor-pointer transition flex items-center justify-between gap-4 ${
-                  selectedIncidentIdx === idx 
-                    ? 'bg-blue-600/5 border-blue-500/40' 
-                    : 'bg-[#0b0f19]/40 border-gray-800 hover:bg-gray-850'
-                }`}
-              >
-                <div>
-                  <h3 className="font-semibold text-sm text-white">{inc.title}</h3>
-                  <div className="text-[10px] text-gray-500 font-mono mt-1">
-                    {inc.id} &middot; {inc.sub}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <span className={`px-2 py-0.5 border text-[9px] font-bold rounded ${inc.severityColor}`}>
-                    {inc.severity}
-                  </span>
-                  <span className={`px-2 py-0.5 border text-[9px] font-semibold rounded ${inc.statusColor}`}>
-                    {inc.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Warning of partial scan coverage */}
+      <div className="p-4 bg-yellow-950/20 border border-yellow-900/30 rounded-xl flex items-start gap-3">
+        <AlertTriangle className="text-yellow-500 shrink-0 w-5 h-5" />
+        <div>
+          <h4 className="text-xs font-bold text-yellow-400">Assessment coverage warning</h4>
+          <p className="text-[11px] text-gray-400 mt-0.5">
+            Cloud scans have partial collector coverage. Incident correlation graphs may omit hidden cross-account attack vectors.
+          </p>
         </div>
+      </div>
 
-        {/* Right: Incident Details */}
-        <div className="lg:col-span-2 bg-[#0e1428] border border-gray-800 rounded-xl p-5 flex flex-col justify-between h-[590px]">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-base font-bold text-white leading-snug">{activeInc.title}</h3>
-              <span className="text-xs text-gray-500 font-mono">{activeInc.id}</span>
-            </div>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 bg-[#0e1428] border border-gray-850 rounded-xl">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Critical Risks</span>
+          <span className="text-2xl font-extrabold text-red-400 mt-2 block">{criticalCount}</span>
+        </div>
+        <div className="p-5 bg-[#0e1428] border border-gray-850 rounded-xl">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">High Severity</span>
+          <span className="text-2xl font-extrabold text-orange-400 mt-2 block">{highCount}</span>
+        </div>
+        <div className="p-5 bg-[#0e1428] border border-gray-850 rounded-xl">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Active Open</span>
+          <span className="text-2xl font-extrabold text-blue-400 mt-2 block">{openCount}</span>
+        </div>
+        <div className="p-5 bg-[#0e1428] border border-gray-850 rounded-xl">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Total Correlated</span>
+          <span className="text-2xl font-extrabold text-white mt-2 block">{totalCount}</span>
+        </div>
+      </div>
 
-            {/* Owner Section */}
-            <div className="flex items-center justify-between p-3 bg-[#0b0f19]/55 rounded-lg border border-gray-800">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-xs">
-                  {activeInc.owner.split(' ').map(n => n[0]).join('')}
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-white">{activeInc.owner}</h4>
-                  <span className="text-[10px] text-gray-500">Incident owner</span>
-                </div>
-              </div>
-              <button className="px-3 py-1.5 border border-gray-800 bg-[#0d1326] text-gray-300 rounded text-[10px] hover:text-white transition">
-                Reassign
-              </button>
-            </div>
-
-            {/* Timeline */}
-            <div className="space-y-4">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Resolution timeline</h4>
-              <div className="relative border-l-2 border-gray-800 pl-4 space-y-5 ml-2">
-                {activeInc.timeline.map((step, idx) => (
-                  <div key={idx} className="relative">
-                    <span className="absolute -left-[21px] top-1.5 w-2 h-2 rounded-full bg-blue-500"></span>
-                    <p className="text-xs text-gray-300 font-medium leading-relaxed">{step.title}</p>
-                    <span className="text-[10px] text-gray-500 block mt-0.5">{step.time}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* Filters and search */}
+      <div className="bg-[#0e1428] border border-gray-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search incidents..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-300 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
+          />
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={12} className="text-gray-500" />
+            <select
+              value={selectedSeverity}
+              onChange={(e) => setSelectedSeverity(e.target.value)}
+              className="px-3 py-1.5 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-blue-500"
+            >
+              <option value="All">All Severities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+            </select>
           </div>
-
-          {/* Footer Action Controls */}
-          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-800/80">
-            <button className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition">
-              Mark contained
-            </button>
-            <button className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-white border border-gray-750 rounded-lg text-xs font-semibold transition">
-              Close Incident
-            </button>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-1.5 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-blue-500"
+            >
+              <option value="All">All Statuses</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className="px-3 py-1.5 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-blue-500"
+            >
+              <option value="All">All Regions</option>
+              <option value="ap-south-1">ap-south-1</option>
+              <option value="us-east-1">us-east-1</option>
+            </select>
           </div>
         </div>
       </div>
+
+      {/* Incidents Table */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <RotateCw className="w-8 h-8 text-blue-500 animate-spin" />
+        </div>
+      ) : isError ? (
+        <div className="text-center py-16 text-red-400 text-xs bg-red-950/10 border border-red-900/20 rounded-xl">
+          Failed to load security incidents. Please check connection to local API server.
+        </div>
+      ) : filteredIncidents.length === 0 ? (
+        <div className="text-center py-16 text-gray-500 text-xs bg-[#0e1428] border border-gray-850 rounded-xl">
+          No correlated security incidents found.
+        </div>
+      ) : (
+        <div className="bg-[#0e1428] border border-gray-850 rounded-xl overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-800 bg-[#0b0f19]/35 text-[10px] text-gray-500 uppercase tracking-wider font-bold">
+                <th className="py-3 px-5">Severity</th>
+                <th className="py-3 px-5">Incident</th>
+                <th className="py-3 px-5 text-center">Risk Score</th>
+                <th className="py-3 px-5 text-center">Assets Affected</th>
+                <th className="py-3 px-5 text-center">Findings</th>
+                <th className="py-3 px-5">Region</th>
+                <th className="py-3 px-5">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-y-gray-800/40 text-xs">
+              {filteredIncidents.map((inc) => (
+                <tr key={inc.id} className="hover:bg-gray-850/20 transition">
+                  <td className="py-4 px-5">
+                    <span className={`px-2.5 py-0.5 border text-[9px] font-bold rounded-full uppercase ${getSeverityBadge(inc.severity)}`}>
+                      {inc.severity}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5">
+                    <div className="font-semibold text-white leading-normal">
+                      <Link to="/incidents/$incidentId" params={{ incidentId: inc.id }} className="hover:underline hover:text-blue-400 transition">
+                        {inc.title}
+                      </Link>
+                    </div>
+                    <div className="text-[10px] text-gray-550 mt-0.5 font-mono">{inc.incident_id}</div>
+                  </td>
+                  <td className="py-4 px-5 text-center font-bold text-red-400">
+                    {inc.risk_score}/100
+                  </td>
+                  <td className="py-4 px-5 text-center text-gray-300">
+                    {inc.affected_assets_count}
+                  </td>
+                  <td className="py-4 px-5 text-center text-gray-300">
+                    {inc.findings_count}
+                  </td>
+                  <td className="py-4 px-5 font-mono text-gray-400">
+                    {inc.region}
+                  </td>
+                  <td className="py-4 px-5">
+                    <span className="px-2 py-0.5 border border-blue-900/30 text-blue-400 bg-blue-950/10 text-[9px] font-bold rounded capitalize">
+                      {inc.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

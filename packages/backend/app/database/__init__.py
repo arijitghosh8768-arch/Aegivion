@@ -54,6 +54,7 @@ def get_collection_for_model(db_instance, model):
         "ec2instanceasset": "ec2_instances",
         "scanjob": "scan_jobs",
         "relationship": "asset_relationships",
+        "assetrelationship": "asset_relationships",
         "finding": "findings"
     }
     col_name = mapping.get(name, name + "s")

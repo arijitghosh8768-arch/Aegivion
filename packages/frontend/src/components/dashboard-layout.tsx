@@ -12,12 +12,14 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/ai-assistant', label: 'AI Copilot', icon: BrainCircuit },
   { to: '/cloud-accounts', label: 'Cloud Topology', icon: Cloud },
+  { to: '/attack-graph', label: 'Attack Graph', icon: Shield },
   { to: '/findings', label: 'Threats', icon: AlertTriangle },
   { to: '/assets', label: 'Assets', icon: Database },
   { to: '/identities', label: 'Identities', icon: Users },
   { to: '/compliance', label: 'Compliance', icon: BarChart3 },
+  { to: '/risk', label: 'Risk Intel', icon: Shield },
   { to: '/reports', label: 'Reports', icon: FileText },
-  { to: '/incidents', label: 'Automation', icon: Zap },
+  { to: '/remediation', label: 'Remediation', icon: Zap },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -64,7 +66,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const savedTheme = localStorage.getItem('aegivion-theme') as 'dark' | 'light' || 'dark';
     setTheme(savedTheme);
-    document.body.className = savedTheme;
+    document.body.classList.remove('dark', 'light', 'light-mode');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light', 'light-mode');
+    } else {
+      document.body.classList.add('dark');
+    }
   }, []);
 
 
@@ -72,7 +79,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const toggleTheme = (newTheme: 'dark' | 'light') => {
     setTheme(newTheme);
     localStorage.setItem('aegivion-theme', newTheme);
-    document.body.className = newTheme;
+    document.body.classList.remove('dark', 'light', 'light-mode');
+    if (newTheme === 'light') {
+      document.body.classList.add('light', 'light-mode');
+    } else {
+      document.body.classList.add('dark');
+    }
     // Dispatch custom event to notify other components (e.g. topology, charts) to redraw
     window.dispatchEvent(new Event('themechange'));
   };
@@ -104,7 +116,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const dashOffset = (TOTAL_LEN * (1 - gaugeValue / 100)).toFixed(2);
 
   return (
-    <div className="app min-h-screen flex w-full" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+    <div className="app h-screen overflow-hidden flex w-full" style={{ background: 'var(--bg)', color: 'var(--text)', height: '100vh', overflow: 'hidden' }}>
       {/* ============ SIDEBAR ============ */}
       <aside
         className="sidebar flex-shrink-0"
@@ -269,7 +281,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* ============ MAIN CONTENT AREA ============ */}
-      <main className="main flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <main className="main flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflowY: 'auto' }}>
         {/* Top Header Bar */}
         <div className="topbar" style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 24px 10px', background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
           <div className="greet" style={{ flex: 1, minWidth: 0 }}>

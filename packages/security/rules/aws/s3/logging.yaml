@@ -1,17 +1,31 @@
-id: AWS-S3-004
+id: AWS-S3-005
 version: 1
 enabled: true
-title: S3 Bucket Access Logging Disabled
+title: S3 Server Access Logging Disabled
+description: S3 bucket does not have server access logging enabled
 provider: aws
-resource_type: s3
+service: s3
+resource_type: s3_bucket
 severity: low
-description: S3 bucket does not have access logging enabled.
-conditions:
-  - field: configuration.logging_enabled
-    operator: equals
-    value: false
-mitre_technique: T1530
-mitre_tactic: discovery
+
+condition:
+  field: configuration.logging_enabled
+  operator: equals
+  value: false
+
 remediation:
-  - Enable S3 access logging
-  - Configure target bucket for logs
+  summary: Enable server access logging
+  steps:
+    - Enable server access logging on the bucket
+    - Configure target bucket for logs
+    - Implement log retention policy
+  references:
+    - "https://docs.aws.amazon.com/AmazonS3/latest/userguide/ServerLogs.html"
+
+mitre_techniques:
+  - T1530
+
+tags:
+  - s3
+  - logging
+  - auditing

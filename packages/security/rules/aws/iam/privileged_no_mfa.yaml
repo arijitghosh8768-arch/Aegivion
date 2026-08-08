@@ -1,0 +1,33 @@
+id: AWS-IAM-007
+version: 1
+enabled: true
+title: Privileged IAM User Without MFA
+description: IAM user has privileged permissions and no MFA
+provider: aws
+service: iam
+resource_type: iam_user
+severity: critical
+
+condition:
+  field: configuration.privileged_and_no_mfa
+  operator: equals
+  value: true
+
+remediation:
+  summary: Enable MFA for privileged users
+  steps:
+    - Enable MFA immediately
+    - Review privileged access
+    - Consider using temporary credentials
+  references:
+    - "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html"
+
+mitre_techniques:
+  - T1078
+  - T1098
+
+tags:
+  - iam
+  - mfa
+  - privileged
+  - critical

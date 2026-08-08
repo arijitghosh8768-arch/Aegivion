@@ -1,0 +1,33 @@
+id: AWS-SG-007
+version: 1
+enabled: true
+title: Public EC2 Instance with Dangerous Security Group
+description: EC2 instance has public IP and associated with internet-exposed security group
+provider: aws
+service: ec2
+resource_type: ec2_instance
+severity: critical
+
+condition:
+  field: configuration.has_public_ip
+  operator: equals
+  value: true
+
+remediation:
+  summary: Review public exposure of EC2 instance
+  steps:
+    - Remove public IP if not required
+    - Review security group rules
+    - Consider using bastion host or VPN
+  references:
+    - "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html"
+
+mitre_techniques:
+  - T1078
+  - T1190
+
+tags:
+  - network
+  - ec2
+  - public
+  - critical

@@ -1,0 +1,31 @@
+id: AWS-S3-001
+version: 1
+enabled: true
+title: S3 Bucket Publicly Accessible
+description: S3 bucket allows public access through bucket policy or ACL
+provider: aws
+service: s3
+resource_type: s3_bucket
+severity: critical
+
+condition:
+  field: configuration.public_access
+  operator: equals
+  value: true
+
+remediation:
+  summary: Block public access immediately
+  steps:
+    - Apply S3 Block Public Access at bucket or account level
+    - Review and update bucket policies
+    - Remove public ACL grants
+  references:
+    - "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+
+mitre_techniques:
+  - T1530
+
+tags:
+  - s3
+  - public
+  - data-exposure

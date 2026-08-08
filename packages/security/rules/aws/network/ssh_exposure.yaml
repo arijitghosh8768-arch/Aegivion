@@ -1,22 +1,33 @@
-id: AWS-NET-001
+id: AWS-SG-001
 version: 1
 enabled: true
-title: SSH Exposed to Unrestricted Sources
+title: SSH Exposed to Internet
+description: Security group allows unrestricted IPv4 or IPv6 access to SSH port
 provider: aws
+service: ec2
 resource_type: security_group
 severity: high
-description: Security group allows SSH from unrestricted IPv4 sources.
-conditions:
-  - field: configuration.ingress
-    operator: contains
-    value:
-      protocol: tcp
-      from_port: 22
-      to_port: 22
-      cidr: 0.0.0.0/0
-mitre_technique: T1046
-mitre_tactic: lateral_movement
+
+condition:
+  field: configuration.exposed_services
+  operator: network_exposure
+  value: 
+    port: 22
+
 remediation:
-  - Restrict SSH access to approved administrative networks
-  - Implement bastion host architecture
-  - Remove direct SSH access for non-critical resources
+  summary: Restrict SSH access to approved administrative networks
+  steps:
+    - Remove 0.0.0.0/0 and ::/0 from SSH ingress rules
+    - Add specific CIDR ranges for authorized administrators
+    - Consider using AWS Systems Manager Session Manager instead
+  references:
+    - "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html"
+
+mitre_techniques:
+  - T1046
+  - T1078
+
+tags:
+  - network
+  - ssh
+  - internet-exposure

@@ -1,0 +1,31 @@
+id: AWS-SG-006
+version: 1
+enabled: true
+title: IPv6 Internet Exposure Detected
+description: Security group allows unrestricted IPv6 access to one or more ports
+provider: aws
+service: ec2
+resource_type: security_group
+severity: high
+
+condition:
+  field: configuration.ipv6_exposed
+  operator: equals
+  value: true
+
+remediation:
+  summary: Review and restrict IPv6 exposure
+  steps:
+    - Remove ::/0 from ingress rules where not required
+    - Add specific IPv6 CIDR ranges if IPv6 is required
+    - Ensure proper IPv6 security controls are in place
+  references:
+    - "https://docs.aws.amazon.com/AWSEC2/latest/working-with-security-groups.html"
+
+mitre_techniques:
+  - T1046
+
+tags:
+  - network
+  - ipv6
+  - internet-exposure

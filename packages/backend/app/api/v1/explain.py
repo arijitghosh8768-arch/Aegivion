@@ -58,7 +58,7 @@ def get_mock_finding_and_asset(finding_id: str) -> Optional[tuple]:
     return matching_finding, matching_asset
 
 @router.post("/explain/{finding_id}")
-def explain_finding(
+async def explain_finding(
     finding_id: str,
     request: ExplainRequest,
     db: Session = Depends(get_db)
@@ -154,6 +154,11 @@ def explain_finding(
                 "confidence": 0.88
             }
             
+        from ai.services.remediation_engine import RemediationEngine
+        remediation_engine = RemediationEngine(provider)
+        remediation_plan = await remediation_engine.generate_remediation(finding)
+        remediation_dict = remediation_plan.to_dict()
+            
         return {
             "finding_id": finding_id,
             "summary": finding.get("description", finding.get("title")),
@@ -164,18 +169,31 @@ def explain_finding(
             "confidence": parsed.get("confidence", 0.9),
             "evidence_used": finding.get("evidence", {}),
             "processing_time_ms": processing_time,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
+            "remediation": remediation_dict
         }
         
     except Exception as e:
         processing_time = int((datetime.utcnow() - start_time).total_seconds() * 1000)
         fallback = generate_fallback_explanation(finding)
+        
+        from ai.services.remediation_engine import RemediationEngine
+        remediation_engine = RemediationEngine(provider)
+        remediation_plan = await remediation_engine.generate_remediation(finding)
+        remediation_dict = remediation_plan.to_dict()
+        
         return {
             "finding_id": finding_id,
             "error": str(e),
             "fallback": fallback,
+            "root_cause": fallback.get("root_cause"),
+            "technical_impact": fallback.get("technical_impact"),
+            "business_impact": fallback.get("business_impact"),
+            "recommendations": fallback.get("recommendations"),
+            "confidence": fallback.get("confidence"),
             "processing_time_ms": processing_time,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
+            "remediation": remediation_dict
         }
 
 def generate_fallback_explanation(finding: Dict) -> Dict:

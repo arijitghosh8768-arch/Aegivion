@@ -1,0 +1,30 @@
+id: AWS-S3-002
+version: 1
+enabled: true
+title: S3 Public Access Block Not Fully Configured
+description: S3 bucket does not have complete public access block protection
+provider: aws
+service: s3
+resource_type: s3_bucket
+severity: high
+
+condition:
+  field: configuration.public_access_block.block_public_acls
+  operator: equals
+  value: false
+
+remediation:
+  summary: Enable full S3 Block Public Access
+  steps:
+    - Enable all Block Public Access settings at bucket level
+    - Consider account-level Block Public Access
+  references:
+    - "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+
+mitre_techniques:
+  - T1530
+
+tags:
+  - s3
+  - public-access-block
+  - misconfiguration

@@ -1,13 +1,15 @@
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
-import asyncio
+from typing import List, Dict, Any, Optional, Union
+from datetime import datetime
 from botocore.exceptions import ClientError
-from app.cloud.aws.collectors.base import BaseCollector
+import logging
+from app.cloud.aws.collectors.base import BaseCollector, UNKNOWN
+
+logger = logging.getLogger(__name__)
 
 class IAMCollector(BaseCollector):
-    """IAM security posture collector - no modifications to AWS"""
+    """Hardened IAM collector with policy statement normalization"""
     
-    def __init__(self, session):
+    def __init__(self, session, region: Optional[str] = None):
         super().__init__(session, "global")
         self.iam_client = session.client('iam')
         self.collector_name = "iam"
@@ -35,9 +37,11 @@ class IAMCollector(BaseCollector):
             
             return assets
             
-        except ClientError:
+        except ClientError as e:
+            logger.error(f"IAM collection failed: {str(e)}")
             return []
-        except Exception:
+        except Exception as e:
+            logger.error(f"IAM collection failed: {str(e)}")
             return []
     
     async def _collect_users(self) -> List[Dict[str, Any]]:
@@ -47,74 +51,93 @@ class IAMCollector(BaseCollector):
         
         for page in paginator.paginate():
             for user in page.get('Users', []):
-                username = user['UserName']
-                
                 try:
-                    # Get user's groups
-                    groups = await self._get_user_groups(username)
-                    
-                    # Get user's policies
-                    attached_policies = await self._get_attached_policies(username)
-                    inline_policies = await self._get_inline_policies(username)
-                    
-                    # Get access keys
-                    access_keys = await self._get_access_keys(username)
-                    
-                    # Check MFA status
-                    mfa_enabled = await self._check_mfa(username)
-                    
-                    # Get password last used
-                    password_last_used = user.get('PasswordLastUsed')
-                    
-                    # Determine console access
-                    console_access = await self._has_console_access(username)
-                    
-                    # Check if user is root (AWS root user doesn't appear in list_users generally, but we check name pattern or metadata)
-                    is_root = username.lower() == 'root'
-                    
-                    # Normalize user
-                    normalized = {
-                        "asset_id": f"iam:user:{username}",
-                        "provider": "aws",
-                        "type": "iam_user",
-                        "region": "global",
-                        "name": username,
-                        "configuration": {
-                            "arn": user['Arn'],
-                            "user_id": user['UserId'],
-                            "created_date": user['CreateDate'].isoformat(),
-                            "password_last_used": password_last_used.isoformat() if password_last_used else None,
-                            "console_access": console_access,
-                            "mfa_enabled": mfa_enabled,
-                            "is_root_user": is_root,
-                            "access_key_count": len(access_keys),
-                            "access_keys": access_keys,
-                            "groups": groups,
-                            "attached_policies": attached_policies,
-                            "inline_policy_count": len(inline_policies)
-                        },
-                        "relationships": [
-                            {
-                                "type": "member_of",
-                                "target_id": f"iam:group:{group}",
-                                "target_type": "iam_group"
-                            }
-                            for group in groups
-                        ] + [
-                            {
-                                "type": "has_policy",
-                                "target_id": policy['arn'],
-                                "target_type": "iam_policy"
-                            }
-                            for policy in attached_policies
-                        ]
-                    }
+                    normalized = await self._normalize_user(user)
                     users.append(normalized)
-                    
-                except ClientError:
+                except ClientError as e:
+                    logger.error(f"Failed to normalize user {user.get('UserName')}: {str(e)}")
                     continue
         
         return users
+    
+    async def _normalize_user(self, user: Dict) -> Dict[str, Any]:
+        """Normalize IAM user with complete security metadata"""
+        username = user['UserName']
+        
+        # Get security metadata
+        groups = await self._get_user_groups(username)
+        attached_policies = await self._get_attached_policies(username, 'user')
+        inline_policies = await self._get_inline_policies(username, 'user')
+        access_keys = await self._get_access_keys(username)
+        mfa_enabled = await self._check_mfa(username)
+        console_access = await self._check_console_access(username)
+        
+        # Get password last used
+        password_last_used = user.get('PasswordLastUsed')
+        
+        # Calculate key metrics
+        key_metrics = self._calculate_key_metrics(access_keys)
+        
+        is_admin_attached = any(
+            p.get('name') == 'AdministratorAccess' or 'admin' in p.get('name', '').lower()
+            for p in attached_policies
+        )
+        is_privileged = username.lower() == 'root' or is_admin_attached
+        console_and_no_mfa = console_access and not mfa_enabled
+        privileged_and_no_mfa = is_privileged and not mfa_enabled
+        has_unused_active_key = any(
+            k.get('status') == 'Active' and k.get('last_used', {}).get('status') == 'never_used'
+            for k in access_keys
+        )
+        
+        return {
+            "asset_id": f"iam:user:{username}",
+            "provider": "aws",
+            "type": "iam_user",
+            "resource_type": "iam_user",
+            "region": "global",
+            "name": username,
+            "configuration": {
+                "arn": user['Arn'],
+                "user_id": user['UserId'],
+                "created_date": user['CreateDate'].isoformat(),
+                "console_access": console_access,
+                "mfa_enabled": mfa_enabled,
+                "password_last_used": password_last_used.isoformat() if password_last_used else None,
+                "access_keys": access_keys,
+                "access_key_count": len(access_keys),
+                "active_key_count": sum(1 for k in access_keys if k.get('status') == 'Active'),
+                "oldest_active_key_days": key_metrics.get('oldest_active_days'),
+                "groups": groups,
+                "attached_policies": attached_policies,
+                "inline_policy_count": len(inline_policies),
+                "is_privileged": is_privileged,
+                "console_and_no_mfa": console_and_no_mfa,
+                "privileged_and_no_mfa": privileged_and_no_mfa,
+                "has_unused_active_key": has_unused_active_key
+            },
+            "relationships": [
+                {
+                    "type": "member_of",
+                    "target_id": f"iam:group:{group}",
+                    "target_type": "iam_group"
+                }
+                for group in groups
+            ] + [
+                {
+                    "type": "has_policy",
+                    "target_id": policy['arn'],
+                    "target_type": "iam_policy"
+                }
+                for policy in attached_policies
+            ]
+        }
+
+    async def _get_groups(self, username: str) -> List[str]:
+        return await self._get_user_groups(username)
+
+    async def _check_console_access(self, username: str) -> bool:
+        return await self._has_console_access(username)
     
     async def _get_user_groups(self, username: str) -> List[str]:
         """Get groups for a user"""
@@ -124,7 +147,7 @@ class IAMCollector(BaseCollector):
         except ClientError:
             return []
     
-    async def _get_attached_policies(self, username: str) -> List[Dict]:
+    async def _get_attached_policies(self, username: str, target_type: str = 'user') -> List[Dict]:
         """Get attached policies for a user"""
         try:
             response = self.iam_client.list_attached_user_policies(UserName=username)
@@ -138,7 +161,7 @@ class IAMCollector(BaseCollector):
         except ClientError:
             return []
     
-    async def _get_inline_policies(self, username: str) -> List[str]:
+    async def _get_inline_policies(self, username: str, target_type: str = 'user') -> List[str]:
         """Get inline policies for a user"""
         try:
             response = self.iam_client.list_user_policies(UserName=username)
@@ -146,44 +169,64 @@ class IAMCollector(BaseCollector):
         except ClientError:
             return []
     
-    async def _get_access_keys(self, username: str) -> List[Dict]:
-        """Get access keys with security metadata"""
+    async def _get_access_keys(self, username: str) -> List[Dict[str, Any]]:
+        """Get access keys with security metadata and unknown handling"""
         try:
             response = self.iam_client.list_access_keys(UserName=username)
             keys = []
             
             for key in response.get('AccessKeyMetadata', []):
-                # Get last used data if available
-                last_used = None
-                try:
-                    used_response = self.iam_client.get_access_key_last_used(
-                        AccessKeyId=key['AccessKeyId']
-                    )
-                    if 'AccessKeyLastUsed' in used_response:
-                        last_used_info = used_response['AccessKeyLastUsed']
-                        last_used = {
-                            'last_used_date': last_used_info.get('LastUsedDate').isoformat() if last_used_info.get('LastUsedDate') else None,
-                            'last_used_service': last_used_info.get('ServiceName'),
-                            'last_used_region': last_used_info.get('Region')
-                        }
-                except ClientError:
-                    pass
+                # Get last used data
+                last_used = await self._get_key_last_used(key['AccessKeyId'])
                 
-                # Calculate key age
+                # Calculate age
                 created_date = key['CreateDate']
                 age_days = (datetime.utcnow() - created_date.replace(tzinfo=None)).days
                 
                 keys.append({
-                    'access_key_id': key['AccessKeyId'][:4] + '***' + key['AccessKeyId'][-4:],
-                    'status': key['Status'],
-                    'created_date': created_date.isoformat(),
-                    'age_days': age_days,
-                    'last_used': last_used
+                    "access_key_id": self._mask_key_id(key['AccessKeyId']),
+                    "status": key['Status'],
+                    "created_at": created_date.isoformat(),
+                    "age_days": age_days,
+                    "last_used": last_used  # May be UNKNOWN
                 })
             
             return keys
-        except ClientError:
+        except ClientError as e:
+            logger.error(f"Failed to get access keys for {username}: {str(e)}")
             return []
+    
+    async def _get_key_last_used(self, access_key_id: str) -> Dict[str, Any]:
+        """Get last used metadata with unknown handling"""
+        try:
+            response = self.iam_client.get_access_key_last_used(
+                AccessKeyId=access_key_id
+            )
+            last_used_info = response.get('AccessKeyLastUsed', {})
+            
+            last_used_date = last_used_info.get('LastUsedDate')
+            if last_used_date:
+                return {
+                    "last_used_at": last_used_date.isoformat(),
+                    "last_used_service": last_used_info.get('ServiceName'),
+                    "last_used_region": last_used_info.get('Region'),
+                    "status": "known"
+                }
+            else:
+                # Key exists but has never been used
+                return {
+                    "last_used_at": None,
+                    "last_used_service": None,
+                    "last_used_region": None,
+                    "status": "never_used"
+                }
+        except ClientError as e:
+            return {
+                "last_used_at": None,
+                "last_used_service": None,
+                "last_used_region": None,
+                "status": "unknown"
+            }
     
     async def _check_mfa(self, username: str) -> bool:
         """Check if user has MFA enabled"""
@@ -201,7 +244,7 @@ class IAMCollector(BaseCollector):
         except ClientError as e:
             if e.response['Error']['Code'] == 'NoSuchEntity':
                 return False
-            raise
+            return False
     
     async def _collect_roles(self) -> List[Dict[str, Any]]:
         """Collect IAM roles"""
@@ -223,6 +266,7 @@ class IAMCollector(BaseCollector):
                         "asset_id": f"iam:role:{role_name}",
                         "provider": "aws",
                         "type": "iam_role",
+                        "resource_type": "iam_role",
                         "region": "global",
                         "name": role_name,
                         "configuration": {
@@ -289,6 +333,7 @@ class IAMCollector(BaseCollector):
                         "asset_id": f"iam:group:{group_name}",
                         "provider": "aws",
                         "type": "iam_group",
+                        "resource_type": "iam_group",
                         "region": "global",
                         "name": group_name,
                         "configuration": {
@@ -336,94 +381,152 @@ class IAMCollector(BaseCollector):
             for policy in page.get('Policies', []):
                 if policy.get('AttachmentCount', 0) > 0:
                     try:
-                        # Get policy version
-                        version_response = self.iam_client.get_policy_version(
-                            PolicyArn=policy['Arn'],
-                            VersionId=policy['DefaultVersionId']
-                        )
-                        
-                        policy_document = version_response['PolicyVersion']['Document']
-                        
-                        # Analyze policy for security posture
-                        is_admin = self._check_admin_policy(policy_document)
-                        has_wildcard = self._check_wildcard_policy(policy_document)
-                        
-                        normalized = {
-                            "asset_id": f"iam:policy:{policy['PolicyName']}",
-                            "provider": "aws",
-                            "type": "iam_policy",
-                            "region": "global",
-                            "name": policy['PolicyName'],
-                            "configuration": {
-                                "arn": policy['Arn'],
-                                "policy_id": policy['PolicyId'],
-                                "created_date": policy['CreateDate'].isoformat(),
-                                "attachment_count": policy.get('AttachmentCount', 0),
-                                "default_version_id": policy['DefaultVersionId'],
-                                "is_admin_policy": is_admin,
-                                "has_wildcard_permissions": has_wildcard,
-                                "policy_document": policy_document
-                            }
-                        }
-                        policies.append(normalized)
-                        
+                        normalized = await self._normalize_policy(policy)
+                        if normalized:
+                            policies.append(normalized)
                     except ClientError:
                         continue
         
         return policies
     
-    def _check_admin_policy(self, policy_document: Dict) -> bool:
-        """Check if policy has admin-level permissions"""
+    async def _normalize_policy(self, policy: Dict) -> Dict[str, Any]:
+        """Normalize policy with statement analysis"""
         try:
-            for statement in policy_document.get('Statement', []):
-                effect = statement.get('Effect', '')
-                action = statement.get('Action', [])
-                resource = statement.get('Resource', [])
-                
-                if effect == 'Allow':
-                    # Check actions
-                    actions_list = action if isinstance(action, list) else [action]
-                    has_wildcard_action = '*' in actions_list or 'AdministratorAccess' in actions_list
-                    
-                    # Check resources
-                    resources_list = resource if isinstance(resource, list) else [resource]
-                    has_wildcard_resource = '*' in resources_list
-                    
-                    if has_wildcard_action and has_wildcard_resource:
-                        return True
-            return False
-        except Exception:
-            return False
-    
-    def _check_wildcard_policy(self, policy_document: Dict) -> Dict:
-        """Check for wildcard permissions with evidence"""
-        wildcard_actions = []
-        wildcard_resources = []
-        
-        try:
-            for statement in policy_document.get('Statement', []):
-                if statement.get('Effect') == 'Allow':
-                    actions = statement.get('Action', [])
-                    resources = statement.get('Resource', [])
-                    
-                    actions_list = actions if isinstance(actions, list) else [actions]
-                    resources_list = resources if isinstance(resources, list) else [resources]
-                    
-                    for a in actions_list:
-                        if '*' in str(a):
-                            wildcard_actions.append(str(a))
-                    for r in resources_list:
-                        if '*' in str(r):
-                            wildcard_resources.append(str(r))
+            # Get policy version
+            version_response = self.iam_client.get_policy_version(
+                PolicyArn=policy['Arn'],
+                VersionId=policy['DefaultVersionId']
+            )
+            
+            policy_document = version_response['PolicyVersion']['Document']
+            
+            # Analyze statements
+            statements = self._analyze_policy_statements(policy_document)
             
             return {
-                'has_wildcard_actions': len(wildcard_actions) > 0,
-                'has_wildcard_resources': len(wildcard_resources) > 0,
-                'wildcard_actions': wildcard_actions,
-                'wildcard_resources': wildcard_resources
+                "asset_id": f"iam:policy:{policy['PolicyName']}",
+                "provider": "aws",
+                "type": "iam_policy",
+                "resource_type": "iam_policy",
+                "region": "global",
+                "name": policy['PolicyName'],
+                "configuration": {
+                    "arn": policy['Arn'],
+                    "policy_id": policy['PolicyId'],
+                    "created_date": policy['CreateDate'].isoformat(),
+                    "attachment_count": policy.get('AttachmentCount', 0),
+                    "default_version_id": policy['DefaultVersionId'],
+                    "statements": statements,
+                    "is_admin_policy": self._is_admin_policy(statements),
+                    "has_wildcard_actions": self._has_wildcard_actions(statements),
+                    "has_wildcard_resources": self._has_wildcard_resources(statements),
+                    "policy_document": policy_document
+                }
             }
-        except Exception:
-            return {
-                'has_wildcard_actions': False,
-                'has_wildcard_resources': False
-            }
+        except Exception as e:
+            logger.error(f"Failed to normalize policy {policy.get('PolicyName')}: {str(e)}")
+            return None
+    
+    def _analyze_policy_statements(self, policy_document: Dict) -> List[Dict]:
+        """Analyze policy statements for security posture"""
+        statements = []
+        
+        stmt = policy_document.get('Statement', [])
+        if isinstance(stmt, dict):
+            statements.append(self._analyze_statement(stmt))
+        elif isinstance(stmt, list):
+            for s in stmt:
+                statements.append(self._analyze_statement(s))
+        
+        return statements
+    
+    def _analyze_statement(self, stmt: Dict) -> Dict:
+        """Analyze a single policy statement"""
+        effect = stmt.get('Effect', 'Deny')
+        actions = self._normalize_actions(stmt.get('Action', []))
+        resources = self._normalize_resources(stmt.get('Resource', []))
+        principals = stmt.get('Principal', {})
+        conditions = stmt.get('Condition', {})
+        
+        return {
+            "effect": effect,
+            "actions": actions,
+            "resources": resources,
+            "principals": principals,
+            "conditions": conditions,
+            "has_wildcard_action": '*' in actions if isinstance(actions, list) else actions == '*',
+            "has_wildcard_resource": '*' in resources if isinstance(resources, list) else resources == '*',
+            "is_public": self._is_public_statement(principals),
+            "risk_level": self._assess_statement_risk(effect, actions, resources)
+        }
+        
+    def _normalize_actions(self, action: Union[str, List[str]]) -> List[str]:
+        if isinstance(action, list):
+            return action
+        return [action] if action else []
+
+    def _normalize_resources(self, resource: Union[str, List[str]]) -> List[str]:
+        if isinstance(resource, list):
+            return resource
+        return [resource] if resource else []
+
+    def _is_public_statement(self, principals: Any) -> bool:
+        if not principals:
+            return False
+        if principals == '*':
+            return True
+        if isinstance(principals, dict):
+            if '*' in principals.values():
+                return True
+        return False
+
+    def _assess_statement_risk(self, effect: str, actions: List[str], resources: List[str]) -> str:
+        if effect == 'Deny':
+            return 'low'
+        has_wildcard_action = '*' in actions or any('*' in a for a in actions)
+        has_wildcard_resource = '*' in resources or any('*' in r for r in resources)
+        if has_wildcard_action and has_wildcard_resource:
+            return 'high'
+        if has_wildcard_action or has_wildcard_resource:
+            return 'medium'
+        return 'low'
+    
+    def _is_admin_policy(self, statements: List[Dict]) -> bool:
+        """Check if policy grants administrative access"""
+        for stmt in statements:
+            if stmt.get('effect') == 'Allow':
+                if stmt.get('has_wildcard_action') and stmt.get('has_wildcard_resource'):
+                    return True
+                if '*' in stmt.get('actions', []) and '*' in stmt.get('resources', []):
+                    return True
+        return False
+    
+    def _has_wildcard_actions(self, statements: List[Dict]) -> bool:
+        """Check if policy has wildcard actions"""
+        for stmt in statements:
+            if stmt.get('effect') == 'Allow' and stmt.get('has_wildcard_action'):
+                return True
+        return False
+    
+    def _has_wildcard_resources(self, statements: List[Dict]) -> bool:
+        """Check if policy has wildcard resources"""
+        for stmt in statements:
+            if stmt.get('effect') == 'Allow' and stmt.get('has_wildcard_resource'):
+                return True
+        return False
+    
+    def _calculate_key_metrics(self, access_keys: List[Dict]) -> Dict:
+        """Calculate key security metrics"""
+        active_keys = [k for k in access_keys if k.get('status') == 'Active']
+        
+        if not active_keys:
+            return {'oldest_active_days': None}
+        
+        oldest = max(active_keys, key=lambda k: k.get('age_days', 0))
+        return {'oldest_active_days': oldest.get('age_days')}
+    
+    def _mask_key_id(self, key_id: str) -> str:
+        """Mask access key ID for UI"""
+        if len(key_id) > 8:
+            return f"{key_id[:4]}***{key_id[-4:]}"
+        return key_id

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { createRoute, Link, useParams } from '@tanstack/react-router';
 import { Route as rootRoute } from './__root';
 import { api } from '@/lib/api';
+import { AIExplanationPanel } from '@/components/findings/AIExplanationPanel';
+import { AnalystActions } from '@/components/findings/AnalystActions';
 import { 
   ArrowLeft, 
   Brain, 
@@ -207,6 +209,15 @@ function FindingDetailPage() {
           <p className="text-gray-400 text-sm mt-1.5">
             Rule: <span className="font-mono text-blue-400">{finding.rule_id}</span> • Detected on asset {finding.resource_name || finding.resource_id}
           </p>
+          {finding.mitre_mappings && finding.mitre_mappings.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {finding.mitre_mappings.map((m: any) => (
+                <span key={m.technique_id} className="px-2 py-0.5 border border-purple-900/30 text-purple-400 bg-purple-950/20 text-[9px] font-bold rounded" title={m.reason}>
+                  MITRE {m.technique_id}: {m.technique_name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           <button 
@@ -290,63 +301,7 @@ function FindingDetailPage() {
             )}
 
             {selectedTab === 'ai' && (
-              <div className="space-y-6">
-                {!aiExplanation && !aiLoading && (
-                  <div className="text-center py-10">
-                    <Brain className="w-12 h-12 text-blue-500/25 mx-auto mb-4 animate-pulse" />
-                    <h4 className="text-sm font-bold text-white">Generate AI Analysis</h4>
-                    <p className="text-gray-500 text-xs mt-1.5">
-                      Request Aegivion AI to perform a detailed security logic walkthrough.
-                    </p>
-                    <button 
-                      onClick={handleGenerateAI}
-                      className="mt-4 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition"
-                    >
-                      Run AI Explainer
-                    </button>
-                  </div>
-                )}
-
-                {aiLoading && (
-                  <div className="text-center py-20">
-                    <RotateCw className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
-                    <p className="text-xs text-gray-400">Aegivion AI is generating explanation details...</p>
-                  </div>
-                )}
-
-                {aiExplanation && (
-                  <div className="space-y-6">
-                    <div className="bg-blue-950/10 border border-blue-900/30 rounded-xl p-4 text-xs text-blue-300 flex items-start gap-3">
-                      <Cpu className="text-blue-400 shrink-0 mt-0.5" size={16} />
-                      <div>
-                        <span className="font-bold block">AI Confidence Score: {Math.round((aiExplanation.confidence || 0.9) * 100)}%</span>
-                        <span>Evaluation based on configuration values.</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Root Cause Analysis</h4>
-                      <div className="bg-[#0b0f19] border border-gray-800 p-4 rounded-xl text-xs text-gray-300 leading-relaxed">
-                        {aiExplanation.root_cause}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Technical fallout</h4>
-                      <div className="bg-[#0b0f19] border border-gray-800 p-4 rounded-xl text-xs text-gray-300 leading-relaxed">
-                        {aiExplanation.technical_impact}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Business fallout</h4>
-                      <div className="bg-[#0b0f19] border border-gray-800 p-4 rounded-xl text-xs text-gray-300 leading-relaxed">
-                        {aiExplanation.business_impact}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <AIExplanationPanel findingId={findingId} />
             )}
 
             {selectedTab === 'remediation' && (
@@ -450,24 +405,14 @@ function FindingDetailPage() {
             </div>
           </div>
 
-          <div className="bg-[#0e1428] border border-gray-850 rounded-xl p-5 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-              <Clock size={14} className="text-blue-500" />
-              Activity Timeline
-            </h3>
-            <div className="relative border-l border-gray-800 ml-2.5 pl-4 space-y-5 py-2">
-              <div className="relative">
-                <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-blue-500" />
-                <span className="text-[10px] text-gray-500 block">Detected date</span>
-                <span className="font-semibold text-xs text-white">Finding Registered</span>
-              </div>
-              <div className="relative">
-                <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-gray-700" />
-                <span className="text-[10px] text-gray-500 block">Status update</span>
-                <span className="font-semibold text-xs text-gray-400">Assessed Security Posture</span>
-              </div>
-            </div>
-          </div>
+          <AnalystActions
+            findingId={findingId}
+            currentStatus={finding.status}
+            currentAssignee={finding.assigned_to}
+            timeline={finding.timeline || []}
+            notes={finding.notes || []}
+            onUpdate={fetchFindingDetails}
+          />
         </div>
 
       </div>

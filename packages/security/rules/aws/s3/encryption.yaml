@@ -1,17 +1,31 @@
-id: AWS-S3-002
+id: AWS-S3-003
 version: 1
 enabled: true
 title: S3 Bucket Default Encryption Disabled
+description: S3 bucket does not have default encryption configured
 provider: aws
-resource_type: s3
+service: s3
+resource_type: s3_bucket
 severity: high
-description: S3 bucket does not have default encryption configured.
-conditions:
-  - field: configuration.encryption_enabled
-    operator: equals
-    value: false
-mitre_technique: T1526
-mitre_tactic: defense_evasion
+
+condition:
+  field: configuration.encryption_enabled
+  operator: equals
+  value: false
+
 remediation:
-  - Enable default encryption for the S3 bucket
-  - Use AWS managed keys (SSE-S3) or KMS keys
+  summary: Enable default encryption
+  steps:
+    - Enable default encryption for the bucket
+    - Use SSE-S3 or SSE-KMS
+    - Review encryption requirements
+  references:
+    - "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-encryption.html"
+
+mitre_techniques:
+  - T1526
+
+tags:
+  - s3
+  - encryption
+  - compliance

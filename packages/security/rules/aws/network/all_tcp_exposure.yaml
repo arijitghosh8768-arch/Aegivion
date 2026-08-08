@@ -1,0 +1,32 @@
+id: AWS-SG-004
+version: 1
+enabled: true
+title: All TCP Ports Exposed to Internet
+description: Security group allows unrestricted access to all TCP ports
+provider: aws
+service: ec2
+resource_type: security_group
+severity: critical
+
+condition:
+  field: configuration.has_all_tcp
+  operator: equals
+  value: true
+
+remediation:
+  summary: Remove unrestricted TCP access and implement least-privilege rules
+  steps:
+    - Remove all TCP/0-65535 rules with 0.0.0.0/0
+    - Define specific ports and sources for each use case
+    - Validate all required services are correctly configured
+  references:
+    - "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html"
+
+mitre_techniques:
+  - T1078
+  - T1190
+
+tags:
+  - network
+  - all-tcp
+  - critical

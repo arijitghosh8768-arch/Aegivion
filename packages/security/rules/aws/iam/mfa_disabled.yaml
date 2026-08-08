@@ -2,20 +2,30 @@ id: AWS-IAM-001
 version: 1
 enabled: true
 title: Console-enabled IAM User Without MFA
+description: IAM user has console access but Multi-Factor Authentication is not enabled
 provider: aws
+service: iam
 resource_type: iam_user
 severity: high
-description: IAM user has console access but Multi-Factor Authentication is not enabled.
-conditions:
-  - field: configuration.console_access
-    operator: equals
-    value: true
-  - field: configuration.mfa_enabled
-    operator: equals
-    value: false
-mitre_technique: T1078
-mitre_tactic: initial_access
+
+condition:
+  field: configuration.console_and_no_mfa
+  operator: equals
+  value: true
+
 remediation:
-  - Enable MFA for the affected IAM user
-  - Use AWS managed MFA policy or custom policy
-  - Review whether console access is required
+  summary: Enable MFA for the affected IAM user
+  steps:
+    - Enable MFA device for the user
+    - Use AWS managed MFA policy
+    - Review whether console access is required
+  references:
+    - "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html"
+
+mitre_techniques:
+  - T1078
+
+tags:
+  - iam
+  - mfa
+  - authentication

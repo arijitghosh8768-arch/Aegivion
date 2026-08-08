@@ -46,6 +46,9 @@ class Finding(BaseModel):
         self.evidence = kwargs.get("evidence") or {}
         self.tags = kwargs.get("tags") or []
         self.assigned_to_id = kwargs.get("assigned_to_id")
+        self.assigned_to = kwargs.get("assigned_to")
+        self.notes = kwargs.get("notes") or []
+        self.timeline = kwargs.get("timeline") or []
         self.resolved_at = kwargs.get("resolved_at")
         self.resolved_by_id = kwargs.get("resolved_by_id")
 
@@ -87,6 +90,9 @@ class Finding(BaseModel):
             "evidence": self.evidence,
             "tags": self.tags,
             "assigned_to_id": str(self.assigned_to_id) if self.assigned_to_id else None,
+            "assigned_to": self.assigned_to,
+            "notes": self.notes,
+            "timeline": self.timeline,
             "resolved_at": self.resolved_at.isoformat() if isinstance(self.resolved_at, datetime) else self.resolved_at,
             "resolved_by_id": str(self.resolved_by_id) if self.resolved_by_id else None
         })

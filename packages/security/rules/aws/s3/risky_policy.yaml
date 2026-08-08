@@ -1,0 +1,31 @@
+id: AWS-S3-006
+version: 1
+enabled: true
+title: S3 Bucket Has Risky Policy
+description: S3 bucket policy allows broad access to sensitive resources
+provider: aws
+service: s3
+resource_type: s3_bucket
+severity: high
+
+condition:
+  field: configuration.has_risky_policy
+  operator: equals
+  value: true
+
+remediation:
+  summary: Review and restrict bucket policy
+  steps:
+    - Review all bucket policies
+    - Remove wildcard principals
+    - Implement least-privilege access
+  references:
+    - "https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-iam-policies.html"
+
+mitre_techniques:
+  - T1530
+
+tags:
+  - s3
+  - policy
+  - access-control

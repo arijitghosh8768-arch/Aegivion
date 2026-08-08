@@ -1,22 +1,33 @@
-id: AWS-NET-002
+id: AWS-SG-002
 version: 1
 enabled: true
-title: RDP Exposed to Unrestricted Sources
+title: RDP Exposed to Internet
+description: Security group allows unrestricted IPv4 or IPv6 access to RDP port
 provider: aws
+service: ec2
 resource_type: security_group
 severity: high
-description: Security group allows RDP from unrestricted IPv4 sources.
-conditions:
-  - field: configuration.ingress
-    operator: contains
-    value:
-      protocol: tcp
-      from_port: 3389
-      to_port: 3389
-      cidr: 0.0.0.0/0
-mitre_technique: T1078
-mitre_tactic: initial_access
+
+condition:
+  field: configuration.exposed_services
+  operator: network_exposure
+  value:
+    port: 3389
+
 remediation:
-  - Restrict RDP access to approved administrative networks
-  - Use VPN or jump server for Windows access
-  - Consider using AWS Systems Manager Session Manager
+  summary: Restrict RDP access to approved administrative networks
+  steps:
+    - Remove 0.0.0.0/0 and ::/0 from RDP ingress rules
+    - Add specific CIDR ranges for authorized administrators
+    - Consider using AWS Systems Manager Session Manager or VPN
+  references:
+    - "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html"
+
+mitre_techniques:
+  - T1078
+  - T1110
+
+tags:
+  - network
+  - rdp
+  - internet-exposure
