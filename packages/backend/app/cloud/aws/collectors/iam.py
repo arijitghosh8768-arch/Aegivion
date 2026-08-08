@@ -403,6 +403,25 @@ class IAMCollector(BaseCollector):
             # Analyze statements
             statements = self._analyze_policy_statements(policy_document)
             
+            relationships = []
+            for stmt in statements:
+                if stmt.get('effect') == 'Allow':
+                    for res in stmt.get('resources', []):
+                        if 'arn:aws:s3:::' in res:
+                            # Extract bucket name
+                            bucket_name = res.split('arn:aws:s3:::')[-1].split('/')[0]
+                            relationships.append({
+                                "type": "CAN_ACCESS",
+                                "target_id": f"aws:s3:{bucket_name}",
+                                "target_type": "s3_bucket",
+                                "evidence": {
+                                    "policy_id": policy['PolicyId'],
+                                    "effect": "Allow",
+                                    "actions": stmt.get('actions', []),
+                                    "resources": stmt.get('resources', [])
+                                }
+                            })
+            
             return {
                 "asset_id": f"iam:policy:{policy['PolicyName']}",
                 "provider": "aws",
@@ -421,7 +440,8 @@ class IAMCollector(BaseCollector):
                     "has_wildcard_actions": self._has_wildcard_actions(statements),
                     "has_wildcard_resources": self._has_wildcard_resources(statements),
                     "policy_document": policy_document
-                }
+                },
+                "relationships": relationships
             }
         except Exception as e:
             logger.error(f"Failed to normalize policy {policy.get('PolicyName')}: {str(e)}")
