@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { createRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Route as rootRoute } from './__root';
 import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 import {
   Shield, AlertTriangle, CheckCircle2, Globe,
-  Bell, HelpCircle, Settings, Search, Brain,
-  ChevronRight, RefreshCw, ArrowRight, Database,
+  RefreshCw, ArrowRight, Database, Brain,
   ShieldCheck, FileCheck, Target, Users, Cloud,
-  Server
+  Server, Calendar, HelpCircle, Activity, Info
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -16,6 +16,22 @@ export const Route = createRoute({
   path: '/',
   component: DashboardPage,
 });
+
+interface ForecastPrediction {
+  day: number;
+  predicted_risk: number;
+  lower_bound: number;
+  upper_bound: number;
+}
+
+interface ForecastResponse {
+  status: string;
+  model: string;
+  current_value: number;
+  predicted_value: number;
+  predictions: ForecastPrediction[];
+  limitations: string[];
+}
 
 const defaultThreats = [
   { id: 1, title: 'IAM role over-privilege detected', env: 'AWS Production', time: '2m ago', dot: '#EF4444' },
@@ -68,15 +84,6 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
       </svg>
     </span>`;
 
-  const iconSVG = {
-    identities: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
-        <circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.4 2.8-5 5.5-5s4.9 1.6 5.5 5"/>
-        <circle cx="16.5" cy="9" r="2.6"/><path d="M15.5 14.2c2.3.2 4.2 1.7 4.8 4.8"/></svg>`,
-    compute: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
-        <ellipse cx="12" cy="5.5" rx="7" ry="3"/><path d="M5 5.5v13c0 1.7 3.1 3 7 3s7-1.3 7-3v-13"/>
-        <path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>`
-  };
-
   const nodesData = [
     { kind: 'cloud', logo: awsLogo, assets: 12, base: -90 },
     { kind: 'cloud', logo: googleLogo, assets: 10, base: 30 },
@@ -87,7 +94,7 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
     if (containerRef.current) {
       const r = containerRef.current.getBoundingClientRect();
       const w = r.width;
-      const h = 380; // Fixed stage height inside panel layout
+      const h = 380;
       const cx = w / 2;
       const cy = h * 0.52;
       const rx = Math.min(w * 0.36, 350);
@@ -104,7 +111,7 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
 
   useEffect(() => {
     if (paused) return;
-    const SPEED = 14; // degrees per second
+    const SPEED = 14;
     let lastTime = performance.now();
     let frameId: number;
 
@@ -152,7 +159,7 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
           <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', letterSpacing: '1px' }}>CLOUD ENVIRONMENT OVERVIEW</h3>
-          <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 2 }}>Real-time 360° security visualization — AWS · Azure · GCP on one linked orbit</p>
+          <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 2 }}>Real-time 360° security visualization</p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <button 
@@ -243,68 +250,37 @@ function CloudTopology({ scanning }: { scanning: boolean }) {
           const y = dimensions.cy + dimensions.ry * Math.sin(a);
           const depth = (Math.sin(a) + 1) / 2;
           const s = 0.68 + 0.45 * depth;
-          const isLeft = x > dimensions.w - 150;
 
           return (
             <div
               key={i}
-              className="node"
+              className="viz-node"
               style={{
                 position: 'absolute',
                 left: x,
                 top: y,
-                zIndex: 100 + Math.round(50 * Math.sin(a)),
                 transform: `translate(-50%,-50%) scale(${s})`,
-                filter: `brightness(${0.78 + 0.32 * depth})`,
-                pointerEvents: 'none',
-                transition: 'none'
+                zIndex: Math.round(depth * 100) + 10,
+                width: 58,
+                height: 58,
+                borderRadius: '50%',
+                background: 'rgba(15,23,42,.85)',
+                border: '2px solid rgba(255,122,26,.8)',
+                boxShadow: '0 0 16px rgba(255,122,26,.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'border-color .2s, box-shadow .2s'
               }}
-            >
-              <div className="node-inner" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div className="cloud-wrap" style={{ position: 'relative', width: 92, height: 62 }}>
-                  <div dangerouslySetInnerHTML={{ __html: cloudSVG }} style={{ width: '100%', height: '100%' }} />
-                  <div dangerouslySetInnerHTML={{ __html: d.logo || '' }} />
-                  <div 
-                    className={`badge ${isLeft ? 'left' : ''}`}
-                    style={{
-                      position: 'absolute',
-                      left: isLeft ? 'auto' : 'calc(100% + 10px)',
-                      right: isLeft ? 'calc(100% + 10px)' : 'auto',
-                      top: '24%',
-                      whiteSpace: 'nowrap',
-                      textAlign: isLeft ? 'right' : 'left'
-                    }}
-                  >
-                    <div className="sec" style={{ color: 'var(--green)', fontWeight: 700, fontSize: '.8rem', textShadow: '0 0 8px rgba(34,197,94,.5)' }}>Secure</div>
-                    <div className="ast" style={{ color: 'var(--muted)', fontSize: '.72rem', marginTop: 2 }}>{d.assets} Assets</div>
-                  </div>
-                </div>
-                <div 
-                  className="node-platform" 
-                  style={{ 
-                    width: 96, height: 52, marginTop: -14, position: 'relative',
-                    background: 'linear-gradient(160deg,#1d2a52 0%,#0b1124 75%)',
-                    clipPath: 'polygon(50% 0,100% 50%,50% 100%,0 50%)',
-                    boxShadow: '0 10px 24px rgba(0,0,0,.55)' 
-                  }}
-                />
-              </div>
-            </div>
+              dangerouslySetInnerHTML={{ __html: d.logo }}
+            />
           );
         })}
-      </div>
-
-      <div className="status-footer" style={{ textAlign: 'center', marginTop: 22 }}>
-        <div className="status-pill animate-blink" style={{ display: 'inline-block', background: 'rgba(16,185,129,.12)', color: 'var(--green)', padding: '10px 32px', borderRadius: 25, fontWeight: 700, fontSize: '.9rem', border: '1px solid rgba(16,185,129,.35)' }}>
-          {paused ? 'Auto-rotation Paused' : 'All Systems Operational'}
-        </div>
       </div>
     </div>
   );
 }
-
-
-
 
 /* ─────────── MAIN DASHBOARD PAGE ─────────── */
 function DashboardPage() {
@@ -315,6 +291,15 @@ function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [eventDetailOpen, setEventDetailOpen] = useState(false);
+
+  // M3/M4: Baseline forecasting dataset state queries
+  const { data: forecastData } = useQuery<ForecastResponse>({
+    queryKey: ['risk-forecast'],
+    queryFn: async () => {
+      const res = await api.get('/v1/history/risk-telemetry/forecast');
+      return res.data;
+    }
+  });
 
   const fetchData = async () => {
     try {
@@ -355,7 +340,6 @@ function DashboardPage() {
   const low = findings.filter((f: any) => f.severity?.toUpperCase() === 'LOW').length || 15;
 
   const totalFindings = findings.length || 21;
-  const secScore = Math.max(10, 100 - findings.length * 10);
   const totalAssets = assets.length || 32;
 
   return (
@@ -372,7 +356,7 @@ function DashboardPage() {
           </div>
           <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>{totalAssets}</div>
           <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
-            <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>Across 3 Clouds</span>
+            <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>Across AWS Accounts</span>
             <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,14 14,12 26,16 38,10 50,14 62,9 74,13 86,11 90,12" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" /></svg>
           </div>
         </div>
@@ -416,22 +400,8 @@ function DashboardPage() {
           </div>
           <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>75<small style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600 }}>%</small></div>
           <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
-            <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>6/8 Compliant</span>
+            <span className="t-blue" style={{ color: '#60a5fa', fontSize: '11.5px' }}>CIS AWS v3</span>
             <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,14 14,15 26,12 38,15 50,11 62,14 74,10 86,13 90,11" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" /></svg>
-          </div>
-        </div>
-
-        <div className="stat animate-rise" style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
-          <div className="stat-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <span className="stat-label" style={{ fontSize: '10.5px', letterSpacing: '.12em', fontWeight: 700, color: 'var(--muted)' }}>ATTACK SURFACE</span>
-            <span className="stat-ic purple" style={{ width: 40, height: 40, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'rgba(139,92,246,.14)', color: '#a78bfa' }}>
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z" /></svg>
-            </span>
-          </div>
-          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>Low</div>
-          <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
-            <span className="t-muted" style={{ color: 'var(--muted)', fontSize: '11.5px' }}>Exposure level</span>
-            <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,15 14,14 26,17 38,13 50,16 62,12 74,15 86,13 90,14" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" /></svg>
           </div>
         </div>
       </section>
@@ -458,68 +428,58 @@ function DashboardPage() {
           <CloudTopology scanning={scanning || refreshing} />
         </div>
 
-        {/* FINDINGS SEVERITY BREAKDOWN */}
-        <div className="panel s3" style={{ gridColumn: 'span 3', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
-          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+        {/* M3/M4: Baseline forecasting dataset graph (Day 31 visualization) */}
+        <div className="panel s6" style={{ gridColumn: 'span 6', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
             <div>
-              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>FINDINGS SEVERITY</h3>
-              <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 3 }}>Proportion of open vulnerabilities</p>
+              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>POSTURE RISK FORECAST</h3>
+              <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 3 }}>7-day predictive security telemetry forecast</p>
             </div>
+            <Activity className="text-indigo-400" size={18} />
           </div>
-          <div className="donut-row" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
-            <div className="donut" style={{ position: 'relative', width: 130, margin: '4px auto' }}>
-              <svg width="130" height="130" viewBox="0 0 150 150">
-                <g fill="none" stroke-width="17" transform="rotate(-90 75 75)">
-                  <circle cx="75" cy="75" r="57" stroke="#ef4444" stroke-dasharray="34.1 358.1" />
-                  <circle cx="75" cy="75" r="57" stroke="#f97316" stroke-dasharray="34.1 358.1" transform="rotate(34.3 75 75)" />
-                  <circle cx="75" cy="75" r="57" stroke="#f59e0b" stroke-dasharray="34.1 358.1" transform="rotate(68.6 75 75)" />
-                  <circle cx="75" cy="75" r="57" stroke="#3b82f6" stroke-dasharray="256 358.1" transform="rotate(102.9 75 75)" />
-                </g>
-              </svg>
-              <div className="ctr" style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <b style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)' }}>{totalFindings}</b>
-                <span style={{ fontSize: 11, color: 'var(--muted)' }}>Total</span>
+
+          {forecastData?.status === 'COMPLETED' ? (
+            <div className="space-y-4 py-3 flex-1 flex flex-col justify-end">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider block">Current Posture Risk</span>
+                  <span className="text-xl font-bold text-white">{forecastData.current_value}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider block">Forecast Projection</span>
+                  <span className="text-xl font-bold text-indigo-400">~{forecastData.predicted_value}</span>
+                </div>
+              </div>
+
+              {/* Simple visual forecast line representation */}
+              <div className="h-16 flex items-end gap-1.5 pt-2 border-b border-gray-800">
+                {forecastData.predictions.map((p) => (
+                  <div key={p.day} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    <span className="absolute -top-6 bg-[#0b0f19] px-1 py-0.5 rounded text-[8px] font-bold text-indigo-300 opacity-0 group-hover:opacity-100 transition">
+                      {p.predicted_risk}
+                    </span>
+                    <div 
+                      className="w-full bg-indigo-600/30 hover:bg-indigo-500 rounded-t transition" 
+                      style={{ height: `${p.predicted_risk * 0.6}px` }}
+                    />
+                    <span className="text-[8px] text-gray-500 font-mono">D+{p.day}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-2.5 bg-[#0b0f19] border border-gray-850 rounded-lg flex items-start gap-2">
+                <Info size={12} className="text-indigo-400 shrink-0 mt-0.5" />
+                <ul className="text-[9px] text-gray-450 list-disc pl-3.5 space-y-0.5">
+                  {forecastData.limitations.map((lim, idx) => (
+                    <li key={idx}>{lim}</li>
+                  ))}
+                </ul>
               </div>
             </div>
-            <ul className="legend" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8, padding: 0 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, listStyle: 'none' }}><i style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }}></i>Critical ({critical}) <span style={{ marginLeft: 'auto', color: 'var(--muted)' }}>9.5%</span></li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, listStyle: 'none' }}><i style={{ width: 8, height: 8, borderRadius: '50%', background: '#f97316' }}></i>High ({high}) <span style={{ marginLeft: 'auto', color: 'var(--muted)' }}>9.5%</span></li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, listStyle: 'none' }}><i style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }}></i>Medium ({medium}) <span style={{ marginLeft: 'auto', color: 'var(--muted)' }}>9.5%</span></li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, listStyle: 'none' }}><i style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }}></i>Low ({low}) <span style={{ marginLeft: 'auto', color: 'var(--muted)' }}>71.4%</span></li>
-            </ul>
-          </div>
+          ) : (
+            <p className="text-xs text-gray-500 text-center py-10">Insufficient scanning telemetry to project baseline forecasts.</p>
+          )}
         </div>
-
-        {/* AI SECURITY INSIGHTS */}
-        <div className="panel s3" style={{ gridColumn: 'span 3', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
-          <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
-            <div>
-              <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>AI INSIGHTS</h3>
-            </div>
-            <span style={{ color: '#a78bfa' }}>
-              <Brain size={22} />
-            </span>
-          </div>
-          <div className="powered" style={{ color: '#a5b4fc', fontSize: '11.5px', fontWeight: 600, marginBottom: 10 }}>Powered by Aegivion AI</div>
-          <p className="insight-txt" style={{ fontSize: '12.5px', lineHeight: 1.65, color: 'var(--muted)' }}>I've analyzed your environment and found <span className="hot" style={{ color: '#f87171', fontWeight: 600 }}>1 critical misconfiguration</span> in AWS S3 bucket policy.</p>
-          <div className="risk-lbl" style={{ fontSize: '11.5px', color: 'var(--muted)', margin: '14px 0 8px' }}>Risk Level</div>
-          <div className="risk-row" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <b style={{ color: 'var(--red)', fontSize: 13 }}>High</b>
-            <div className="segs" style={{ display: 'flex', gap: 6, flex: 1 }}>
-              <i className="on" style={{ height: 5, flex: 1, borderRadius: 4, background: 'linear-gradient(90deg,#ef4444,#f97316)', boxShadow: '0 0 8px rgba(239,68,68,.5)' }}></i>
-              <i className="on" style={{ height: 5, flex: 1, borderRadius: 4, background: 'linear-gradient(90deg,#ef4444,#f97316)', boxShadow: '0 0 8px rgba(239,68,68,.5)' }}></i>
-              <i className="on" style={{ height: 5, flex: 1, borderRadius: 4, background: 'linear-gradient(90deg,#ef4444,#f97316)', boxShadow: '0 0 8px rgba(239,68,68,.5)' }}></i>
-              <i style={{ height: 5, flex: 1, borderRadius: 4, background: '#2b3650' }}></i>
-              <i style={{ height: 5, flex: 1, borderRadius: 4, background: '#2b3650' }}></i>
-            </div>
-          </div>
-          <Link to="/ai-assistant">
-            <button className="btn-primary" style={{ marginTop: 16, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', background: 'linear-gradient(90deg,#6366f1,#7c3aed)', color: '#fff', fontWeight: 700, fontSize: 13, padding: 11, borderRadius: 10, transition: '.2s', boxShadow: '0 8px 20px rgba(99,102,241,.35)' }}>
-              View &amp; Resolve <ArrowRight size={15} />
-            </button>
-          </Link>
-        </div>
-
       </section>
 
       {/* SECOND GRID BLOCK */}
@@ -603,5 +563,4 @@ function DashboardPage() {
     </div>
   );
 }
-
-
+export default DashboardPage;

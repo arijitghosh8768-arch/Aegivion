@@ -109,3 +109,32 @@ class FindingSuppression(BaseModel):
         })
         return res
 
+class SecurityChange(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.organization_id = kwargs.get("organization_id")
+        self.asset_id = kwargs.get("asset_id")
+        self.change_type = kwargs.get("change_type") or "CHANGED"
+        self.field = kwargs.get("field")
+        self.old_value = kwargs.get("old_value")
+        self.new_value = kwargs.get("new_value")
+        self.security_relevance = kwargs.get("security_relevance") or "LOW"
+        self.security_category = kwargs.get("security_category") or "PUBLIC_EXPOSURE"
+        self.detected_at = kwargs.get("detected_at") or datetime.utcnow()
+
+    def dict(self) -> Dict[str, Any]:
+        res = super().dict()
+        res.update({
+            "organization_id": str(self.organization_id) if self.organization_id else None,
+            "asset_id": self.asset_id,
+            "change_type": self.change_type,
+            "field": self.field,
+            "old_value": self.old_value,
+            "new_value": self.new_value,
+            "security_relevance": self.security_relevance,
+            "security_category": self.security_category,
+            "detected_at": self.detected_at.isoformat() if isinstance(self.detected_at, datetime) else self.detected_at
+        })
+        return res
+
+

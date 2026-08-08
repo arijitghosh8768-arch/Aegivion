@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 from app.database import get_db
 from app.core.security import get_current_user
-from app.models.history import AssetSnapshot, SecurityRiskSnapshot, FindingSuppression
+from app.models.history import AssetSnapshot, SecurityRiskSnapshot, FindingSuppression, SecurityChange
 from app.models.cloud import CloudAsset
 from security.models.finding import Finding
 from datetime import datetime, timedelta
@@ -104,19 +104,37 @@ def get_asset_diff(
     changes = []
     # Identify added/changed keys
     for k, v in c2.items():
+        # Security relevant category check (M1 security-relevant classification)
+        relevance = "LOW"
+        category = "SYSTEM"
+        
+        if k in ["public_access", "public_ip", "ingress_rules"]:
+            relevance = "HIGH"
+            category = "PUBLIC_EXPOSURE"
+        elif k in ["security_groups", "iam_role"]:
+            relevance = "HIGH"
+            category = "IAM_PERMISSION"
+        elif k in ["encryption_enabled"]:
+            relevance = "MEDIUM"
+            category = "ENCRYPTION"
+
         if k not in c1:
             changes.append({
                 "field": k,
                 "old_value": None,
                 "new_value": v,
-                "change_type": "ADDED"
+                "change_type": "ADDED",
+                "security_relevance": relevance,
+                "security_category": category
             })
         elif c1[k] != v:
             changes.append({
                 "field": k,
                 "old_value": c1[k],
                 "new_value": v,
-                "change_type": "CHANGED"
+                "change_type": "CHANGED",
+                "security_relevance": relevance,
+                "security_category": category
             })
             
     # Identify removed keys
@@ -126,8 +144,26 @@ def get_asset_diff(
                 "field": k,
                 "old_value": v,
                 "new_value": None,
-                "change_type": "REMOVED"
+                "change_type": "REMOVED",
+                "security_relevance": "LOW",
+                "security_category": "SYSTEM"
             })
+            
+    # Log drift events inside database for audit timelines
+    for change in changes:
+        if change["security_relevance"] == "HIGH":
+            db_change = SecurityChange(
+                organization_id=user_org_id,
+                asset_id=asset_id,
+                change_type=change["change_type"],
+                field=change["field"],
+                old_value=str(change["old_value"]),
+                new_value=str(change["new_value"]),
+                security_relevance=change["security_relevance"],
+                security_category=change["security_category"]
+            )
+            db.add(db_change)
+    db.commit()
             
     return {
         "asset_id": asset_id,
@@ -149,7 +185,6 @@ def suppress_finding(
     
     finding = db.query(Finding).filter(Finding.id == finding_id).first()
     if not finding:
-        # Create a mock finding placeholder if missing for testing
         finding = Finding(
             id=finding_id,
             title="Console-enabled IAM User Without MFA",
@@ -162,7 +197,6 @@ def suppress_finding(
         db.add(finding)
         db.commit()
 
-    # Create suppression log
     suppression = FindingSuppression(
         organization_id=user_org_id,
         finding_id=finding_id,
@@ -173,11 +207,8 @@ def suppress_finding(
         status="ACTIVE"
     )
     db.add(suppression)
-    
-    # Update active finding status in security engine
     finding.status = "suppressed"
     db.commit()
-    
     return suppression.dict()
 
 @router.get("/risk-telemetry/dataset")
@@ -226,10 +257,8 @@ def get_risk_trend_analysis(
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):
-    """Perform deterministic risk-trend calculations based on dataset (M3 trend model)"""
+    """Perform deterministic risk-trend calculations based on dataset"""
     user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
-    
-    # Query dataset
     data = get_historical_risk_dataset(7, db, current_user)["data"]
     
     if len(data) < 2:
@@ -240,7 +269,6 @@ def get_risk_trend_analysis(
         
     first = data[0]
     last = data[-1]
-    
     risk_diff = last["overall_risk"] - first["overall_risk"]
     comp_diff = last["compliance_pass_rate"] - first["compliance_pass_rate"]
     
@@ -266,4 +294,43 @@ def get_risk_trend_analysis(
             "direction": comp_dir,
             "change": int(comp_diff)
         }
+    }
+
+@router.get("/risk-telemetry/forecast")
+def get_baseline_risk_forecast(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """Calculate moving average forecasting projections of posture risk score (M3 baseline model)"""
+    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    data = get_historical_risk_dataset(7, db, current_user)["data"]
+    
+    if len(data) < 3:
+        return {
+            "status": "INSUFFICIENT_DATA",
+            "predictions": []
+        }
+        
+    # Moving average prediction of overall risk
+    last_three = [d["overall_risk"] for d in data[-3:]]
+    forecast_baseline = sum(last_three) / len(last_three)
+    
+    predictions = []
+    for i in range(1, 8):
+        predictions.append({
+            "day": i,
+            "predicted_risk": int(forecast_baseline + (i * 0.5)),
+            "lower_bound": int((forecast_baseline + (i * 0.5)) - 3),
+            "upper_bound": int((forecast_baseline + (i * 0.5)) + 3)
+        })
+        
+    return {
+        "status": "COMPLETED",
+        "model": "moving_average",
+        "current_value": data[-1]["overall_risk"],
+        "predicted_value": int(forecast_baseline + 3),
+        "predictions": predictions,
+        "limitations": [
+            "Baseline projections are mathematical moving-averages only. Aegivion does not predict cyberattacks."
+        ]
     }
