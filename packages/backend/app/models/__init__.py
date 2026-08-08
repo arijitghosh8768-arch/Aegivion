@@ -33,3 +33,6 @@ from app.models.compliance import ComplianceControlResult, ComplianceStatus
 # Import Reports models
 from app.models.reports import SecurityPostureSnapshot, GeneratedReport, ReportType, ReportStatus
 
+# Import History and Dataset models
+from app.models.history import AssetSnapshot, SecurityRiskSnapshot
+

@@ -44,6 +44,10 @@ class Finding(BaseModel):
         self.cvss_score = kwargs.get("cvss_score")
         self.remediation_steps = kwargs.get("remediation_steps") or {}
         self.evidence = kwargs.get("evidence") or {}
+        self.evidence_source = kwargs.get("evidence_source") or "aws_api"
+        self.evidence_collected_at = kwargs.get("evidence_collected_at") or datetime.utcnow()
+        self.evidence_confidence = kwargs.get("evidence_confidence") or "HIGH"
+        self.evidence_quality_score = kwargs.get("evidence_quality_score") or 90.0
         self.tags = kwargs.get("tags") or []
         self.assigned_to_id = kwargs.get("assigned_to_id")
         self.assigned_to = kwargs.get("assigned_to")
@@ -88,6 +92,10 @@ class Finding(BaseModel):
             "cvss_score": self.cvss_score,
             "remediation_steps": self.remediation_steps,
             "evidence": self.evidence,
+            "evidence_source": self.evidence_source,
+            "evidence_collected_at": self.evidence_collected_at.isoformat() if isinstance(self.evidence_collected_at, datetime) else self.evidence_collected_at,
+            "evidence_confidence": self.evidence_confidence,
+            "evidence_quality_score": self.evidence_quality_score,
             "tags": self.tags,
             "assigned_to_id": str(self.assigned_to_id) if self.assigned_to_id else None,
             "assigned_to": self.assigned_to,

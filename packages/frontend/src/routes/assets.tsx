@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { createRoute } from '@tanstack/react-router';
 import { Route as rootRoute } from './__root';
 import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 import { 
   Search, 
   Download, 
-  Plus, 
-  Cloud, 
   RotateCw, 
   X, 
-  ExternalLink,
   ChevronRight,
   Database,
   ShieldAlert,
-  SlidersHorizontal
+  SlidersHorizontal,
+  History,
+  Info,
+  Layers,
+  ArrowRightLeft
 } from 'lucide-react';
 
 export const Route = createRoute({
@@ -41,15 +43,33 @@ interface Asset {
   risk_score?: number;
 }
 
+interface HistoricalVersion {
+  version_number: number;
+  configuration: Record<string, any>;
+  configuration_hash: string;
+  scan_id: string;
+  created_at: string;
+}
+
 function AssetsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'config' | 'relationships'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'config' | 'relationships' | 'history'>('overview');
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+
+  // M1/M4: Query Asset History versions dynamically
+  const { data: historyData, isLoading: historyLoading } = useQuery<{ asset_id: string; versions: HistoricalVersion[] }>({
+    queryKey: ['asset-history', selectedAsset?.resource_id],
+    queryFn: async () => {
+      const res = await api.get(`/v1/history/${selectedAsset?.resource_id}/history`);
+      return res.data;
+    },
+    enabled: !!selectedAsset
+  });
 
   const fetchAssets = async () => {
     try {
@@ -108,7 +128,6 @@ function AssetsPage() {
 
   useEffect(() => {
     fetchAssets();
-    // Auto-refresh every 30s
     const interval = setInterval(fetchAssets, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -127,7 +146,7 @@ function AssetsPage() {
 
   const filteredAssets = assets.filter(asset => {
     const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          asset.resource_id.toLowerCase().includes(searchTerm.toLowerCase());
+                           asset.resource_id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesProvider = selectedProvider === 'All' || asset.provider.toLowerCase() === selectedProvider.toLowerCase();
     const matchesType = selectedType === 'All' || asset.type.toLowerCase().includes(selectedType.toLowerCase());
     return matchesSearch && matchesProvider && matchesType;
@@ -135,6 +154,7 @@ function AssetsPage() {
 
   return (
     <div className="space-y-6 text-gray-200 relative min-h-screen pb-10">
+      
       {/* Header bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-5">
         <div>
@@ -145,7 +165,7 @@ function AssetsPage() {
           <button 
             onClick={handleSyncNow}
             disabled={syncing}
-            className="px-4 py-2 border border-gray-800 bg-[#0d1326] text-gray-300 rounded-lg text-sm hover:text-white transition flex items-center gap-2"
+            className="px-4 py-2 border border-gray-800 bg-[#0d1326] text-gray-300 rounded-lg text-xs hover:text-white transition flex items-center gap-2"
           >
             <RotateCw size={14} className={syncing ? 'animate-spin' : ''} />
             Sync Now
@@ -212,7 +232,11 @@ function AssetsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/60">
-              {filteredAssets.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-10 text-gray-500">Loading asset database...</td>
+                </tr>
+              ) : filteredAssets.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-10 text-gray-500">No matching assets found.</td>
                 </tr>
@@ -268,7 +292,7 @@ function AssetsPage() {
             <div className="p-6 border-b border-gray-800 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-white leading-snug">{selectedAsset.name}</h2>
-                <span className="text-[10px] text-gray-500 font-mono block mt-0.5">{selectedAsset.resource_id}</span>
+                <span className="text-[10px] text-gray-550 font-mono block mt-0.5">{selectedAsset.resource_id}</span>
               </div>
               <button 
                 onClick={() => setSelectedAsset(null)}
@@ -280,7 +304,7 @@ function AssetsPage() {
 
             {/* Tabs Selector */}
             <div className="flex border-b border-gray-800 px-6 bg-[#0e1428]">
-              {(['overview', 'config', 'relationships'] as const).map((tab) => (
+              {(['overview', 'config', 'relationships', 'history'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -299,7 +323,6 @@ function AssetsPage() {
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {activeTab === 'overview' && (
                 <div className="space-y-6">
-                  {/* Basic Metadata */}
                   <div className="bg-[#0e1428] border border-gray-850 rounded-xl p-5 space-y-4">
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                       <Database size={13} className="text-blue-500" />
@@ -325,7 +348,6 @@ function AssetsPage() {
                     </div>
                   </div>
 
-                  {/* Configuration Highlights */}
                   {selectedAsset.configuration && (
                     <div className="bg-[#0e1428] border border-gray-850 rounded-xl p-5 space-y-4">
                       <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -377,6 +399,44 @@ function AssetsPage() {
                   )}
                 </div>
               )}
+
+              {activeTab === 'history' && (
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <History size={14} className="text-blue-500" />
+                    Asset Configuration Drift Timeline
+                  </h4>
+
+                  {historyLoading ? (
+                    <div className="flex justify-center py-10">
+                      <RotateCw className="w-6 h-6 text-indigo-500 animate-spin" />
+                    </div>
+                  ) : historyData?.versions && historyData.versions.length > 0 ? (
+                    <div className="space-y-4 relative pl-4 border-l border-gray-800">
+                      {historyData.versions.map((ver, idx) => (
+                        <div key={idx} className="relative space-y-1.5 pb-2">
+                          <div className="absolute -left-[21px] top-1 bg-indigo-600 rounded-full w-2.5 h-2.5 border-2 border-indigo-400"></div>
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="font-bold text-indigo-400">VERSION #{ver.version_number}</span>
+                            <span className="text-gray-500">{new Date(ver.created_at).toLocaleString()}</span>
+                          </div>
+                          <div className="p-3 bg-[#0e1428] border border-gray-850 rounded-xl space-y-2">
+                            <div className="flex justify-between text-[9px] text-gray-400">
+                              <span>Scan Target: {ver.scan_id}</span>
+                              <span className="font-mono text-gray-500 truncate max-w-[150px]">Hash: {ver.configuration_hash.slice(0, 12)}</span>
+                            </div>
+                            <pre className="bg-[#0b0f19] border border-gray-850 rounded p-2 text-[9px] font-mono text-indigo-300 overflow-x-auto">
+                              {JSON.stringify(ver.configuration, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">No configuration version drift has occurred yet.</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Drawer Footer */}
@@ -395,3 +455,4 @@ function AssetsPage() {
     </div>
   );
 }
+export default AssetsPage;
