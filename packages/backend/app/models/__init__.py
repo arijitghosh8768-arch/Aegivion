@@ -30,3 +30,6 @@ from ai.models.knowledge import KnowledgeBase, Conversation, KnowledgeCategory
 # Import Compliance models
 from app.models.compliance import ComplianceControlResult, ComplianceStatus
 
+# Import Reports models
+from app.models.reports import SecurityPostureSnapshot, GeneratedReport, ReportType, ReportStatus
+
