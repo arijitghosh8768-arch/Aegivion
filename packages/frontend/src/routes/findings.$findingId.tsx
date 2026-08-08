@@ -43,6 +43,10 @@ interface Finding {
   mitre_tactic?: string;
   remediation?: string[];
   created_at?: string;
+  mitre_mappings?: Array<{ technique_id: string; technique_name: string; reason?: string }>;
+  assigned_to?: string;
+  timeline?: Array<{ timestamp: string; title: string; description: string }>;
+  notes?: Array<{ id: string; author: string; content: string; created_at: string }>;
 }
 
 interface RemediationStep {

@@ -41,6 +41,7 @@ interface IncidentDetail {
   incident_id: string;
   id: string;
   title: string;
+  description: string;
   severity: string;
   risk_score: number;
   confidence: number;
@@ -273,7 +274,7 @@ function IncidentDetailPage() {
                         <div className="font-bold text-xs text-white">Finding ID: {fid}</div>
                         <p className="text-[11px] text-gray-450 mt-1">Rule correlation matched.</p>
                       </div>
-                      <Link to={`/findings/${fid}`} className="text-[10px] text-blue-400 hover:underline flex items-center gap-1">
+                      <Link to={`/findings/${fid}` as any} className="text-[10px] text-blue-400 hover:underline flex items-center gap-1">
                         View Detail <ChevronRight size={12} />
                       </Link>
                     </div>

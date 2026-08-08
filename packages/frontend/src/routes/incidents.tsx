@@ -20,7 +20,7 @@ export const Route = createRoute({
 });
 
 interface Incident {
-  incident_id: str;
+  incident_id: string;
   id: string;
   title: string;
   severity: string;

@@ -13,7 +13,8 @@ import {
   ChevronRight, 
   Activity, 
   Database,
-  Users
+  Users,
+  Brain
 } from 'lucide-react';
 
 export const Route = createRoute({
@@ -23,7 +24,7 @@ export const Route = createRoute({
 });
 
 interface RiskFactor {
-  type: str;
+  type: string;
   value: any;
   contribution: number;
   description: string;
