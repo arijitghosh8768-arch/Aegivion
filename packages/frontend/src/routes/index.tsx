@@ -76,6 +76,16 @@ interface EvaluationResponse {
   baseline_scanner: EvaluationMetrics;
 }
 
+interface AiReasoningResponse {
+  status: string;
+  executive_summary: string;
+  observed_facts: string[];
+  inferences: string[];
+  unknowns: string[];
+  recommendations: string[];
+  limitations: string[];
+}
+
 const defaultThreats = [
   { id: 1, title: 'IAM role over-privilege detected', env: 'AWS Production', time: '2m ago', dot: '#EF4444' },
   { id: 2, title: 'Unusual API activity', env: 'Azure Environment', time: '5m ago', dot: '#F59E0B' },
@@ -361,6 +371,15 @@ function DashboardPage() {
     }
   });
 
+  // M3: AI Prediction reasoning integration query hook
+  const { data: aiReasoning } = useQuery<AiReasoningResponse>({
+    queryKey: ['ai-reasoning'],
+    queryFn: async () => {
+      const res = await api.get('/v1/history/predictive-reasoning/summary');
+      return res.data;
+    }
+  });
+
   const fetchData = async () => {
     try {
       setRefreshing(true);
@@ -560,6 +579,66 @@ function DashboardPage() {
         </div>
       </section>
 
+      {/* M3/M4: Predictive AI Reasoning Insights Panel (Observed vs Inferences vs Unknowns) */}
+      {aiReasoning && (
+        <section className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12,1fr)', gap: 16 }}>
+          <div className="panel s12" style={{ gridColumn: 'span 12', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+            <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+              <div>
+                <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>AI PREDICTIVE POSTURE ANALYSIS</h3>
+                <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 3 }}>Integrated reasoning audits (Observed Facts vs Inferences vs Unknowns)</p>
+              </div>
+              <Brain className="text-purple-400" size={18} />
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <div className="p-3 bg-purple-950/20 border border-purple-900/30 rounded-xl text-xs text-purple-300">
+                <span className="font-bold text-[10px] uppercase tracking-wider block text-purple-400 mb-1">Executive Posture Summary</span>
+                {aiReasoning.executive_summary}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                {/* Observed Facts */}
+                <div className="p-3.5 bg-[#0b0f19] border border-gray-850 rounded-xl space-y-2">
+                  <span className="font-bold text-green-400 text-[10px] uppercase tracking-wider block">Observed Evidence</span>
+                  <ul className="list-disc pl-4 space-y-1.5 text-gray-300 text-[11px]">
+                    {aiReasoning.observed_facts.map((fact, idx) => <li key={idx}>{fact}</li>)}
+                  </ul>
+                </div>
+
+                {/* Inferences */}
+                <div className="p-3.5 bg-[#0b0f19] border border-gray-850 rounded-xl space-y-2">
+                  <span className="font-bold text-yellow-400 text-[10px] uppercase tracking-wider block">Model Inferences</span>
+                  <ul className="list-disc pl-4 space-y-1.5 text-gray-300 text-[11px]">
+                    {aiReasoning.inferences.map((inf, idx) => <li key={idx}>{inf}</li>)}
+                  </ul>
+                </div>
+
+                {/* Unknowns */}
+                <div className="p-3.5 bg-[#0b0f19] border border-gray-850 rounded-xl space-y-2">
+                  <span className="font-bold text-blue-400 text-[10px] uppercase tracking-wider block">Postulated Unknowns</span>
+                  <ul className="list-disc pl-4 space-y-1.5 text-gray-300 text-[11px]">
+                    {aiReasoning.unknowns.map((un, idx) => <li key={idx}>{un}</li>)}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#0b0f19] border border-gray-850 rounded-xl text-xs flex items-center justify-between">
+                <div className="space-y-1">
+                  <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider block">Actionable Posture Priorities</span>
+                  <div className="flex gap-2">
+                    {aiReasoning.recommendations.map((rec, idx) => (
+                      <span key={idx} className="bg-purple-950/30 text-purple-300 border border-purple-900/40 px-2 py-0.5 rounded text-[10px]">{rec}</span>
+                    ))}
+                  </div>
+                </div>
+                <span className="text-[10px] text-gray-550 italic font-mono">Scope: Posture Analytics Only</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* THIRD GRID PANEL: Compliance Forecast Overlay Panel (M3/M4 dashboard) */}
       <section className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12,1fr)', gap: 16 }}>
         <div className="panel s12" style={{ gridColumn: 'span 12', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
@@ -632,11 +711,11 @@ function DashboardPage() {
                     <span className="font-bold text-red-400">{evalDataset.evaluation.false_positive}</span>
                   </div>
                   <div className="p-2 bg-yellow-950/20 border border-yellow-900/30 rounded">
-                    <span className="text-[9px] text-gray-500 block">FN</span>
+                    <span className="text-[9px] text-gray-550 block">FN</span>
                     <span className="font-bold text-yellow-400">{evalDataset.evaluation.false_negative}</span>
                   </div>
                   <div className="p-2 bg-blue-950/20 border border-blue-900/30 rounded">
-                    <span className="text-[9px] text-gray-500 block">TN</span>
+                    <span className="text-[9px] text-gray-550 block">TN</span>
                     <span className="font-bold text-blue-400">{evalDataset.evaluation.true_negative}</span>
                   </div>
                 </div>
@@ -664,7 +743,7 @@ function DashboardPage() {
                     <span className="font-bold text-yellow-400">{evalDataset.baseline_scanner.false_negative}</span>
                   </div>
                   <div className="p-2 bg-blue-950/20 border border-blue-900/30 rounded">
-                    <span className="text-[9px] text-gray-500 block">TN</span>
+                    <span className="text-[9px] text-gray-550 block">TN</span>
                     <span className="font-bold text-blue-400">{evalDataset.baseline_scanner.true_negative}</span>
                   </div>
                 </div>
