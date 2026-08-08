@@ -55,6 +55,13 @@ class Finding(BaseModel):
         self.timeline = kwargs.get("timeline") or []
         self.resolved_at = kwargs.get("resolved_at")
         self.resolved_by_id = kwargs.get("resolved_by_id")
+        
+        # M2 Day 32 Deduplication & Occurrence tracking
+        self.fingerprint = kwargs.get("fingerprint")
+        self.first_seen = kwargs.get("first_seen") or datetime.utcnow()
+        self.last_seen = kwargs.get("last_seen") or datetime.utcnow()
+        self.occurrence_count = kwargs.get("occurrence_count") or 1
+        self.reopened_at = kwargs.get("reopened_at")
 
     def calculate_risk_score(self) -> float:
         severity_scores = {
@@ -102,7 +109,12 @@ class Finding(BaseModel):
             "notes": self.notes,
             "timeline": self.timeline,
             "resolved_at": self.resolved_at.isoformat() if isinstance(self.resolved_at, datetime) else self.resolved_at,
-            "resolved_by_id": str(self.resolved_by_id) if self.resolved_by_id else None
+            "resolved_by_id": str(self.resolved_by_id) if self.resolved_by_id else None,
+            "fingerprint": self.fingerprint,
+            "first_seen": self.first_seen.isoformat() if isinstance(self.first_seen, datetime) else self.first_seen,
+            "last_seen": self.last_seen.isoformat() if isinstance(self.last_seen, datetime) else self.last_seen,
+            "occurrence_count": self.occurrence_count,
+            "reopened_at": self.reopened_at.isoformat() if isinstance(self.reopened_at, datetime) else self.reopened_at
         })
         return res
 

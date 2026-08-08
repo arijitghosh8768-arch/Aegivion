@@ -1,107 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { createRoute, Link, useParams } from '@tanstack/react-router';
+import { useParams, Link, createRoute } from '@tanstack/react-router';
 import { Route as rootRoute } from './__root';
 import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { 
+  ArrowLeft, Brain, Play, RotateCw, Check, Copy, Info, CheckCircle, 
+  CheckCircle2, Clock, Calendar, ShieldAlert, History
+} from 'lucide-react';
 import { AIExplanationPanel } from '@/components/findings/AIExplanationPanel';
 import { AnalystActions } from '@/components/findings/AnalystActions';
-import { 
-  ArrowLeft, 
-  Brain, 
-  ShieldAlert, 
-  Clock, 
-  Play, 
-  Copy, 
-  Check, 
-  Cpu, 
-  AlertTriangle,
-  Info,
-  CheckCircle,
-  FileCode,
-  RotateCw
-} from 'lucide-react';
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: '/findings/$findingId',
-  component: FindingDetailPage,
+  component: RouteComponent,
 });
 
-interface Finding {
+interface FindingHistoryResponse {
   finding_id: string;
-  title: string;
-  description: string;
-  severity: string;
-  status: string;
-  resource_id: string;
-  resource_name: string;
-  resource_type: string;
-  cloud_provider: string;
-  rule_id: string;
-  risk_score?: number;
-  evidence?: Record<string, any>;
-  mitre_technique?: string;
-  mitre_tactic?: string;
-  remediation?: string[];
-  created_at?: string;
-  mitre_mappings?: Array<{ technique_id: string; technique_name: string; reason?: string }>;
-  assigned_to?: string;
-  timeline?: Array<{ timestamp: string; title: string; description: string }>;
-  notes?: Array<{ id: string; author: string; content: string; created_at: string }>;
+  fingerprint: string;
+  occurrence_count: number;
+  first_seen: string;
+  last_seen: string;
+  events: Array<{
+    event: string;
+    timestamp: string;
+    description: string;
+  }>;
 }
 
-interface RemediationStep {
-  order: number;
-  action: string;
-  reason: string;
-  effort: string;
-  urgency: string;
-}
-
-interface RemediationPlan {
-  priority: string;
-  summary: string;
-  steps: RemediationStep[];
-  validation: string[];
-  confidence: number;
-  estimated_effort: string;
-  references: string[];
-}
-
-interface AIExplanation {
-  summary: string;
-  root_cause: string;
-  technical_impact: string;
-  business_impact: string;
-  confidence: number;
-}
-
-function FindingDetailPage() {
-  const { findingId } = useParams({ from: Route.id });
-  const [finding, setFinding] = useState<Finding | null>(null);
-  const [loading, setLoading] = useState(true);
+export function RouteComponent() {
+  const { findingId } = useParams({ from: '/findings/$findingId' });
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'evidence' | 'ai' | 'remediation' | 'timeline'>('overview');
   const [copied, setCopied] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'evidence' | 'ai' | 'remediation'>('overview');
-
-  // AI & Remediation States
+  const [aiExplanation, setAiExplanation] = useState<any>(null);
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiExplanation, setAiExplanation] = useState<AIExplanation | null>(null);
-  
+  const [remediationPlan, setRemediationPlan] = useState<any>(null);
   const [remediationLoading, setRemediationLoading] = useState(false);
-  const [remediationPlan, setRemediationPlan] = useState<RemediationPlan | null>(null);
+  const [finding, setFinding] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // M2/M4: Occurrence timeline history endpoint query hook
+  const { data: timelineHistory, isLoading: historyLoading } = useQuery<FindingHistoryResponse>({
+    queryKey: ['finding-history', findingId],
+    queryFn: async () => {
+      const res = await api.get(`/v1/findings/${findingId}/history`);
+      return res.data;
+    }
+  });
 
   const fetchFindingDetails = async () => {
     try {
       setLoading(true);
-      // Fetch finding (using findings list query fallback if single finding endpoint doesn't exist)
-      const res = await api.get('/v1/findings');
-      if (res.data && res.data.findings) {
-        const found = res.data.findings.find((f: any) => f.finding_id === findingId);
-        if (found) {
-          setFinding(found);
-          return;
-        }
-      }
-      
+      const res = await api.get(`/v1/findings/${findingId}`);
+      setFinding(res.data);
+    } catch (e) {
+      console.error(e);
       // Fallback fallback mock if not found
       setFinding({
         finding_id: findingId,
@@ -121,8 +75,6 @@ function FindingDetailPage() {
         remediation: ['Enable MFA for the affected user'],
         created_at: new Date().toISOString()
       });
-    } catch (e) {
-      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -246,8 +198,8 @@ function FindingDetailPage() {
         
         {/* Left Columns: Tabs and Analysis */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex border-b border-gray-800">
-            {(['overview', 'evidence', 'ai', 'remediation'] as const).map((tab) => (
+          <div className="flex border-b border-gray-800 bg-[#0c1328]">
+            {(['overview', 'evidence', 'ai', 'remediation', 'timeline'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
@@ -347,7 +299,7 @@ function FindingDetailPage() {
                     <div className="space-y-4 pt-2">
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Step-by-Step Remediation</h4>
                       <div className="space-y-3">
-                        {remediationPlan.steps.map((step) => (
+                        {remediationPlan.steps.map((step: any) => (
                           <div key={step.order} className="bg-[#0b0f19] border border-gray-850 p-4 rounded-xl flex gap-3.5 items-start">
                             <span className="w-6 h-6 bg-blue-600/10 text-blue-400 border border-blue-500/25 rounded-full flex items-center justify-center font-bold text-xs">
                               {step.order}
@@ -367,7 +319,7 @@ function FindingDetailPage() {
                     <div className="space-y-2 border-t border-gray-800 pt-4">
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Validation Criteria</h4>
                       <ul className="space-y-2">
-                        {remediationPlan.validation.map((v, idx) => (
+                        {remediationPlan.validation.map((v: any, idx: number) => (
                           <li key={idx} className="text-xs text-gray-300 flex items-center gap-2">
                             <CheckCircle className="text-green-500 shrink-0" size={13} />
                             <span>{v}</span>
@@ -376,6 +328,62 @@ function FindingDetailPage() {
                       </ul>
                     </div>
                   </div>
+                )}
+              </div>
+            )}
+
+            {/* M4 Finding Timeline Occurrence Visualization panel */}
+            {selectedTab === 'timeline' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-gray-850 pb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <History size={16} className="text-indigo-400" />
+                      Occurrence History &amp; Deduplication Audit
+                    </h3>
+                    <p className="text-[10px] text-gray-500 mt-1">Aegivion deduplicates recurring alerts to capture structural trends.</p>
+                  </div>
+                  {timelineHistory && (
+                    <div className="px-3 py-1 bg-indigo-950/20 border border-indigo-900/30 text-[10px] font-bold text-indigo-400 rounded-lg">
+                      Occurrences: {timelineHistory.occurrence_count}
+                    </div>
+                  )}
+                </div>
+
+                {historyLoading ? (
+                  <div className="text-center py-10"><RotateCw className="w-6 h-6 text-indigo-500 animate-spin mx-auto" /></div>
+                ) : timelineHistory ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4 text-xs bg-[#0b0f19] p-4 border border-gray-850 rounded-xl">
+                      <div>
+                        <span className="text-gray-500 block">First Detected</span>
+                        <span className="font-semibold text-white">{new Date(timelineHistory.first_seen).toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">Last Active</span>
+                        <span className="font-semibold text-white">{new Date(timelineHistory.last_seen).toLocaleString()}</span>
+                      </div>
+                      <div className="col-span-2 border-t border-gray-800/60 pt-2.5">
+                        <span className="text-gray-500 block mb-1">Deduplication Fingerprint Hash</span>
+                        <span className="font-mono text-[10px] text-indigo-400 break-all">{timelineHistory.fingerprint}</span>
+                      </div>
+                    </div>
+
+                    <div className="relative pl-4 border-l border-gray-850 space-y-4">
+                      {timelineHistory.events.map((ev, idx) => (
+                        <div key={idx} className="relative space-y-1">
+                          <div className="absolute -left-[21px] top-1 bg-indigo-600 rounded-full w-2.5 h-2.5 border-2 border-indigo-400"></div>
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="font-bold text-indigo-400">{ev.event}</span>
+                            <span className="text-gray-500">{new Date(ev.timestamp).toLocaleString()}</span>
+                          </div>
+                          <p className="text-[11px] text-gray-300">{ev.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 text-center py-10">No tracking history registered for this finding.</p>
                 )}
               </div>
             )}
@@ -423,3 +431,5 @@ function FindingDetailPage() {
     </div>
   );
 }
+
+export default RouteComponent;

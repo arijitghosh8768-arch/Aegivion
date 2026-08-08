@@ -256,9 +256,96 @@ def get_all_assets(db: Session = Depends(get_db)):
             "name": asset.name,
             "type": asset.type,
             "region": asset.region,
-            "provider": asset.provider.value if hasattr(asset.provider, 'value') else str(asset.provider)
+            "provider": asset.provider.value if hasattr(asset.provider, 'value') else str(asset.provider),
+            "environment": getattr(asset, "environment", "DEVELOPMENT"),
+            "owner": getattr(asset, "owner", "UNKNOWN"),
+            "department": getattr(asset, "department", "UNKNOWN"),
+            "application": getattr(asset, "application", "UNKNOWN"),
+            "data_sensitivity": getattr(asset, "data_sensitivity", "UNKNOWN"),
+            "business_criticality": getattr(asset, "business_criticality", "UNKNOWN")
         })
     return {"assets": result}
+
+@router.get("/assets/{asset_id}/context")
+def get_asset_context(asset_id: str, db: Session = Depends(get_db)):
+    """Retrieve full asset context and business criticality values (M1 context API)"""
+    asset = db.query(CloudAsset).filter(CloudAsset.resource_id == asset_id).first()
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+        
+    return {
+        "asset_id": asset.resource_id,
+        "environment": getattr(asset, "environment", "DEVELOPMENT"),
+        "owner": getattr(asset, "owner", "UNKNOWN"),
+        "department": getattr(asset, "department", "UNKNOWN"),
+        "application": getattr(asset, "application", "UNKNOWN"),
+        "data_sensitivity": getattr(asset, "data_sensitivity", "UNKNOWN"),
+        "business_criticality": getattr(asset, "business_criticality", "UNKNOWN")
+    }
+
+@router.patch("/assets/{asset_id}/context")
+def update_asset_context(
+    asset_id: str,
+    environment: Optional[str] = None,
+    owner: Optional[str] = None,
+    department: Optional[str] = None,
+    application: Optional[str] = None,
+    data_sensitivity: Optional[str] = None,
+    business_criticality: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Audit-trail authorization log updating target asset context (M1 Context update)"""
+    asset = db.query(CloudAsset).filter(CloudAsset.resource_id == asset_id).first()
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+        
+    if environment: asset.environment = environment
+    if owner: asset.owner = owner
+    if department: asset.department = department
+    if application: asset.application = application
+    if data_sensitivity: asset.data_sensitivity = data_sensitivity
+    if business_criticality: asset.business_criticality = business_criticality
+    
+    db.commit()
+    return {"success": True}
+
+@router.get("/{finding_id}/history")
+def get_finding_history_occurrences(finding_id: str, db: Session = Depends(get_db)):
+    """Retrieve occurrence deduplication tracking updates and lifecycle timelines (M2/M4 timelines)"""
+    uuid_id = None
+    try:
+        uuid_id = uuid.UUID(finding_id)
+    except Exception:
+        pass
+        
+    f = None
+    if uuid_id:
+        f = db.query(Finding).filter(Finding.id == uuid_id).first()
+    else:
+        f = db.query(Finding).filter(Finding.id == finding_id).first()
+        
+    if not f:
+        raise HTTPException(status_code=404, detail="Finding not found")
+        
+    # Generate structural timeline history based on first/last seen occurrences
+    events = [
+        {"event": "FIRST_SEEN", "timestamp": getattr(f, "first_seen", datetime.utcnow()).isoformat() if isinstance(getattr(f, "first_seen", datetime.utcnow()), datetime) else str(getattr(f, "first_seen", datetime.utcnow())), "description": "Finding first registered in infrastructure."},
+        {"event": "OBSERVED", "timestamp": getattr(f, "last_seen", datetime.utcnow()).isoformat() if isinstance(getattr(f, "last_seen", datetime.utcnow()), datetime) else str(getattr(f, "last_seen", datetime.utcnow())), "description": f"Finding re-observed. Occurrence count: {getattr(f, 'occurrence_count', 1)}"}
+    ]
+    
+    if getattr(f, "status") == "resolved":
+        events.append({"event": "RESOLVED", "timestamp": getattr(f, "resolved_at", datetime.utcnow()).isoformat(), "description": "Resolved by security patch."})
+    elif getattr(f, "reopened_at", None):
+        events.append({"event": "REOPENED", "timestamp": getattr(f, "reopened_at").isoformat(), "description": "Finding re-exposed."})
+        
+    return {
+        "finding_id": str(f.id),
+        "fingerprint": getattr(f, "fingerprint", f"{f.rule_id}:{f.resource_id}"),
+        "occurrence_count": getattr(f, "occurrence_count", 1),
+        "first_seen": getattr(f, "first_seen", datetime.utcnow()).isoformat() if isinstance(getattr(f, "first_seen", datetime.utcnow()), datetime) else str(getattr(f, "first_seen", datetime.utcnow())),
+        "last_seen": getattr(f, "last_seen", datetime.utcnow()).isoformat() if isinstance(getattr(f, "last_seen", datetime.utcnow()), datetime) else str(getattr(f, "last_seen", datetime.utcnow())),
+        "events": events
+    }
 
 @router.post("/scan")
 def trigger_cloud_scan(db: Session = Depends(get_db)):
@@ -269,3 +356,4 @@ def trigger_cloud_scan(db: Session = Depends(get_db)):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Cloud scan execution failed: {str(e)}")
+

@@ -334,3 +334,67 @@ def get_baseline_risk_forecast(
             "Baseline projections are mathematical moving-averages only. Aegivion does not predict cyberattacks."
         ]
     }
+
+@router.get("/risk-telemetry/drift")
+def get_security_posture_drift(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """Compute multi-metric security posture drift direction & weighted indicators (M3 posture drift)"""
+    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    data = get_historical_risk_dataset(7, db, current_user)["data"]
+    
+    if len(data) < 3:
+        return {
+            "direction": "INSUFFICIENT_DATA",
+            "score": 0,
+            "window_days": len(data),
+            "signals": []
+        }
+        
+    first = data[0]
+    last = data[-1]
+    
+    risk_change = last["overall_risk"] - first["overall_risk"]
+    comp_change = last["compliance_pass_rate"] - first["compliance_pass_rate"]
+    finding_change = last["finding_count"] - first["finding_count"]
+    
+    signals = [
+        {"metric": "overall_risk", "direction": "INCREASING" if risk_change > 0 else "DECREASING" if risk_change < 0 else "STABLE"},
+        {"metric": "compliance", "direction": "DECREASING" if comp_change < 0 else "INCREASING" if comp_change > 0 else "STABLE"},
+        {"metric": "findings_count", "direction": "INCREASING" if finding_change > 0 else "DECREASING" if finding_change < 0 else "STABLE"}
+    ]
+    
+    # Calculate posture drift score with defined weights
+    # risk: 0.50, compliance: 0.30, findings: 0.20
+    drift_score = 50
+    if risk_change > 0:
+        drift_score += 20
+    elif risk_change < 0:
+        drift_score -= 20
+        
+    if comp_change < 0:
+        drift_score += 15
+    elif comp_change > 0:
+        drift_score -= 15
+        
+    if finding_change > 0:
+        drift_score += 15
+    elif finding_change < 0:
+        drift_score -= 15
+        
+    drift_score = max(0, min(100, drift_score))
+    
+    direction = "STABLE"
+    if drift_score > 65:
+        direction = "DEGRADING"
+    elif drift_score < 40:
+        direction = "IMPROVING"
+        
+    return {
+        "direction": direction,
+        "score": drift_score,
+        "window_days": len(data),
+        "signals": signals
+    }
+

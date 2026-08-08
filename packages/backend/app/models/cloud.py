@@ -48,6 +48,14 @@ class CloudAsset(BaseModel):
         self.region = kwargs.get("region")
         self.provider = kwargs.get("provider") or CloudProvider.AWS
         self.metadata_json = kwargs.get("metadata_json") or {}
+        
+        # M1 Day 32 Criticality Context Fields
+        self.environment = kwargs.get("environment") or "DEVELOPMENT"
+        self.owner = kwargs.get("owner") or "UNKNOWN"
+        self.department = kwargs.get("department") or "UNKNOWN"
+        self.application = kwargs.get("application") or "UNKNOWN"
+        self.data_sensitivity = kwargs.get("data_sensitivity") or "UNKNOWN"
+        self.business_criticality = kwargs.get("business_criticality") or "UNKNOWN"
 
     def dict(self):
         res = super().dict()
@@ -58,7 +66,13 @@ class CloudAsset(BaseModel):
             "type": self.type,
             "region": self.region,
             "provider": self.provider,
-            "metadata_json": self.metadata_json
+            "metadata_json": self.metadata_json,
+            "environment": self.environment,
+            "owner": self.owner,
+            "department": self.department,
+            "application": self.application,
+            "data_sensitivity": self.data_sensitivity,
+            "business_criticality": self.business_criticality
         })
         return res
 
