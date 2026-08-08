@@ -165,5 +165,40 @@ class SyncQuality(BaseModel):
         })
         return res
 
+class EvaluationResult(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.organization_id = kwargs.get("organization_id")
+        self.evaluation_id = kwargs.get("evaluation_id") or f"EVAL-{uuid.uuid4().hex[:6].upper()}"
+        self.system = kwargs.get("system") or "Aegivion Contextual v2"
+        self.dataset_version = kwargs.get("dataset_version") or "v1.0"
+        self.true_positive = kwargs.get("true_positive") or 0
+        self.false_positive = kwargs.get("false_positive") or 0
+        self.false_negative = kwargs.get("false_negative") or 0
+        self.true_negative = kwargs.get("true_negative") or 0
+        self.precision = kwargs.get("precision") or 1.0
+        self.recall = kwargs.get("recall") or 1.0
+        self.false_positive_rate = kwargs.get("false_positive_rate") or 0.0
+        self.evaluated_at = kwargs.get("evaluated_at") or datetime.utcnow()
+
+    def dict(self) -> Dict[str, Any]:
+        res = super().dict()
+        res.update({
+            "organization_id": str(self.organization_id) if self.organization_id else None,
+            "evaluation_id": self.evaluation_id,
+            "system": self.system,
+            "dataset_version": self.dataset_version,
+            "true_positive": self.true_positive,
+            "false_positive": self.false_positive,
+            "false_negative": self.false_negative,
+            "true_negative": self.true_negative,
+            "precision": self.precision,
+            "recall": self.recall,
+            "false_positive_rate": self.false_positive_rate,
+            "evaluated_at": self.evaluated_at.isoformat() if isinstance(self.evaluated_at, datetime) else self.evaluated_at
+        })
+        return res
+
+
 
 

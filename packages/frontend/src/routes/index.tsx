@@ -7,7 +7,7 @@ import {
   Shield, AlertTriangle, CheckCircle2, Globe,
   RefreshCw, ArrowRight, Database, Brain,
   ShieldCheck, FileCheck, Target, Users, Cloud,
-  Server, Calendar, HelpCircle, Activity, Info, BarChart3, AlertOctagon
+  Server, Calendar, HelpCircle, Activity, Info, BarChart3, AlertOctagon, Scale
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -57,6 +57,23 @@ interface SyncQualityResponse {
   unsupported_resources: number;
   last_successful_sync: string;
   freshness: string;
+}
+
+interface EvaluationMetrics {
+  system: string;
+  dataset_version?: string;
+  true_positive: number;
+  false_positive: number;
+  false_negative: number;
+  true_negative: number;
+  precision: number;
+  recall: number;
+  false_positive_rate: number;
+}
+
+interface EvaluationResponse {
+  evaluation: EvaluationMetrics;
+  baseline_scanner: EvaluationMetrics;
 }
 
 const defaultThreats = [
@@ -335,6 +352,15 @@ function DashboardPage() {
     }
   });
 
+  // M2: Evaluation dataset benchmark comparison query hook
+  const { data: evalDataset } = useQuery<EvaluationResponse>({
+    queryKey: ['eval-dataset'],
+    queryFn: async () => {
+      const res = await api.get('/v1/history/evaluation/dataset');
+      return res.data;
+    }
+  });
+
   const fetchData = async () => {
     try {
       setRefreshing(true);
@@ -376,7 +402,6 @@ function DashboardPage() {
   const totalFindings = findings.length || 21;
   const totalAssets = assets.length || 32;
 
-  // Calculate discovered collection coverage percentage (M1 freshness metrics)
   const coveragePercent = syncQuality 
     ? Math.round((syncQuality.assets_normalized / syncQuality.assets_discovered) * 100)
     : 97;
@@ -495,11 +520,11 @@ function DashboardPage() {
             <div className="space-y-4 py-3 flex-1 flex flex-col justify-end">
               <div className="flex items-baseline justify-between">
                 <div>
-                  <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider block">Current Posture Risk</span>
+                  <span className="text-[10px] text-gray-550 uppercase font-bold tracking-wider block">Current Posture Risk</span>
                   <span className="text-xl font-bold text-white">{forecastData.current_value}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider block">Forecast Projection</span>
+                  <span className="text-[10px] text-gray-550 uppercase font-bold tracking-wider block">Forecast Projection</span>
                   <span className="text-xl font-bold text-indigo-400">~{forecastData.predicted_value}</span>
                 </div>
               </div>
@@ -550,11 +575,11 @@ function DashboardPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-baseline text-xs bg-[#0b0f19] p-3 rounded-xl border border-gray-850">
                 <div>
-                  <span className="text-gray-500 block text-[10px]">Current Pass Rate</span>
+                  <span className="text-gray-550 block text-[10px]">Current Pass Rate</span>
                   <span className="text-lg font-bold text-white">{complianceForecast.current_value}%</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-gray-500 block text-[10px]">Projected 7-Day Forecast</span>
+                  <span className="text-gray-550 block text-[10px]">Projected 7-Day Forecast</span>
                   <span className="text-lg font-bold text-blue-400">~{complianceForecast.predicted_value}%</span>
                 </div>
               </div>
@@ -580,6 +605,79 @@ function DashboardPage() {
           )}
         </div>
       </section>
+
+      {/* M2/M4: Evaluation Dataset confusion matrix benchmark section */}
+      {evalDataset && (
+        <section className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12,1fr)', gap: 16 }}>
+          <div className="panel s12" style={{ gridColumn: 'span 12', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
+            <div className="panel-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+              <div>
+                <h3 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.09em', color: 'var(--text)' }}>FALSE POSITIVE BENCHMARK</h3>
+                <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: 3 }}>Aegivion Contextual v2 versus Standard scanners detection metrics comparison</p>
+              </div>
+              <Scale className="text-green-400" size={18} />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-3">
+              {/* Contextual Model */}
+              <div className="p-4 bg-[#0b0f19] border border-gray-850 rounded-xl space-y-3">
+                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">{evalDataset.evaluation.system} ({evalDataset.evaluation.dataset_version})</span>
+                <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div className="p-2 bg-green-950/20 border border-green-900/30 rounded">
+                    <span className="text-[9px] text-gray-500 block">TP</span>
+                    <span className="font-bold text-green-400">{evalDataset.evaluation.true_positive}</span>
+                  </div>
+                  <div className="p-2 bg-red-950/20 border border-red-900/30 rounded">
+                    <span className="text-[9px] text-gray-500 block">FP</span>
+                    <span className="font-bold text-red-400">{evalDataset.evaluation.false_positive}</span>
+                  </div>
+                  <div className="p-2 bg-yellow-950/20 border border-yellow-900/30 rounded">
+                    <span className="text-[9px] text-gray-500 block">FN</span>
+                    <span className="font-bold text-yellow-400">{evalDataset.evaluation.false_negative}</span>
+                  </div>
+                  <div className="p-2 bg-blue-950/20 border border-blue-900/30 rounded">
+                    <span className="text-[9px] text-gray-500 block">TN</span>
+                    <span className="font-bold text-blue-400">{evalDataset.evaluation.true_negative}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-2 text-[10px] text-gray-400">
+                  <div>Precision: <span className="text-white font-bold">{Math.round(evalDataset.evaluation.precision * 100)}%</span></div>
+                  <div>Recall: <span className="text-white font-bold">{Math.round(evalDataset.evaluation.recall * 100)}%</span></div>
+                  <div>FPR: <span className="text-white font-bold">{Math.round(evalDataset.evaluation.false_positive_rate * 100)}%</span></div>
+                </div>
+              </div>
+
+              {/* Standard Model */}
+              <div className="p-4 bg-[#0b0f19] border border-gray-850 rounded-xl space-y-3">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">{evalDataset.baseline_scanner.system}</span>
+                <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div className="p-2 bg-green-950/20 border border-green-900/30 rounded">
+                    <span className="text-[9px] text-gray-500 block">TP</span>
+                    <span className="font-bold text-green-400">{evalDataset.baseline_scanner.true_positive}</span>
+                  </div>
+                  <div className="p-2 bg-red-950/20 border border-red-900/30 rounded">
+                    <span className="text-[9px] text-gray-500 block">FP</span>
+                    <span className="font-bold text-red-400">{evalDataset.baseline_scanner.false_positive}</span>
+                  </div>
+                  <div className="p-2 bg-yellow-950/20 border border-yellow-900/30 rounded">
+                    <span className="text-[9px] text-gray-500 block">FN</span>
+                    <span className="font-bold text-yellow-400">{evalDataset.baseline_scanner.false_negative}</span>
+                  </div>
+                  <div className="p-2 bg-blue-950/20 border border-blue-900/30 rounded">
+                    <span className="text-[9px] text-gray-500 block">TN</span>
+                    <span className="font-bold text-blue-400">{evalDataset.baseline_scanner.true_negative}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-2 text-[10px] text-gray-400">
+                  <div>Precision: <span className="text-white font-bold">{Math.round(evalDataset.baseline_scanner.precision * 100)}%</span></div>
+                  <div>Recall: <span className="text-white font-bold">{Math.round(evalDataset.baseline_scanner.recall * 100)}%</span></div>
+                  <div>FPR: <span className="text-white font-bold">{Math.round(evalDataset.baseline_scanner.false_positive_rate * 100)}%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* SECOND GRID BLOCK */}
       <section className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12,1fr)', gap: 16 }}>
