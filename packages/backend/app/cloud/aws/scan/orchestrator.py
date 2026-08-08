@@ -162,9 +162,10 @@ class ScanOrchestrator:
         return count
     
     async def _build_relationships(self, assets: List[Dict]):
-        """Build relationship graph from assets"""
-        relationship_map = {}
+        """Build relationship graph from assets and populate AssetRelationship layer"""
+        from app.models.cloud import AssetRelationship
         
+        relationship_map = {}
         for asset in assets:
             asset_id = asset['asset_id']
             relationships = asset.get('relationships', [])
@@ -172,16 +173,19 @@ class ScanOrchestrator:
             for rel in relationships:
                 target_id = rel.get('target_id')
                 if target_id:
-                    key = f"{asset_id}|{rel['type']}|{target_id}"
+                    key = f"{asset_id}|{rel['type'].upper()}|{target_id}"
                     relationship_map[key] = {
                         'source_id': asset_id,
                         'target_id': target_id,
-                        'type': rel['type'],
-                        'target_type': rel.get('target_type')
+                        'type': rel['type'].upper(),
+                        'target_type': rel.get('target_type'),
+                        'evidence': rel.get('evidence') or {},
+                        'confidence': rel.get('confidence') or "CONFIRMED"
                     }
         
-        for rel in relationship_map.values():
+        for key, rel in relationship_map.items():
             try:
+                # 1. Standard Relationship populate
                 existing = self.db.query(Relationship).filter_by(
                     source_id=rel['source_id'],
                     target_id=rel['target_id'],
@@ -197,6 +201,35 @@ class ScanOrchestrator:
                         target_type=rel.get('target_type')
                     )
                     self.db.add(new_rel)
+                
+                # 2. Canonical AssetRelationship layer populate with tenant isolation
+                existing_asset_rel = self.db.query(AssetRelationship).filter_by(
+                    organization_id=self.organization_id,
+                    cloud_account_id=self.cloud_account_id,
+                    source_asset_id=rel['source_id'],
+                    target_asset_id=rel['target_id'],
+                    relationship_type=rel['type']
+                ).first()
+                
+                if not existing_asset_rel:
+                    new_asset_rel = AssetRelationship(
+                        id=str(uuid.uuid4()),
+                        organization_id=self.organization_id,
+                        cloud_account_id=self.cloud_account_id,
+                        source_asset_id=rel['source_id'],
+                        target_asset_id=rel['target_id'],
+                        relationship_type=rel['type'],
+                        account_id=self.cloud_account_id[:12] if self.cloud_account_id else "123456789012",
+                        region=self.scan_job.region or "ap-south-1",
+                        evidence=rel['evidence'],
+                        confidence=rel['confidence'],
+                        first_seen_at=datetime.utcnow(),
+                        last_seen_at=datetime.utcnow()
+                    )
+                    self.db.add(new_asset_rel)
+                else:
+                    existing_asset_rel.last_seen_at = datetime.utcnow()
+                    existing_asset_rel.evidence = rel['evidence']
             except Exception:
                 continue
         
