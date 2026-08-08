@@ -8,11 +8,15 @@ from app.cloud.aws.relationships.engine import RelationshipEngine
 from security.correlation.engine import CorrelationEngine
 from ai.services.action_planner import ActionPlanner
 from datetime import datetime
+from app.core.security import get_current_user
 
 router = APIRouter()
 
 @router.get("/actions")
-def get_prioritized_actions(db: Session = Depends(get_db)):
+def get_prioritized_actions(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     """Generate prioritized actions from current findings, assets, and correlations"""
     real_findings = []
     real_assets = []
@@ -148,7 +152,10 @@ def get_prioritized_actions(db: Session = Depends(get_db)):
     return action_plan.to_dict()
 
 @router.get("/attack-paths/{path_id}/remediations")
-def get_path_remediations(path_id: str):
+def get_path_remediations(
+    path_id: str,
+    current_user: Any = Depends(get_current_user)
+):
     """Retrieve prioritized breakpoint controls to break the attack path"""
     return {
       "path_id": path_id,
@@ -195,15 +202,22 @@ def get_path_remediations(path_id: str):
 @router.post("/remediations/{remediation_id}/validate")
 def validate_remediation(
     remediation_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
 ):
     """Perform scan validation comparing before/after state to verify path interruption"""
     from app.models.remediation_validation import RemediationValidation, ValidationStatus
+    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
     
     # Try locating validation log
-    val = db.query(RemediationValidation).filter(RemediationValidation.remediation_id == remediation_id).first()
+    val = db.query(RemediationValidation).filter(
+        RemediationValidation.remediation_id == remediation_id,
+        RemediationValidation.organization_id == user_org_id
+    ).first()
+    
     if not val:
         val = RemediationValidation(
+            organization_id=user_org_id,
             remediation_id=remediation_id,
             before_scan_id="SCAN-100",
             after_scan_id="SCAN-101",
@@ -226,11 +240,18 @@ def validate_remediation(
 @router.get("/remediations/{remediation_id}/validation")
 def get_remediation_validation_status(
     remediation_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
 ):
     """Retrieve validation logs"""
     from app.models.remediation_validation import RemediationValidation, ValidationStatus
-    val = db.query(RemediationValidation).filter(RemediationValidation.remediation_id == remediation_id).first()
+    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    
+    val = db.query(RemediationValidation).filter(
+        RemediationValidation.remediation_id == remediation_id,
+        RemediationValidation.organization_id == user_org_id
+    ).first()
+    
     if not val:
         return {
             "remediation_id": remediation_id,
@@ -242,7 +263,8 @@ def get_remediation_validation_status(
 
 @router.post("/remediations/{remediation_id}/plan")
 async def generate_remediation_plan(
-    remediation_id: str
+    remediation_id: str,
+    current_user: Any = Depends(get_current_user)
 ):
     """Generate multi-step playbooks using AI reasoner"""
     from ai.services.remediation_planner import RemediationPlannerService
