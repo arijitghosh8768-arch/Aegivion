@@ -81,3 +81,31 @@ class SecurityRiskSnapshot(BaseModel):
             "data_source": self.data_source
         })
         return res
+
+class FindingSuppression(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.organization_id = kwargs.get("organization_id")
+        self.finding_id = kwargs.get("finding_id")
+        self.reason = kwargs.get("reason") or "Approved temporary risk acceptance"
+        self.created_by = kwargs.get("created_by") or "system"
+        self.approved_by = kwargs.get("approved_by") or "security_admin"
+        self.created_at = kwargs.get("created_at") or datetime.utcnow()
+        self.expires_at = kwargs.get("expires_at") or (datetime.utcnow() + timedelta(days=30))
+        self.status = kwargs.get("status") or "ACTIVE"
+
+    def dict(self) -> Dict[str, Any]:
+        from datetime import timedelta
+        res = super().dict()
+        res.update({
+            "organization_id": str(self.organization_id) if self.organization_id else None,
+            "finding_id": str(self.finding_id),
+            "reason": self.reason,
+            "created_by": self.created_by,
+            "approved_by": self.approved_by,
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else self.created_at,
+            "expires_at": self.expires_at.isoformat() if isinstance(self.expires_at, datetime) else self.expires_at,
+            "status": self.status
+        })
+        return res
+

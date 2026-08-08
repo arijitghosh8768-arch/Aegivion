@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { UserCheck, ShieldAlert, FileText, Send, Calendar } from 'lucide-react';
+import { UserCheck, ShieldAlert, FileText, Send, Calendar, ShieldCheck, Clock } from 'lucide-react';
 
 interface Note {
   id: string;
@@ -37,6 +37,11 @@ export function AnalystActions({
   const [newNote, setNewNote] = useState('');
   const [selectedStatus, setSelectedStatus] = useState(currentStatus);
   const [selectedAssignee, setSelectedAssignee] = useState(currentAssignee || '');
+  
+  // Suppression Form modal state
+  const [showSuppressModal, setShowSuppressModal] = useState(false);
+  const [suppressReason, setSuppressReason] = useState('');
+  const [suppressDays, setSuppressDays] = useState(30);
 
   // Update status mutation
   const updateStatusMutation = useMutation({
@@ -47,6 +52,20 @@ export function AnalystActions({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finding', findingId] });
       queryClient.invalidateQueries({ queryKey: ['findings'] });
+      if (onUpdate) onUpdate();
+    }
+  });
+
+  // Suppression mutation (M2 exception logging)
+  const suppressMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.post(`/v1/history/findings/${findingId}/suppress?reason=${encodeURIComponent(suppressReason)}&days=${suppressDays}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finding', findingId] });
+      queryClient.invalidateQueries({ queryKey: ['findings'] });
+      setShowSuppressModal(false);
       if (onUpdate) onUpdate();
     }
   });
@@ -101,6 +120,7 @@ export function AnalystActions({
     { value: 'investigating', label: 'Investigating' },
     { value: 'mitigated', label: 'Mitigated' },
     { value: 'resolved', label: 'Resolved' },
+    { value: 'suppressed', label: 'Suppressed' },
     { value: 'accepted_risk', label: 'Accepted Risk' }
   ];
 
@@ -113,22 +133,36 @@ export function AnalystActions({
 
   return (
     <div className="space-y-6">
-      {/* Status Control */}
+      {/* Lifecycle Status & Suppress Button */}
       <div className="p-4 bg-[#0e1428] border border-gray-800 rounded-xl space-y-3">
         <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
           <ShieldAlert size={12} className="text-blue-400" />
           Lifecycle Status
         </h4>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2">
           <select
             value={selectedStatus}
             onChange={handleStatusChange}
-            className="flex-1 px-3 py-2 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-2 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-blue-500"
           >
             {statusOptions.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
+          {selectedStatus !== 'suppressed' ? (
+            <button
+              type="button"
+              onClick={() => setShowSuppressModal(true)}
+              className="w-full py-1.5 bg-yellow-600/10 hover:bg-yellow-600/20 text-yellow-400 border border-yellow-500/20 hover:text-white rounded-lg text-xs font-semibold transition"
+            >
+              Suppress Finding
+            </button>
+          ) : (
+            <div className="p-2.5 bg-yellow-950/20 border border-yellow-900/30 text-[10px] text-yellow-400 rounded-lg flex items-center gap-1.5">
+              <Clock size={12} />
+              <span>Finding temporarily suppressed under rule exception policies.</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -161,7 +195,7 @@ export function AnalystActions({
             onChange={(e) => setNewNote(e.target.value)}
             placeholder="Add investigation logs..."
             rows={3}
-            className="w-full px-3 py-2 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-305 focus:outline-none focus:border-blue-500 resize-none"
+            className="w-full px-3 py-2 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-350 focus:outline-none focus:border-blue-500 resize-none"
           />
           <button
             type="submit"
@@ -173,7 +207,6 @@ export function AnalystActions({
           </button>
         </form>
 
-        {/* Notes list */}
         {notes && notes.length > 0 && (
           <div className="pt-3 border-t border-gray-800/60 space-y-2.5 max-h-48 overflow-y-auto">
             {notes.map((note) => (
@@ -191,26 +224,58 @@ export function AnalystActions({
         )}
       </div>
 
-      {/* Activity Timeline */}
-      {timeline && timeline.length > 0 && (
-        <div className="p-4 bg-[#0e1428] border border-gray-800 rounded-xl space-y-3">
-          <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-            <Calendar size={12} className="text-purple-400" />
-            Activity Timeline
-          </h4>
-          <div className="space-y-3.5 pl-2 relative border-l border-gray-800 mt-2">
-            {timeline.map((event, idx) => (
-              <div key={idx} className="relative pl-4 text-[11px]">
-                <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 bg-gray-800 border border-blue-500 rounded-full" />
-                <div className="flex justify-between font-semibold text-gray-350">
-                  <span>{event.title}</span>
-                  <span className="text-[9px] font-normal text-gray-500">
-                    {new Date(event.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                  </span>
-                </div>
-                <p className="text-gray-400 mt-0.5 leading-normal">{event.description}</p>
+      {/* Expiry Suppression Modal */}
+      {showSuppressModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0e1428] border border-gray-850 rounded-xl p-6 max-w-sm w-full space-y-4">
+            <div>
+              <h3 className="font-bold text-white text-sm">Temporary Rule Exception</h3>
+              <p className="text-[10px] text-gray-500 mt-1">Specify authorization details to suppress this finding from active postures.</p>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Suppression Reason</label>
+                <textarea
+                  value={suppressReason}
+                  onChange={(e) => setSuppressReason(e.target.value)}
+                  placeholder="Migration test window, temporary security exception..."
+                  rows={3}
+                  className="w-full px-3 py-2 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+                />
               </div>
-            ))}
+
+              <div>
+                <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Expiration Timeframe</label>
+                <select
+                  value={suppressDays}
+                  onChange={(e) => setSuppressDays(Number(e.target.value))}
+                  className="w-full px-3 py-2 bg-[#0b0f19] border border-gray-850 rounded-lg text-xs text-gray-300 focus:outline-none focus:border-blue-500"
+                >
+                  <option value={7}>7 Days</option>
+                  <option value={30}>30 Days</option>
+                  <option value={90}>90 Days</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-gray-800 pt-3">
+              <button
+                type="button"
+                onClick={() => setShowSuppressModal(false)}
+                className="px-3.5 py-1.5 border border-gray-800 hover:bg-gray-850 text-gray-300 rounded text-[10px] font-semibold transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => suppressMutation.mutate()}
+                disabled={!suppressReason.trim() || suppressMutation.isPending}
+                className="px-3.5 py-1.5 bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded text-[10px] font-semibold transition"
+              >
+                Suppress
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -5,7 +5,6 @@ import { api } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Search, 
-  Download, 
   RotateCw, 
   X, 
   ChevronRight,
@@ -51,6 +50,13 @@ interface HistoricalVersion {
   created_at: string;
 }
 
+interface ConfigDiff {
+  field: string;
+  old_value: any;
+  new_value: any;
+  change_type: 'ADDED' | 'REMOVED' | 'CHANGED';
+}
+
 function AssetsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('All');
@@ -60,6 +66,10 @@ function AssetsPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  
+  // Diff Selector States
+  const [fromVer, setFromVer] = useState<number>(1);
+  const [toVer, setToVer] = useState<number>(2);
 
   // M1/M4: Query Asset History versions dynamically
   const { data: historyData, isLoading: historyLoading } = useQuery<{ asset_id: string; versions: HistoricalVersion[] }>({
@@ -69,6 +79,16 @@ function AssetsPage() {
       return res.data;
     },
     enabled: !!selectedAsset
+  });
+
+  // M1/M4: Query Snapshot configuration diffs dynamically
+  const { data: diffData, isLoading: diffLoading } = useQuery<{ changes: ConfigDiff[] }>({
+    queryKey: ['asset-diff', selectedAsset?.resource_id, fromVer, toVer],
+    queryFn: async () => {
+      const res = await api.get(`/v1/history/${selectedAsset?.resource_id}/diff?from_version=${fromVer}&to_version=${toVer}`);
+      return res.data;
+    },
+    enabled: !!selectedAsset && activeTab === 'history' && !!historyData?.versions && historyData.versions.length >= 2
   });
 
   const fetchAssets = async () => {
@@ -402,17 +422,86 @@ function AssetsPage() {
 
               {activeTab === 'history' && (
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <History size={14} className="text-blue-500" />
-                    Asset Configuration Drift Timeline
-                  </h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <History size={14} className="text-blue-500" />
+                      Asset Configuration Drift Timeline
+                    </h4>
+                  </div>
+
+                  {/* Comparative Diff Engine Controls (M1/M4 UI selector) */}
+                  {historyData?.versions && historyData.versions.length >= 2 && (
+                    <div className="p-3.5 bg-[#0b0f19] border border-gray-850 rounded-xl space-y-3">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
+                        <ArrowRightLeft size={12} />
+                        <span>Compare Versions Configuration Diff</span>
+                      </div>
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <label className="text-[9px] text-gray-500 uppercase block mb-1">Baseline Version</label>
+                          <select
+                            value={fromVer}
+                            onChange={(e) => setFromVer(Number(e.target.value))}
+                            className="w-full bg-[#0e1428] border border-gray-800 text-xs px-2.5 py-1 rounded text-white"
+                          >
+                            {historyData.versions.map(v => (
+                              <option key={v.version_number} value={v.version_number}>Version {v.version_number}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-[9px] text-gray-500 uppercase block mb-1">Target Version</label>
+                          <select
+                            value={toVer}
+                            onChange={(e) => setToVer(Number(e.target.value))}
+                            className="w-full bg-[#0e1428] border border-gray-800 text-xs px-2.5 py-1 rounded text-white"
+                          >
+                            {historyData.versions.map(v => (
+                              <option key={v.version_number} value={v.version_number}>Version {v.version_number}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Render diff results inline */}
+                      <div className="pt-2 border-t border-gray-800/80">
+                        {diffLoading ? (
+                          <div className="text-center py-2"><RotateCw className="w-4 h-4 text-indigo-500 animate-spin mx-auto" /></div>
+                        ) : diffData?.changes && diffData.changes.length > 0 ? (
+                          <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                            {diffData.changes.map((ch, idx) => (
+                              <div key={idx} className="p-2 bg-[#0e1428] border border-gray-850 rounded text-[9px] font-mono flex flex-col gap-0.5">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-bold text-white">{ch.field}</span>
+                                  <span className={`px-1.5 py-0.2 border text-[8px] rounded uppercase font-bold ${
+                                    ch.change_type === 'ADDED' ? 'border-green-500/20 text-green-400 bg-green-500/10' :
+                                    ch.change_type === 'REMOVED' ? 'border-red-500/20 text-red-400 bg-red-500/10' :
+                                    'border-yellow-500/20 text-yellow-400 bg-yellow-500/10'
+                                  }`}>{ch.change_type}</span>
+                                </div>
+                                <div className="text-gray-400 mt-1">
+                                  {ch.change_type === 'CHANGED' && (
+                                    <span>{String(ch.old_value)} &rarr; {String(ch.new_value)}</span>
+                                  )}
+                                  {ch.change_type === 'ADDED' && <span>Value: {String(ch.new_value)}</span>}
+                                  {ch.change_type === 'REMOVED' && <span>Value: {String(ch.old_value)}</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-gray-500 text-center py-2">No configuration drift detected between these version snapshots.</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {historyLoading ? (
                     <div className="flex justify-center py-10">
                       <RotateCw className="w-6 h-6 text-indigo-500 animate-spin" />
                     </div>
                   ) : historyData?.versions && historyData.versions.length > 0 ? (
-                    <div className="space-y-4 relative pl-4 border-l border-gray-800">
+                    <div className="space-y-4 relative pl-4 border-l border-gray-850 mt-4">
                       {historyData.versions.map((ver, idx) => (
                         <div key={idx} className="relative space-y-1.5 pb-2">
                           <div className="absolute -left-[21px] top-1 bg-indigo-600 rounded-full w-2.5 h-2.5 border-2 border-indigo-400"></div>

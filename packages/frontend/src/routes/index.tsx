@@ -311,6 +311,7 @@ function DashboardPage() {
   const navigate = useNavigate();
   const [findings, setFindings] = useState<any[]>([]);
   const [assets, setAssets] = useState<any[]>([]);
+  const [trend, setTrend] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [eventDetailOpen, setEventDetailOpen] = useState(false);
@@ -318,9 +319,14 @@ function DashboardPage() {
   const fetchData = async () => {
     try {
       setRefreshing(true);
-      const [fR, aR] = await Promise.allSettled([api.get('/v1/findings'), api.get('/v1/findings/assets')]);
+      const [fR, aR, tR] = await Promise.allSettled([
+        api.get('/v1/findings'), 
+        api.get('/v1/findings/assets'),
+        api.get('/v1/history/risk-telemetry/trend')
+      ]);
       if (fR.status === 'fulfilled') setFindings(fR.value.data.findings || []);
       if (aR.status === 'fulfilled') setAssets(aR.value.data.assets || []);
+      if (tR.status === 'fulfilled') setTrend(tR.value.data);
     } catch (_) {
     } finally {
       setRefreshing(false);
@@ -387,15 +393,17 @@ function DashboardPage() {
 
         <div className="stat animate-rise" style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', boxShadow: 'var(--shadow)' }}>
           <div className="stat-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <span className="stat-label" style={{ fontSize: '10.5px', letterSpacing: '.12em', fontWeight: 700, color: 'var(--muted)' }}>SECURITY SCORE</span>
+            <span className="stat-label" style={{ fontSize: '10.5px', letterSpacing: '.12em', fontWeight: 700, color: 'var(--muted)' }}>SECURITY RISK</span>
             <span className="stat-ic green" style={{ width: 40, height: 40, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'rgba(34,197,94,.13)', color: '#4ade80' }}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 3.5v5c0 5-3.4 9.4-8 11.5-4.6-2.1-8-6.5-8-11.5v-5L12 2z" /><path d="M9 12l2.2 2.2L15.5 10" /></svg>
             </span>
           </div>
-          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>{secScore} <small style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600 }}>/100</small></div>
+          <div className="stat-value" style={{ fontSize: 26, fontWeight: 800, marginTop: 2 }}>{trend?.overall_risk?.change > 0 ? '+' : ''}{trend?.overall_risk?.change || 0} <small style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600 }}>Diff</small></div>
           <div className="stat-foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4, gap: 8 }}>
-            <span className="t-green" style={{ color: 'var(--green)', fontSize: '11.5px' }}>Excellent</span>
-            <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,15 14,13 26,16 38,11 50,14 62,10 74,13 86,9 90,10" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" /></svg>
+            <span className="t-green" style={{ color: trend?.overall_risk?.direction === 'INCREASING' ? 'var(--red)' : 'var(--green)', fontSize: '11.5px' }}>
+              Trend: {trend?.overall_risk?.direction || 'STABLE'}
+            </span>
+            <svg width="92" height="26" viewBox="0 0 92 26"><polyline points="2,15 14,13 26,16 38,11 50,14 62,10 74,13 86,9 90,10" fill="none" stroke={trend?.overall_risk?.direction === 'INCREASING' ? '#ef4444' : '#22c55e'} stroke-width="2" stroke-linecap="round" /></svg>
           </div>
         </div>
 
