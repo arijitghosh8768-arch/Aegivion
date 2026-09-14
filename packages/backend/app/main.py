@@ -100,10 +100,18 @@ def read_root():
         "request_id": str(uuid.uuid4())
     }
 
-@app.get("/health", response_model=APIResponse)
-def health_check(db: Any = Depends(get_db)):
+from sqlalchemy import text
+
+@app.get("/health")
+def health_check():
+    """Lightweight liveness check — Render pings this to confirm the service is up."""
+    return {"status": "ok"}
+
+@app.get("/health/ready", response_model=APIResponse)
+def readiness_check(db: Any = Depends(get_db)):
+    """Deeper check — confirms the DB connection actually works, not just that the process is running."""
     try:
-        db.execute("ping")
+        db.execute(text("SELECT 1"))
         db_status = "healthy"
     except Exception as e:
         db_status = f"unhealthy: {str(e)}"
