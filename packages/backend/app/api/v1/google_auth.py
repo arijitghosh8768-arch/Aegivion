@@ -30,7 +30,8 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 
 class GoogleLoginRequest(BaseModel):
-    id_token: str
+    id_token: str = None
+    access_token: str = None
 
 class LoginResponse(BaseModel):
     success: bool
@@ -42,18 +43,20 @@ class LoginResponse(BaseModel):
 # Helper — verify Google id_token
 # ---------------------------------------------------------------------------
 
-async def _verify_google_token(id_token: str) -> Dict[str, Any]:
+async def _verify_google_token(token: str, is_access_token: bool = False) -> Dict[str, Any]:
     """
-    Verifies a Google id_token using Google's public tokeninfo endpoint.
+    Verifies a Google token using Google's public tokeninfo endpoint.
     Returns the token payload (email, name, sub, etc.) on success.
     Raises HTTPException 401 on failure.
     """
     google_client_id = os.getenv("GOOGLE_CLIENT_ID", "")
 
+    params = {"access_token": token} if is_access_token else {"id_token": token}
+
     async with httpx.AsyncClient(timeout=10) as client:
         response = await client.get(
             "https://oauth2.googleapis.com/tokeninfo",
-            params={"id_token": id_token},
+            params=params,
         )
 
     if response.status_code != 200:
@@ -65,7 +68,7 @@ async def _verify_google_token(id_token: str) -> Dict[str, Any]:
     payload = response.json()
 
     # Ensure token was issued for OUR app (prevents token substitution attacks)
-    if google_client_id and payload.get("aud") != google_client_id:
+    if not is_access_token and google_client_id and payload.get("aud") != google_client_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Google token audience mismatch.",
@@ -91,8 +94,13 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
     Creates the user on first login (viewer role), then returns an Aegivion JWT.
     """
 
+    if not request.id_token and not request.access_token:
+        raise HTTPException(400, "Missing id_token or access_token")
+        
     # 1. Verify the Google token
-    google_payload = await _verify_google_token(request.id_token)
+    token = request.access_token or request.id_token
+    is_access = bool(request.access_token)
+    google_payload = await _verify_google_token(token, is_access)
 
     email: str = google_payload.get("email", "")
     given_name: str = google_payload.get("given_name", "Google")
@@ -148,13 +156,15 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
         invite = next((i for i in all_invites if i.email.lower() == email.lower() and i.status == "PENDING" and (isinstance(i.expires_at, datetime) and i.expires_at > datetime.utcnow() or isinstance(i.expires_at, str) and datetime.fromisoformat(i.expires_at) > datetime.utcnow())), None)
         
         if not invite:
-            raise HTTPException(403, "No valid invitation found for this email. Contact your organization admin.")
+            # Create user without org (Onboarding flow)
+            new_org_id = None
+            role_id = "platform_user"
+            is_invite_flow = False
+        else:
+            new_org_id = invite.org_id
+            role_id = invite.role_id
+            is_invite_flow = True
             
-        new_org_id = invite.org_id
-        
-        # Get role ID from invite (could be string role name)
-        role_id = invite.role_id
-        
         new_user = User(
             email=email,
             first_name=given_name,
@@ -169,18 +179,20 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
         try:
             db.add(new_user)
             
-            invite.status = "ACCEPTED"
-            
-            from app.models.audit_log import AuditLog
-            audit = AuditLog(
-                action="invitation_accepted",
-                resource_type="User",
-                resource_id=new_user.id,
-                user_id=new_user.id,
-                organization_id=new_org_id,
-                details={}
-            )
-            db.add(audit)
+            if is_invite_flow:
+                invite.status = "ACCEPTED"
+                
+                from app.models.audit_log import AuditLog
+                audit = AuditLog(
+                    action="invitation_accepted",
+                    resource_type="User",
+                    resource_id=new_user.id,
+                    user_id=new_user.id,
+                    organization_id=new_org_id,
+                    details={}
+                )
+                db.add(audit)
+                
             db.commit()
             
             user_id = str(new_user.id)

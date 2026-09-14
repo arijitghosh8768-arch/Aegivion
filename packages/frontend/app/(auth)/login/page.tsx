@@ -25,22 +25,32 @@ export default function LoginPage() {
     onSuccess: async (tokenResponse) => {
       setLoading(true);
       try {
-        // You would normally send tokenResponse.access_token to the backend here
-        // const res = await fetch("http://localhost:8000/api/v1/auth/google", { ... })
-        // For now, we fetch the Google profile directly to mock the login
-        const userInfo = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        }).then((res) => res.json());
-
-        login({
-          name: userInfo.name || "Admin User",
-          email: userInfo.email,
-          role: "Super Admin", // Fallback role for dev
-          company: "Acme Corp",
+        const res = await fetch((process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com") + "/api/v1/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ access_token: tokenResponse.access_token }),
         });
-        router.push("/");
-      } catch (err) {
-        setError("Failed to authenticate with Google.");
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Authentication failed");
+        }
+
+        const data = await res.json();
+        
+        login({
+          name: data.user.name || "Admin User",
+          email: data.user.email,
+          role: data.user.role,
+          company: data.user.organization_id, // We'd want real name later
+        });
+        
+        // Save the JWT token
+        localStorage.setItem("aegivion_token", data.token);
+
+        router.push(data.user.role === "Super Admin" ? "/admin" : "/");
+      } catch (err: any) {
+        setError(err.message || "Failed to authenticate with Google.");
         setLoading(false);
       }
     },
