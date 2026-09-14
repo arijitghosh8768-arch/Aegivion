@@ -340,13 +340,31 @@ function OrganizationSection() {
   const [saving, setSaving] = useState(false);
   const dirty = JSON.stringify(draft) !== JSON.stringify(org);
 
-  const save = () => {
+  const save = async () => {
     setSaving(true);
-    setTimeout(() => {
-      setOrg(draft);
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/orgs/org-1/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          security_policy: {
+            require_exception_approval: draft.requireExceptionApproval,
+            auto_suppress_non_prod: draft.autoSuppressNonProd,
+          },
+          enabled_cloud_providers: [draft.primaryCloud],
+        })
+      });
+      if (res.ok) {
+        setOrg(draft);
+        toast("success", "Organization saved", "Workspace settings updated across the platform.");
+      } else {
+        toast("error", "Error saving settings", "Please try again later.");
+      }
+    } catch (e) {
+      toast("error", "Error saving settings", "Network error occurred.");
+    } finally {
       setSaving(false);
-      toast("success", "Organization saved", "Workspace settings updated across the platform.");
-    }, 700);
+    }
   };
 
   return (

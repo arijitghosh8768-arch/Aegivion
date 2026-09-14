@@ -68,7 +68,18 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-2.5 pb-1 pt-1">
-        {NAV_SECTIONS.map((section) => (
+        {NAV_SECTIONS.map((section) => {
+          const isAdmin = displayRole.toLowerCase().includes("admin");
+          if (section.label === "Admin" && !isAdmin) return null;
+          
+          const filteredItems = section.items.filter(item => {
+            if (item.title === "Cloud Accounts" && !isAdmin) return false;
+            return true;
+          });
+          
+          if (filteredItems.length === 0) return null;
+
+          return (
           <div key={section.label} className="mb-2">
             {!collapsed && (
               <div className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
@@ -76,7 +87,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
               </div>
             )}
             <div className="space-y-0.5">
-              {section.items.map((item) => {
+              {filteredItems.map((item) => {
                 const active = pathname === item.href;
                 const Icon = item.icon;
                 const link = (
@@ -129,7 +140,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
               })}
             </div>
           </div>
-        ))}
+        )})}
       </nav>
 
       {/* Security Posture widget — compact */}

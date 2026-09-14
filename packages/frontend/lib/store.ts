@@ -146,6 +146,7 @@ interface AppState {
   disconnectAllClouds: () => void;
   org: OrgSettings;
   setOrg: (patch: Partial<OrgSettings>) => void;
+  fetchOrgSettings: (orgId: string) => Promise<void>;
   notifPrefs: NotifPrefs;
   setNotifPrefs: (patch: Partial<NotifPrefs>) => void;
   cloudPrefs: CloudPrefs;
@@ -198,6 +199,26 @@ export const useAppStore = create<AppState>()(
       disconnectAllClouds: () => set({ connectedClouds: [] }),
       org: DEFAULT_ORG,
       setOrg: (patch) => set((s) => ({ org: { ...s.org, ...patch } })),
+      fetchOrgSettings: async (orgId) => {
+        try {
+          const res = await fetch(`http://localhost:8000/api/v1/orgs/${orgId}/settings`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.data) {
+              set((s) => ({
+                org: {
+                  ...s.org,
+                  requireExceptionApproval: json.data.security_policy?.require_exception_approval ?? s.org.requireExceptionApproval,
+                  autoSuppressNonProd: json.data.security_policy?.auto_suppress_non_prod ?? s.org.autoSuppressNonProd,
+                },
+                connectedClouds: json.data.enabled_cloud_providers || ["aws"],
+              }));
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch org settings", e);
+        }
+      },
       notifPrefs: DEFAULT_NOTIF,
       setNotifPrefs: (patch) => set((s) => ({ notifPrefs: { ...s.notifPrefs, ...patch } })),
       cloudPrefs: DEFAULT_CLOUD,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { X, TriangleAlert, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
@@ -16,6 +16,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const hydrated = useAppStore((s) => s.hydrated);
   const collapsed = useAppStore((s) => s.sidebarCollapsed);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const fetchOrgSettings = useAppStore((s) => s.fetchOrgSettings);
 
   // Auth gate: only redirect once the persisted session has been rehydrated.
   // Without this, every refresh redirects to /login before the saved user loads,
@@ -23,8 +26,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (hydrated && !user) {
       router.replace("/login");
+    } else if (hydrated && user) {
+      const isAdmin = user.role.toLowerCase().includes("admin");
+      if ((pathname.startsWith("/settings") || pathname === "/cloud-accounts") && !isAdmin) {
+        router.replace("/");
+      }
+      // Assuming user has a default org_id "org-1" for demo purposes
+      fetchOrgSettings("org-1");
     }
-  }, [hydrated, user, router]);
+  }, [hydrated, user, router, pathname, fetchOrgSettings]);
 
   // Safety fallback: if rehydration never fires (storage unavailable), never deadlock.
   useEffect(() => {
