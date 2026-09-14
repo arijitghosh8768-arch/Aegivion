@@ -65,7 +65,7 @@ export default function LoginPage() {
     }
   });
 
-  const doLogin = (e?: React.FormEvent) => {
+  const doLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!email || !password) {
       setError("Please enter your email and password.");
