@@ -65,22 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
 
-        {/* Floating issues pill (bottom-left, over the sidebar edge) */}
-        <div
-          className="pointer-events-none absolute bottom-5 z-40 hidden transition-all duration-300 lg:block"
-          style={{ left: collapsed ? 88 : 236 }}
-        >
-          <Link
-            href="/remediation"
-            className="pointer-events-auto flex items-center gap-2 rounded-full bg-destructive py-1 pl-1 pr-2.5 text-white shadow-lift transition hover:brightness-110"
-          >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
-              <TriangleAlert className="h-3.5 w-3.5" />
-            </span>
-            <span className="text-[11.5px] font-semibold">2 Issues</span>
-            <X className="h-3.5 w-3.5 opacity-80" />
-          </Link>
-        </div>
+
 
         <CommandMenu />
       </div>
