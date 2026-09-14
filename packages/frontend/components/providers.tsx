@@ -22,7 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "placeholder-client-id.apps.googleusercontent.com";
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "84307924515-g3rteqggcrl485f84i2fh04nl0ki8k9m.apps.googleusercontent.com";
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>

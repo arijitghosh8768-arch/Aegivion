@@ -49,7 +49,7 @@ async def _verify_google_token(token: str, is_access_token: bool = False) -> Dic
     Returns the token payload (email, name, sub, etc.) on success.
     Raises HTTPException 401 on failure.
     """
-    google_client_id = os.getenv("GOOGLE_CLIENT_ID", "")
+    google_client_id = os.getenv("GOOGLE_CLIENT_ID", "84307924515-g3rteqggcrl485f84i2fh04nl0ki8k9m.apps.googleusercontent.com")
 
     params = {"access_token": token} if is_access_token else {"id_token": token}
 
