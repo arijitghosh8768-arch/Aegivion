@@ -48,7 +48,7 @@ export default function LoginPage() {
         // Save the JWT token
         localStorage.setItem("aegivion_token", data.token);
 
-        router.push(data.user.role === "Super Admin" ? "/admin" : "/");
+        router.push(data.user.role === "superadmin" || data.user.role === "Super Admin" ? "/admin" : "/");
       } catch (err: any) {
         setError(err.message || "Failed to authenticate with Google.");
         setLoading(false);
@@ -73,16 +73,35 @@ export default function LoginPage() {
     }
     setError("");
     setLoading(true);
-    setTimeout(() => {
-      const derived = email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).trim();
-      login({
-        name: derived || "Admin User",
-        email,
-        role: "Super Admin",
-        company: "Acme Corp",
+    try {
+      const res = await fetch((process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com") + "/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
-      router.push("/");
-    }, 900);
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Invalid credentials");
+      }
+
+      const data = await res.json();
+      
+      login({
+        name: data.user.name || "Admin User",
+        email: data.user.email,
+        role: data.user.role,
+        company: data.user.organization_id, // Placeholder until real org name
+      });
+      
+      localStorage.setItem("aegivion_token", data.token);
+
+      router.push(data.user.role === "superadmin" || data.user.role === "Super Admin" ? "/admin" : "/");
+    } catch (err: any) {
+      setError(err.message || "Failed to log in.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const microsoftSso = () => {
