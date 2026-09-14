@@ -75,10 +75,11 @@ export default function LoginPage() {
     }, 900);
   };
 
-  const sso = () => {
+  const microsoftSso = () => {
     setLoading(true);
     setTimeout(() => {
-      login({ name: "Admin User", email: "admin@acme.com", role: "Super Admin", company: "Acme Corp" });
+      // Authenticate as a normal user with an outlook email
+      login({ name: "Demo User", email: "demo@outlook.com", role: "Security Analyst", company: "Acme Corp" });
       router.push("/");
     }, 1100);
   };
@@ -178,7 +179,7 @@ export default function LoginPage() {
             </svg>
             Google
           </Button>
-          <Button variant="outline" size="lg" onClick={() => sso()} disabled={loading}>
+          <Button variant="outline" size="lg" onClick={() => microsoftSso()} disabled={loading}>
             <svg width="16" height="16" viewBox="0 0 23 23" className="shrink-0">
               <path fill="#f35325" d="M0 0h11v11H0z" />
               <path fill="#81bc06" d="M12 0h11v11H12z" />
