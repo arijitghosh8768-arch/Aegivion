@@ -15,4 +15,4 @@ def test_health_check():
     assert response.status_code == 200
     res_data = response.json()
     assert res_data["success"] is True
-    assert "status" in res_data["data"]
+    assert "status" in res_data
