@@ -167,14 +167,11 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
         invite = next((i for i in all_invites if i.email.lower() == email.lower() and i.status == "PENDING" and (isinstance(i.expires_at, datetime) and i.expires_at > datetime.utcnow() or isinstance(i.expires_at, str) and datetime.fromisoformat(i.expires_at) > datetime.utcnow())), None)
         
         if not invite:
-            # Create user without org (Onboarding flow)
-            new_org_id = None
-            role_id = "platform_user"
-            is_invite_flow = False
-        else:
-            new_org_id = invite.org_id
-            role_id = invite.role_id
-            is_invite_flow = True
+            raise HTTPException(403, "Access blocked. Your email is not on any organization's userlist. Please contact your administrator.")
+            
+        new_org_id = invite.org_id
+        role_id = invite.role_id
+        is_invite_flow = True
             
         new_user = User(
             email=email,
