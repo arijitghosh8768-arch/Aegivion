@@ -68,6 +68,16 @@ export default function LoginPage() {
       router.push("/");
     }, 900);
   };
+
+  const sso = () => {
+    setLoading(true);
+    setTimeout(() => {
+      login({ name: "Admin User", email: "admin@acme.com", role: "Super Admin", company: "Acme Corp" });
+      router.push("/");
+    }, 1100);
+  };
+
+  return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
