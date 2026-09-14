@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .v1 import findings, auth, cloud_accounts, explain, integration, google_auth, remediation, risk, brief, relationships, incidents, topology, graph, compliance, reports, history, assets, context, chat
+from .v1 import findings, auth, cloud_accounts, explain, integration, google_auth, remediation, risk, brief, relationships, incidents, topology, graph, compliance, reports, history, assets, context, chat, org_settings
 
 api_router = APIRouter()
 api_router.include_router(context.router, prefix="/v1/context", tags=["Context"])
@@ -21,3 +21,4 @@ api_router.include_router(graph.router, prefix="/v1/attack-graph", tags=["Attack
 api_router.include_router(compliance.router, prefix="/v1/compliance", tags=["Compliance"])
 api_router.include_router(reports.router, prefix="/v1/reports", tags=["Reports"])
 api_router.include_router(history.router, prefix="/v1/history", tags=["History"])
+api_router.include_router(org_settings.router, prefix="/v1/orgs", tags=["Organization"])

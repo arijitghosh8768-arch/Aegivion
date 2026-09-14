@@ -82,6 +82,13 @@ async def explain_finding(
     
     logger.info("processing_explain_request", user_id=getattr(current_user, 'id', 'unknown'), finding_id=finding_id)
     
+    from app.models.org_settings import OrgSettings
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if user_org_id:
+        settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
+        if settings and not settings.ai_features_enabled:
+            raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
+    
     # 1. Fetch finding & asset (try DB first, then fallback to mocks for MVP)
     finding_obj = None
     asset_obj = None

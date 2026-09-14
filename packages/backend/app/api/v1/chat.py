@@ -72,9 +72,13 @@ from app.models.user import User
 
 logger = structlog.get_logger(__name__)
 
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.models.org_settings import OrgSettings
+
 @router.post("/chat", response_model=ChatResponse)
 @limiter.limit("10/minute")
-async def chat_endpoint(request_obj: Request, request: ChatRequest, current_user: User = Depends(get_current_user)):
+async def chat_endpoint(request_obj: Request, request: ChatRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     start_time = time.time()
     api_requests_total.labels(method="POST", endpoint="/api/v1/chat").inc()
     ai_requests_total.inc()
@@ -82,10 +86,15 @@ async def chat_endpoint(request_obj: Request, request: ChatRequest, current_user
     # TENANT ISOLATION: Ensure the user belongs to an org and the finding/asset belongs to that org.
     # In a full implementation, we'd query the DB for the asset/finding and enforce `org_id == current_user.org_id`.
     # For now, we simulate this security check.
-    if not current_user.org_id:
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
         raise HTTPException(status_code=403, detail="User does not belong to an organization")
+        
+    settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
+    if settings and not settings.ai_features_enabled:
+        raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
 
-    logger.info("processing_chat_request", user_id=current_user.id, org_id=current_user.org_id, finding_id=request.finding_id)
+    logger.info("processing_chat_request", user_id=current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id"), org_id=user_org_id, finding_id=request.finding_id)
 
     context_data = {
         "finding_id": request.finding_id,
