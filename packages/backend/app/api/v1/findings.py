@@ -196,8 +196,7 @@ def get_finding_detail(finding_id: str, db: Session = Depends(get_db), current_u
         "remediation": f.remediation_steps[0] if f.remediation_steps and isinstance(f.remediation_steps, list) else "Apply correct security control configurations."
     }
 
-@router.patch("/{finding_id}/status")
-@require_permission("manage_findings")
+@router.patch("/{finding_id}/status", dependencies=[Depends(require_permission("manage_findings"))])
 def update_finding_status(finding_id: str, request: StatusUpdate, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
 
     uuid_id = None
@@ -297,8 +296,7 @@ def assign_finding(finding_id: str, request: AssignUpdate, db: Session = Depends
     db.commit()
     return {"success": True, "assigned_to": request.user_id}
 
-@router.post("/{finding_id}/notes")
-@require_permission("manage_findings")
+@router.post("/{finding_id}/notes", dependencies=[Depends(require_permission("manage_findings"))])
 def add_finding_note(finding_id: str, request: NoteCreate, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
 
     uuid_id = None
@@ -560,8 +558,7 @@ from app.core.metrics import scans_total
 
 logger = structlog.get_logger(__name__)
 
-@router.post("/scan")
-@require_permission("manage_findings")
+@router.post("/scan", dependencies=[Depends(require_permission("manage_findings"))])
 @limiter.limit("2/minute")
 def trigger_cloud_scan(request: Request, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
     user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)

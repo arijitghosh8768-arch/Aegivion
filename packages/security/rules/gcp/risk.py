@@ -42,3 +42,19 @@ def calculate_gcp_risk_score(assets: List[Dict[str, Any]], findings: List[Dict[s
         "level": "Critical" if normalized_risk >= 75 else "High" if normalized_risk >= 50 else "Medium" if normalized_risk >= 25 else "Low",
         "factors": list(set(critical_factors))
     }
+
+def analyze_gcp_risk(assets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    findings = []
+    for asset in assets:
+        if asset.get("type") == "COMPUTE_INSTANCE" and asset.get("configuration", {}).get("public_ip"):
+            findings.append({
+                "rule_id": "gcp-public-compute-exposure",
+                "evidence": {
+                    "what": "Compute instance has a public IP",
+                    "where": f"Asset {asset.get('asset_id')}",
+                    "when": "now",
+                    "why": "Public IP exposes instance to internet",
+                    "source": "gcp-config"
+                }
+            })
+    return findings

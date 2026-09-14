@@ -33,8 +33,7 @@ class CloudAccountCreateRequest(BaseModel):
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
 
-@router.post("/aws/test", response_model=AWSTestResponse)
-@require_permission("manage_integrations")
+@router.post("/aws/test", response_model=AWSTestResponse, dependencies=[Depends(require_permission("manage_integrations"))])
 def test_aws_connection(payload: AWSTestRequest, current_user: Dict[str, Any] = Depends(get_current_user)):
 
     provider = AWSProvider(
@@ -63,8 +62,7 @@ def test_aws_connection(payload: AWSTestRequest, current_user: Dict[str, Any] = 
         )
 
 @router.post("")
-@router.post("/", status_code=status.HTTP_201_CREATED)
-@require_permission("manage_integrations")
+@router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_permission("manage_integrations"))])
 def create_cloud_account(
     payload: CloudAccountCreateRequest,
     db: Session = Depends(get_db),

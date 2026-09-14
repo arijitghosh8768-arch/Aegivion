@@ -9,8 +9,7 @@ from app.core.security import get_current_user
 
 router = APIRouter()
 
-@router.patch("/{asset_id}/context")
-@require_permission("manage_assets")
+@router.patch("/{asset_id}/context", dependencies=[Depends(require_permission("manage_assets"))])
 def update_asset_context(
     asset_id: str,
     context_data: Dict[str, Any] = Body(...),
