@@ -24,9 +24,9 @@ class LoginResponse(BaseModel):
 
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("5/minute")
-def login(request_obj: Request, request: LoginRequest, db: Session = Depends(get_db)):
+def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_db)):
     # 1. Look for user in DB
-    user = db.query(User).filter(User.email == request.email).first()
+    user = db.query(User).filter(User.email == login_data.email).first()
     
     role_name = "viewer"
     org_id = str(uuid.uuid4())
@@ -36,7 +36,7 @@ def login(request_obj: Request, request: LoginRequest, db: Session = Depends(get
 
     if user:
         # Validate password using User model helper
-        if not user.verify_password(request.password):
+        if not user.verify_password(login_data.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect password"
@@ -53,16 +53,16 @@ def login(request_obj: Request, request: LoginRequest, db: Session = Depends(get
         import os
         # Fallback for development if not seeded: allow admin, analyst, viewer with standard password
         fallback_password = os.getenv("DEV_FALLBACK_PASSWORD")
-        if fallback_password and request.password == fallback_password:
-            if request.email == "admin@aegivion.com":
+        if fallback_password and login_data.password == fallback_password:
+            if login_data.email == "admin@aegivion.com":
                 role_name = "admin"
                 first_name = "Admin"
                 last_name = "User"
-            elif request.email == "analyst@aegivion.com":
+            elif login_data.email == "analyst@aegivion.com":
                 role_name = "analyst"
                 first_name = "Security"
                 last_name = "Analyst"
-            elif request.email == "viewer@aegivion.com":
+            elif login_data.email == "viewer@aegivion.com":
                 role_name = "viewer"
                 first_name = "Read-Only"
                 last_name = "Viewer"
@@ -86,7 +86,7 @@ def login(request_obj: Request, request: LoginRequest, db: Session = Depends(get
         token=token,
         user={
             "id": user_id,
-            "email": request.email,
+            "email": login_data.email,
             "first_name": first_name,
             "last_name": last_name,
             "name": f"{first_name} {last_name}",

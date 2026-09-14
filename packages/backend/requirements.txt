@@ -12,7 +12,7 @@ black>=23.3.0
 isort>=5.12.0
 mypy>=1.4.1
 pre-commit>=3.3.3
-bcrypt>=4.0.1
+bcrypt==3.2.2
 pyjwt>=2.8.0
 cryptography>=41.0.0
 casbin>=1.24.0
