@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping health endpoint
-        run: curl -f https://aegivion-backend.onrender.com/health || exit 0
+        run: curl -f https://aegivion.onrender.com/health || exit 0
