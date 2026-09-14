@@ -42,7 +42,7 @@ export function RiskFactorBreakdown({ factors, totalScore }: RiskFactorBreakdown
             <XAxis type="number" domain={[0, 'dataMax']} hide />
             <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={100} />
             <RechartsTooltip 
-              formatter={(value: number, name: string, props: any) => [`${value} / ${props.payload.max}`, 'Score']}
+              formatter={(value: any, name: any, props: any) => [`${value} / ${props.payload.max}`, 'Score']}
               labelFormatter={(label) => label}
               contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '12px' }}
             />

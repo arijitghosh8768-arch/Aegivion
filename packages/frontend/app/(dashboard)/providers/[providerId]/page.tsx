@@ -5,11 +5,11 @@ import Link from "next/link";
 import { ArrowLeft, Server, AlertTriangle, AlertOctagon, CheckCircle2, ShieldAlert } from "lucide-react";
 import { ProviderMark } from "@/components/shared/provider-mark";
 import { ScoreRing } from "@/components/shared/score-ring";
-import { TOPOLOGY_PROVIDERS, DOMAIN_NODES } from "@/lib/data/topology";
+import { TOPOLOGY_PROVIDERS, TOPOLOGY_NODES } from "@/lib/data/topology";
 import { notFound, useParams } from "next/navigation";
 
 // Combine both lists so we can render any provider/domain node
-const ALL_NODES = [...TOPOLOGY_PROVIDERS, ...DOMAIN_NODES];
+const ALL_NODES = [...TOPOLOGY_PROVIDERS, ...TOPOLOGY_NODES];
 
 export default function ProviderDetailPage() {
   const params = useParams();

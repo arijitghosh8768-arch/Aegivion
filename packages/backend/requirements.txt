@@ -25,3 +25,4 @@ certifi>=2024.0.0
 google-api-python-client>=2.0.0
 structlog>=23.1.0
 prometheus_client>=0.17.0
+slowapi>=0.1.9

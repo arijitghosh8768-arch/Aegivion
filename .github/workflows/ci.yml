@@ -27,7 +27,7 @@ jobs:
       if: matrix.service == 'frontend'
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '20'
     
     - name: Install dependencies & run tests
       run: |
@@ -37,11 +37,9 @@ jobs:
           chmod +x node_modules/.bin/vite || true
           npm run build
         elif [ "${{ matrix.service }}" == "security" ]; then
-          # Run from packages/ so that "from security.xxx" imports work
-          cd packages
-          pip install -r security/requirements.txt
+          pip install -r packages/security/requirements.txt
           pip install pytest
-          PYTHONPATH=$(pwd) python -m pytest security/tests -v
+          PYTHONPATH=$(pwd) python -m pytest packages/security/tests -v
         else
           cd packages/${{ matrix.service }}
           if [ -f requirements.txt ]; then

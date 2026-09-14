@@ -34,6 +34,8 @@ export interface OrgSettings {
   primaryCloud: ProviderId;
   region: string;
   securityPolicy: string;
+  requireExceptionApproval: boolean;
+  autoSuppressNonProd: boolean;
 }
 
 export interface NotifPrefs {
@@ -87,6 +89,8 @@ export const DEFAULT_ORG: OrgSettings = {
   primaryCloud: "aws",
   region: "us-east-1",
   securityPolicy: "SOC 2 · PCI DSS · HIPAA",
+  requireExceptionApproval: true,
+  autoSuppressNonProd: false,
 };
 
 export const DEFAULT_NOTIF: NotifPrefs = {
