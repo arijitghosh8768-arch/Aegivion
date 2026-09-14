@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useGoogleLogin } from "@react-oauth/google";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,34 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
+
+  const doGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      try {
+        // You would normally send tokenResponse.access_token to the backend here
+        // const res = await fetch("http://localhost:8000/api/v1/auth/google", { ... })
+        // For now, we fetch the Google profile directly to mock the login
+        const userInfo = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        }).then((res) => res.json());
+
+        login({
+          name: userInfo.name || "Admin User",
+          email: userInfo.email,
+          role: "Super Admin", // Fallback role for dev
+          company: "Acme Corp",
+        });
+        router.push("/");
+      } catch (err) {
+        setError("Failed to authenticate with Google.");
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError("Google Login was cancelled or failed.");
+    }
+  });
 
   const doLogin = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -39,16 +68,6 @@ export default function LoginPage() {
       router.push("/");
     }, 900);
   };
-
-  const sso = () => {
-    setLoading(true);
-    setTimeout(() => {
-      login({ name: "Admin User", email: "admin@acme.com", role: "Super Admin", company: "Acme Corp" });
-      router.push("/");
-    }, 1100);
-  };
-
-  return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -134,7 +153,7 @@ export default function LoginPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" size="lg" onClick={() => sso()} disabled={loading}>
+          <Button type="button" variant="outline" size="lg" onClick={() => doGoogleLogin()} disabled={loading}>
             <svg width="16" height="16" viewBox="0 0 48 48" className="shrink-0">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />

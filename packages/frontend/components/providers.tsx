@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/shared/toaster";
 import { useAppearanceStyles } from "@/lib/use-appearance";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 function AppearanceApplier() {
   useAppearanceStyles();
@@ -21,11 +22,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "placeholder-client-id.apps.googleusercontent.com";
+
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-      <AppearanceApplier />
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      <Toaster />
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <AppearanceApplier />
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <Toaster />
+      </GoogleOAuthProvider>
     </ThemeProvider>
   );
 }
