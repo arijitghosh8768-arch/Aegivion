@@ -105,72 +105,93 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
             detail="Could not retrieve email from Google account.",
         )
 
-    # 2. Look up existing user
+    # 2. Look up existing user by email or sub
     user = db.query(User).filter(User.email == email).first()
+    if not user and google_sub:
+        all_users = db.query(User).all()
+        user = next((u for u in all_users if getattr(u, 'google_sub', None) == google_sub), None)
+        
     org_id = str(uuid.uuid4())
     role_name = "viewer"
 
     if user:
         # Existing user — fetch their role
         org_id = str(user.organization_id)
-        role = db.query(Role).filter(Role.id == user.role_id).first()
+        role = db.query(Role).filter(Role.id == user.role_id).first() if user.role_id else None
+        if not role:
+            # check string role
+            all_roles = db.query(Role).all()
+            role = next((r for r in all_roles if str(r.id) == str(user.role_id) or r.name.lower() == str(user.role_id).lower()), None)
+            
         if role:
             role_name = role.name
         first_name = user.first_name
         last_name = user.last_name
         user_id = str(user.id)
 
-        # Update last_login_at if column exists (best-effort)
+        # Update last_login_at
         try:
             from datetime import datetime
             user.last_login_at = datetime.utcnow()
+            # In case this user was made a superadmin manually
+            if getattr(user, 'is_platform_admin', False):
+                role_name = "superadmin"
             db.commit()
         except Exception:
             db.rollback()
 
     else:
-        # 3. New user — provision with viewer role
-        viewer_role = db.query(Role).filter(Role.name == "viewer").first()
-
-        if viewer_role:
-            # We need an organization — try to find a default org or create one
-            from app.models.organization import Organization  # type: ignore
-            default_org = db.query(Organization).first()
-
-            if default_org:
-                new_org_id = default_org.id
-            else:
-                # Fallback: just use a UUID (no org required for dev)
-                new_org_id = uuid.uuid4()
-
-            new_user = User(
-                email=email,
-                first_name=given_name,
-                last_name=family_name,
-                password_hash="GOOGLE_OAUTH_NO_PASSWORD",  # sentinel — cannot log in with password
-                status=UserStatus.ACTIVE,
-                email_verified=True,
+        # 3. Check for Invitation
+        from app.models.invitation import Invitation
+        from datetime import datetime
+        all_invites = db.query(Invitation).all()
+        invite = next((i for i in all_invites if i.email.lower() == email.lower() and i.status == "PENDING" and (isinstance(i.expires_at, datetime) and i.expires_at > datetime.utcnow() or isinstance(i.expires_at, str) and datetime.fromisoformat(i.expires_at) > datetime.utcnow())), None)
+        
+        if not invite:
+            raise HTTPException(403, "No valid invitation found for this email. Contact your organization admin.")
+            
+        new_org_id = invite.org_id
+        
+        # Get role ID from invite (could be string role name)
+        role_id = invite.role_id
+        
+        new_user = User(
+            email=email,
+            first_name=given_name,
+            last_name=family_name,
+            password_hash="GOOGLE_OAUTH_NO_PASSWORD",
+            status=UserStatus.ACTIVE,
+            email_verified=True,
+            organization_id=new_org_id,
+            role_id=role_id,
+            google_sub=google_sub
+        )
+        try:
+            db.add(new_user)
+            
+            invite.status = "ACCEPTED"
+            
+            from app.models.audit_log import AuditLog
+            audit = AuditLog(
+                action="invitation_accepted",
+                resource_type="User",
+                resource_id=new_user.id,
+                user_id=new_user.id,
                 organization_id=new_org_id,
-                role_id=viewer_role.id,
+                details={}
             )
-            try:
-                db.add(new_user)
-                db.commit()
-                db.refresh(new_user)
-                user_id = str(new_user.id)
-                org_id = str(new_org_id)
-            except Exception as exc:
-                db.rollback()
-                # If DB insert fails (e.g. org FK constraint), fall back to
-                # a stateless JWT so dev flow still works without a seeded DB
-                user_id = google_sub or str(uuid.uuid4())
-        else:
-            # No DB / not seeded — use stateless JWT (dev-only fallback)
-            user_id = google_sub or str(uuid.uuid4())
+            db.add(audit)
+            db.commit()
+            
+            user_id = str(new_user.id)
+            org_id = str(new_org_id)
+            role_name = role_id if isinstance(role_id, str) else "viewer"
+        except Exception as exc:
+            db.rollback()
+            raise HTTPException(500, f"Error provisioning user: {str(exc)}")
 
         first_name = given_name
         last_name = family_name
-        role_name = "viewer"
 
     # 4. Issue Aegivion JWT (same as password login)
     token_service = SecurityService()

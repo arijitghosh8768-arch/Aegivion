@@ -21,6 +21,7 @@ from app.models.audit_log import AuditLog, AuditAction
 from app.models.cloud_account import CloudAccountV2
 from app.models.cloud import CloudAsset, SecurityGroupAsset, IAMUserAsset, S3BucketAsset, EC2InstanceAsset, CloudAccountStatus, CloudProvider, ScanJob, ScanStatus, Relationship
 from app.models.org_settings import OrgSettings
+from app.models.invitation import Invitation
 
 # Import security domain models
 from security.models.finding import Finding, FindingStatus, FindingSeverity, FindingSource

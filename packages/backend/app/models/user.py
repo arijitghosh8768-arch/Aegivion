@@ -28,6 +28,8 @@ class User(BaseModel):
         self.last_login_ip = kwargs.get("last_login_ip")
         self.failed_login_attempts = kwargs.get("failed_login_attempts") or 0
         self.locked_until = kwargs.get("locked_until")
+        self.is_platform_admin = kwargs.get("is_platform_admin", False)
+        self.google_sub = kwargs.get("google_sub")
 
     def verify_password(self, password: str) -> bool:
         if not self.password_hash or self.password_hash == "GOOGLE_OAUTH_NO_PASSWORD":
@@ -64,7 +66,9 @@ class User(BaseModel):
             "last_login_at": self.last_login_at.isoformat() if isinstance(self.last_login_at, datetime) else self.last_login_at,
             "last_login_ip": self.last_login_ip,
             "failed_login_attempts": self.failed_login_attempts,
-            "locked_until": self.locked_until.isoformat() if isinstance(self.locked_until, datetime) else self.locked_until
+            "locked_until": self.locked_until.isoformat() if isinstance(self.locked_until, datetime) else self.locked_until,
+            "is_platform_admin": self.is_platform_admin,
+            "google_sub": self.google_sub
         })
         return res
 
