@@ -105,7 +105,7 @@ from sqlalchemy import text
 @app.get("/health")
 def health_check():
     """Lightweight liveness check — Render pings this to confirm the service is up."""
-    return {"status": "ok"}
+    return {"status": "ok", "success": True}
 
 @app.get("/health/ready", response_model=APIResponse)
 def readiness_check(db: Any = Depends(get_db)):
