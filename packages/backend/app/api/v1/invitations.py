@@ -17,6 +17,32 @@ class InviteRequest(BaseModel):
     email: EmailStr
     role: str
 
+@router.get("/orgs/{org_id}/invitations")
+def list_invitations(
+    org_id: str,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    user_role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
+    
+    if str(user_org_id) != str(org_id) and user_role not in ["superadmin", "super admin"]:
+        raise HTTPException(status_code=403, detail="Not authorized to view this organization's invitations")
+        
+    invites = db.query(Invitation).filter(Invitation.org_id == org_id).all()
+    
+    return {
+        "success": True,
+        "data": [{
+            "id": str(i.id),
+            "email": i.email,
+            "role_id": i.role_id,
+            "status": i.status,
+            "expires_at": i.expires_at.isoformat() if hasattr(i.expires_at, "isoformat") else i.expires_at,
+            "invited_by": i.invited_by
+        } for i in invites]
+    }
+
 @router.post("/orgs/{org_id}/invitations")
 def create_invitation(
     org_id: str,

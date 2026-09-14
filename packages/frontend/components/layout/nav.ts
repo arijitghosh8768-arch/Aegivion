@@ -15,6 +15,7 @@ import {
   Wrench,
   History,
   Cloud,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -74,7 +75,10 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: "Admin",
-    items: [{ title: "Settings", href: "/settings", icon: Settings }],
+    items: [
+      { title: "Team", href: "/team", icon: Users },
+      { title: "Settings", href: "/settings", icon: Settings }
+    ],
   },
 ];
 
