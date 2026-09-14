@@ -201,7 +201,8 @@ export const useAppStore = create<AppState>()(
       setOrg: (patch) => set((s) => ({ org: { ...s.org, ...patch } })),
       fetchOrgSettings: async (orgId) => {
         try {
-          const res = await fetch(`http://localhost:8000/api/v1/orgs/${orgId}/settings`);
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com";
+          const res = await fetch(`${baseUrl}/api/v1/orgs/${orgId}/settings`);
           if (res.ok) {
             const json = await res.json();
             if (json.success && json.data) {
