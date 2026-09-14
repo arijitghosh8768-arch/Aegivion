@@ -12,5 +12,64 @@
     "resource_type": "aws_security_group_rule / azure_nsg_rule",
     "context": "Port 22 (SSH) should never be open to 0.0.0.0/0 (any IP). Access should be restricted to specific corporate IP ranges or routed through a bastion host or SSH session manager.",
     "remediation_terraform": "resource \"aws_security_group_rule\" \"ssh_ingress\" {\n  type              = \"ingress\"\n  from_port         = 22\n  to_port           = 22\n  protocol          = \"tcp\"\n  cidr_blocks       = [\"10.0.0.0/8\"]  # Private IP range or specific bastion CIDR\n  security_group_id = aws_security_group.sg.id\n}"
+  },
+  {
+    "id": "kb-003",
+    "topic": "GCP Compute Instance Public Exposure",
+    "resource_type": "gcp_compute_instance",
+    "context": "Assigning public IP addresses directly to compute instances exposes them to the internet and increases the attack surface. In GCP, consider using Cloud NAT for outbound traffic and Identity-Aware Proxy (IAP) or a Load Balancer for inbound traffic instead of external IPs.",
+    "remediation_terraform": "resource \"google_compute_instance\" \"default\" {\n  # Ensure network_interface does NOT contain an access_config block\n  network_interface {\n    network = \"default\"\n    # Omit access_config to disable public IP\n  }\n}"
+  },
+  {
+    "id": "kb-004",
+    "topic": "GCP Firewall SSH Publicly Accessible",
+    "resource_type": "gcp_firewall",
+    "context": "GCP Firewall rules should not allow SSH (tcp:22) from the entire internet (0.0.0.0/0). This is a common entry point for brute-force attacks. Access should be restricted to known corporate IPs or routed via Identity-Aware Proxy (IAP) using the 35.235.240.0/20 range.",
+    "remediation_terraform": "resource \"google_compute_firewall\" \"ssh_rule\" {\n  name    = \"allow-ssh\"\n  network = \"default\"\n\n  allow {\n    protocol = \"tcp\"\n    ports    = [\"22\"]\n  }\n\n  source_ranges = [\"35.235.240.0/20\"] # Allow IAP only\n}\n"
+  },
+  {
+    "id": "kb-005",
+    "topic": "GCP Service Account Least Privilege",
+    "resource_type": "gcp_iam_binding",
+    "context": "GCP Service Accounts should not be bound to basic primitive roles like roles/owner or roles/editor. These roles grant highly permissive access across all resources in the project. Use predefined or custom roles tailored to the specific needs of the service.",
+    "remediation_terraform": "resource \"google_project_iam_member\" \"least_privilege\" {\n  project = \"my-project-id\"\n  role    = \"roles/storage.objectViewer\" # Use specific predefined role instead of roles/editor\n  member  = \"serviceAccount:my-sa@my-project.iam.gserviceaccount.com\"\n}",
+    "tags": ["gcp", "iam", "service account", "overprivileged", "primitive roles"]
+  },
+  {
+    "id": "kb-006",
+    "topic": "GCP User-Managed Keys for Service Accounts",
+    "resource_type": "gcp_service_account_key",
+    "context": "User-managed service account keys pose a significant security risk as they never expire and can be easily leaked or stolen. GCP recommends using Google-managed keys, Workload Identity Federation, or short-lived credentials instead of generating permanent JSON keys.",
+    "remediation_terraform": "# Recommendation: Remove google_service_account_key blocks and migrate to Workload Identity Federation\n# For external workloads, use:\n# resource \"google_iam_workload_identity_pool\" \"example\" { ... }\n# resource \"google_iam_workload_identity_pool_provider\" \"example\" { ... }",
+    "tags": ["gcp", "iam", "service account", "user-managed keys", "secrets"]
+  },
+  {
+    "id": "kb-007",
+    "topic": "GCP Multi-Cloud Attack Path: Public Compute to Overprivileged Service Account",
+    "resource_type": "gcp_compute_instance",
+    "context": "When a GCP Compute Instance has an external IP address and is attached to a highly privileged Service Account (e.g. roles/owner), an attacker can compromise the instance via exposed services (like SSH/RDP) and then use the instance's metadata server to retrieve temporary credentials for the service account, gaining lateral movement and privilege escalation capabilities.",
+    "remediation_terraform": "resource \"google_compute_instance\" \"default\" {\n  # 1. Remove public IP\n  network_interface {\n    network = \"default\"\n  }\n  # 2. Attach a least-privilege service account\n  service_account {\n    email  = google_service_account.least_privilege.email\n    scopes = [\"cloud-platform\"]\n  }\n}",
+    "tags": ["gcp", "attack path", "lateral movement", "privilege escalation", "metadata server"]
+  },
+  {
+    "id": "kb-008",
+    "topic": "Automated Response: Disable GCP User-Managed Service Account Key",
+    "resource_type": "gcp_service_account_key_action",
+    "context": "Proposed Action: disable_gcp_service_account_key. This action safely disables the identified user-managed JSON key, preventing it from being used to authenticate to GCP APIs. Risk note: If this key is actively being used by a legitimate external workload or CI/CD pipeline, those processes will immediately fail to authenticate. Consider coordinating with the workload owner to migrate to Workload Identity Federation before approving.",
+    "tags": ["gcp", "response", "service account key", "disable"]
+  },
+  {
+    "id": "kb-009",
+    "topic": "Automated Response: Remove Public IP from Compute Instance",
+    "resource_type": "gcp_public_ip_action",
+    "context": "Proposed Action: remove_gcp_public_ip. This action removes the external NAT IP configuration from the instance's network interface, forcing it to communicate via private IPs or Cloud NAT only. Risk note: This will immediately cut off any inbound internet traffic (e.g. public-facing web servers) and direct SSH access. Ensure there is a Load Balancer or IAP configured if inbound access is required.",
+    "tags": ["gcp", "response", "public ip", "compute engine", "remove"]
+  },
+  {
+    "id": "kb-010",
+    "topic": "CIS GCP Foundation Benchmark",
+    "resource_type": "gcp_compliance",
+    "context": "The CIS GCP Benchmark provides prescriptive guidance for establishing a secure baseline configuration for Google Cloud. Key controls include 1.4 (Ensure that Service Account has no administrative privileges) and 4.9 (Ensure that Compute instances do not have public IP addresses). Violations of these controls increase the attack surface and can lead to immediate compliance failures during audits.",
+    "tags": ["gcp", "compliance", "cis", "audit"]
   }
 ]

@@ -16,6 +16,7 @@ class FindingStatus(str, enum.Enum):
     SUPPRESSED = "suppressed"
     FALSE_POSITIVE = "false_positive"
     ACCEPTED_RISK = "accepted_risk"
+    PENDING_APPROVAL = "pending_approval"
 
 class FindingSource(str, enum.Enum):
     CSPM = "cspm"

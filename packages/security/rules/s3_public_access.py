@@ -4,6 +4,18 @@ def scan_s3_bucket(bucket_config: dict) -> list:
     """
     Scans a mock AWS S3 bucket configuration to check if public access is allowed.
     Returns a list of findings matching the findings schema if public access is enabled.
+    
+    WHY IT EXISTS:
+    Cloud storage buckets often contain sensitive data, backups, or internal assets. 
+    A common misconfiguration is leaving these buckets open to the public internet, 
+    either via overly permissive ACLs or missing public access blocks. This rule 
+    ensures that buckets are strictly private unless explicitly intended otherwise.
+    
+    WHAT ARE THE SECURITY IMPLICATIONS:
+    Publicly accessible S3 buckets can lead to massive data breaches, exposing PII, 
+    financial records, or proprietary source code. Additionally, if write access is 
+    public, attackers could host malware, deface content, or incur massive billing 
+    charges on the victim's account.
     """
     findings = []
     

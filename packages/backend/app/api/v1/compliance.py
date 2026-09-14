@@ -42,6 +42,8 @@ def get_compliance_summary(
                 organization_id=user_org_id,
                 control_code="1.12",
                 title="MFA protection for IAM administrative users",
+                description="""Ensure that Multi-Factor Authentication (MFA) is enabled for all IAM users that have a console password.
+RAG Context: Without MFA, a compromised password gives an attacker direct access to the AWS console. This control mitigates credential theft and brute-force attacks by requiring a second factor (e.g., TOTP or hardware token).""",
                 category="Identity & Access",
                 severity="critical",
                 status=mfa_status,
@@ -53,6 +55,8 @@ def get_compliance_summary(
                 organization_id=user_org_id,
                 control_code="4.1",
                 title="No 0.0.0.0/0 ingress on port 22 (SSH)",
+                description="""Ensure that no security groups allow ingress from 0.0.0.0/0 to port 22.
+RAG Context: Port 22 is used for SSH access. Exposing it globally invites automated brute-force attacks and scanner exploitation. By restricting access to known IPs (like a VPN or bastion host), the attack surface for remote code execution is significantly reduced.""",
                 category="Network Security",
                 severity="high",
                 status=ssh_status,
@@ -64,6 +68,8 @@ def get_compliance_summary(
                 organization_id=user_org_id,
                 control_code="2.1.5",
                 title="Ensure S3 Buckets have Block Public Access enabled",
+                description="""Ensure that AWS S3 buckets have all 'Block Public Access' settings enabled.
+RAG Context: Misconfigured S3 buckets are a leading cause of data breaches. Allowing public access can expose sensitive PII, credentials, or proprietary data to the internet. Blocking public access at the bucket or account level acts as a safeguard against accidental misconfigurations via bucket policies or ACLs.""",
                 category="Storage Security",
                 severity="critical",
                 status=s3_status,
@@ -75,6 +81,8 @@ def get_compliance_summary(
                 organization_id=user_org_id,
                 control_code="3.1",
                 title="Ensure multi-region CloudTrail logging is enabled",
+                description="""Ensure CloudTrail is enabled in all regions and securely configured.
+RAG Context: Audit logs are critical for incident response and threat detection. If a trail does not cover all regions, attackers can operate in an unused region without being detected. Proper logging ensures accountability and provides the forensics necessary to trace an attacker's actions post-compromise.""",
                 category="Logging & Monitoring",
                 severity="medium",
                 status=logging_status,
@@ -115,6 +123,7 @@ def get_compliance_summary(
                     {
                         "control_code": r.control_code,
                         "title": r.title,
+                        "description": getattr(r, 'description', None),
                         "category": r.category,
                         "status": r.status.value if hasattr(r.status, 'value') else str(r.status)
                     }

@@ -22,7 +22,7 @@ def get_asset_history(
     snapshots = db.query(AssetSnapshot).filter(
         AssetSnapshot.asset_id == asset_id,
         AssetSnapshot.organization_id == user_org_id
-    ).order_by(AssetSnapshot.version_number.desc()).all()
+    ).all()
     
     if not snapshots:
         # Define baseline configs
@@ -65,7 +65,7 @@ def get_asset_history(
         snapshots = db.query(AssetSnapshot).filter(
             AssetSnapshot.asset_id == asset_id,
             AssetSnapshot.organization_id == user_org_id
-        ).order_by(AssetSnapshot.version_number.desc()).all()
+        ).all()
         
     return {
         "asset_id": asset_id,
@@ -221,7 +221,7 @@ def get_historical_risk_dataset(
     user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
     dataset = db.query(SecurityRiskSnapshot).filter(
         SecurityRiskSnapshot.organization_id == user_org_id
-    ).order_by(SecurityRiskSnapshot.timestamp.asc()).all()
+    ).all()
     
     if not dataset:
         mock_data = []
@@ -248,7 +248,7 @@ def get_historical_risk_dataset(
         db.commit()
         dataset = db.query(SecurityRiskSnapshot).filter(
             SecurityRiskSnapshot.organization_id == user_org_id
-        ).order_by(SecurityRiskSnapshot.timestamp.asc()).all()
+        ).all()
         
     return {"data": [d.dict() for d in dataset]}
 
@@ -405,7 +405,7 @@ def get_sync_quality(
 ):
     """Retrieve database data quality collectors freshness and sync coverage metrics (M1 Sync Quality API)"""
     user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
-    sync = db.query(SyncQuality).filter(SyncQuality.organization_id == user_org_id).order_by(SyncQuality.last_successful_sync.desc()).first()
+    sync = db.query(SyncQuality).filter(SyncQuality.organization_id == user_org_id).first()
     
     if not sync:
         sync = SyncQuality(

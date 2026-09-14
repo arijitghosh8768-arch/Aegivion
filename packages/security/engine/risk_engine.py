@@ -74,6 +74,12 @@ class ContextualRiskEngine:
                 weight=0.3,
                 max_score=15,
                 description="Identity-related security risk"
+            ),
+            "vulnerability": RiskFactor(
+                name="vulnerability",
+                weight=0.4,
+                max_score=25,
+                description="Presence of known vulnerabilities (CVEs) and active exploitation (KEV)"
             )
         }
     
@@ -156,6 +162,17 @@ class ContextualRiskEngine:
                 "value": identity_score,
                 "max": self.factors["identity_risk"].max_score,
                 "description": self._get_identity_description(finding)
+            })
+            
+        # 8. Vulnerability and KEV presence
+        vuln_score = self._calculate_vulnerability(finding)
+        if vuln_score > 0:
+            score += vuln_score
+            factors.append({
+                "name": "vulnerability",
+                "value": vuln_score,
+                "max": self.factors["vulnerability"].max_score,
+                "description": "Vulnerabilities detected. Boosted by CISA KEV if actively exploited."
             })
         
         # Normalize to 0-100
@@ -244,7 +261,7 @@ class ContextualRiskEngine:
         mitre_technique = finding.get('mitre_technique', '')
         privilege_techniques = ['T1098', 'T1078', 'T1053', 'T1068']
         
-        if mitre_technique in privilege_techniques:
+        if mitre_technique in privilege_techniques or finding.get('category') == 'PRIVILEGE_ESCALATION':
             return self.factors["privilege_escalation"].max_score
         
         if asset.get('type') == 'iam_user' and asset.get('configuration', {}).get('console_access'):
@@ -287,7 +304,7 @@ class ContextualRiskEngine:
     
     def _calculate_identity_risk(self, finding: Dict) -> int:
         """Calculate identity risk factor"""
-        if finding.get('resource_type') == 'iam_user':
+        if finding.get('resource_type') == 'iam_user' or finding.get('category') == 'PRIVILEGE_ESCALATION':
             config = finding.get('asset_configuration', {}) or finding.get('evidence', {})
             
             score = 0
@@ -301,6 +318,42 @@ class ContextualRiskEngine:
             return min(score, self.factors["identity_risk"].max_score)
         
         return 0
+
+    def _calculate_vulnerability(self, finding: Dict) -> int:
+        """Calculate vulnerability factor including CISA KEV boost"""
+        vulns = finding.get('vulnerabilities', [])
+        if not vulns:
+            # Maybe finding itself represents a vulnerability
+            if finding.get('cve_id'):
+                vulns = [finding]
+                
+        if not vulns:
+            return 0
+            
+        score = 0
+        has_kev = False
+        highest_cvss = 0.0
+        
+        for vuln in vulns:
+            cvss = float(vuln.get('cvss_score', 0))
+            if cvss > highest_cvss:
+                highest_cvss = cvss
+            if vuln.get('in_cisa_kev', False):
+                has_kev = True
+                
+        # Base score from CVSS
+        if highest_cvss >= 9.0:
+            score += 15
+        elif highest_cvss >= 7.0:
+            score += 10
+        elif highest_cvss >= 4.0:
+            score += 5
+            
+        # KEV multiplier / boost
+        if has_kev:
+            score += 10
+            
+        return min(score, self.factors["vulnerability"].max_score)
     
     def _calculate_confidence(self, factors: List[Dict]) -> float:
         """Calculate confidence score based on available factors"""

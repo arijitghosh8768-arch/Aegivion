@@ -19,16 +19,31 @@ from typing import Any, Optional
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from .core.rate_limit import limiter
 
 from .database import get_db
 from .core.exceptions import AegivionException, aegivion_exception_handler
 from .api import api_router
+
+from prometheus_client import make_asgi_app
+from .core.logging import setup_logging
+from .middleware.logging import LoggingMiddleware
+
+# Setup structlog
+setup_logging()
 
 app = FastAPI(
     title="Aegivion API",
     description="Backend API for Aegivion Security Platform",
     version="0.1.0"
 )
+
+# Mount Prometheus metrics endpoint
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
 
 # Standard API response format
 class APIResponse(BaseModel):
@@ -40,10 +55,13 @@ class APIResponse(BaseModel):
 
 # Register Exception Handlers
 app.add_exception_handler(AegivionException, aegivion_exception_handler)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Import and register Security Headers Middleware first (will execute after CORSMiddleware on responses)
 from .middleware.security import SecurityHeadersMiddleware
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(LoggingMiddleware)
 
 # CORS middleware config (registered last, so it executes first on requests and last on responses)
 allowed_origins = [
@@ -62,8 +80,8 @@ app.add_middleware(
     allow_origins=allowed_origins,
     allow_origin_regex=r"https://.*\.vercel\.app",  # Support all Vercel preview deployments
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
 )
 
 

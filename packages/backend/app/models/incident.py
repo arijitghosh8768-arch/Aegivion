@@ -29,6 +29,7 @@ class Incident(BaseModel):
         self.correlation_fingerprint = kwargs.get("correlation_fingerprint")
         self.timeline = kwargs.get("timeline") or []
         self.notes = kwargs.get("notes") or []
+        self.assigned_to = kwargs.get("assigned_to")
 
     def dict(self) -> Dict[str, Any]:
         res = super().dict()
@@ -48,6 +49,7 @@ class Incident(BaseModel):
             "evidence": self.evidence,
             "correlation_fingerprint": self.correlation_fingerprint,
             "timeline": self.timeline,
-            "notes": self.notes
+            "notes": self.notes,
+            "assigned_to": self.assigned_to
         })
         return res

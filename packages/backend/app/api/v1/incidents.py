@@ -16,6 +16,9 @@ router = APIRouter()
 class StatusUpdate(BaseModel):
     status: str
 
+class AssignUpdate(BaseModel):
+    user_id: str
+
 @router.get("/")
 def get_incidents(
     page: int = Query(1, ge=1),
@@ -293,6 +296,43 @@ def update_incident_status(
     
     db.commit()
     return {"success": True, "status": inc.status.value}
+
+
+@router.post("/{incident_id}/assign")
+def assign_incident(
+    incident_id: str,
+    request: AssignUpdate,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    user_org_id = getattr(current_user, 'organization_id', None)
+    
+    inc = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not inc:
+        inc = db.query(Incident).filter(Incident.correlation_fingerprint == incident_id).first()
+        
+    if not inc:
+        all_inc = db.query(Incident).all()
+        inc = next((x for x in all_inc if str(x.id) == incident_id or x.correlation_fingerprint == incident_id), None)
+        
+    if not inc:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    if user_org_id and str(inc.organization_id) != str(user_org_id):
+        raise HTTPException(status_code=403, detail="Forbidden")
+        
+    inc.assigned_to = request.user_id
+    
+    timeline = inc.timeline or []
+    timeline.append({
+        "timestamp": datetime.utcnow().isoformat(),
+        "title": "Incident Assigned",
+        "description": f"Assigned to {request.user_id}."
+    })
+    inc.timeline = timeline
+    
+    db.commit()
+    return {"success": True, "assigned_to": request.user_id}
 
 @router.post("/{incident_id}/analyze")
 async def analyze_incident_ai(

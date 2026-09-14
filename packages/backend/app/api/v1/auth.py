@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Dict, Any, Optional
@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.role import Role
 from app.core.security import SecurityService, get_current_user
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
@@ -22,7 +23,8 @@ class LoginResponse(BaseModel):
     user: Dict[str, Any]
 
 @router.post("/login", response_model=LoginResponse)
-def login(request: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request_obj: Request, request: LoginRequest, db: Session = Depends(get_db)):
     # 1. Look for user in DB
     user = db.query(User).filter(User.email == request.email).first()
     
@@ -48,8 +50,10 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         if role:
             role_name = role.name
     else:
+        import os
         # Fallback for development if not seeded: allow admin, analyst, viewer with standard password
-        if request.password == "Admin123!":
+        fallback_password = os.getenv("DEV_FALLBACK_PASSWORD")
+        if fallback_password and request.password == fallback_password:
             if request.email == "admin@aegivion.com":
                 role_name = "admin"
                 first_name = "Admin"

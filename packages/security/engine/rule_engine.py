@@ -39,6 +39,14 @@ class RuleEngine:
         self.rules = self.load_rules()
         self.cache = {}
         
+        # Optimization: Group rules by resource type for O(1) lookup
+        self.rules_by_type: Dict[str, List[Dict[str, Any]]] = {}
+        for rule in self.rules:
+            rt = rule.get("resource_type")
+            if rt not in self.rules_by_type:
+                self.rules_by_type[rt] = []
+            self.rules_by_type[rt].append(rule)
+        
     def load_rules(self) -> List[Dict[str, Any]]:
         # In Day 3, we define our core compliance rules statically.
         # This will load from YAML files in later milestones.
@@ -63,13 +71,18 @@ class RuleEngine:
         ]
         
     def evaluate(self, resources: List[Dict[str, Any]]) -> List[RuleResult]:
+        """
+        Optimization: Instead of looping N*M, bucket assets by type and evaluate
+        only the relevant rules. This turns O(N*M) into O(N*k) where k << M.
+        """
         findings = []
         for resource in resources:
-            for rule in self.rules:
-                if self._should_apply_rule(rule, resource):
-                    result = self._execute_rule(rule, resource)
-                    if not result.is_compliant:
-                        findings.append(result)
+            res_type = resource.get('type')
+            relevant_rules = self.rules_by_type.get(res_type, [])
+            for rule in relevant_rules:
+                result = self._execute_rule(rule, resource)
+                if not result.is_compliant:
+                    findings.append(result)
         return findings
     
     def _should_apply_rule(self, rule: Dict[str, Any], resource: Dict[str, Any]) -> bool:

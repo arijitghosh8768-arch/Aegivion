@@ -54,8 +54,12 @@ class CloudAsset(BaseModel):
         self.owner = kwargs.get("owner") or "UNKNOWN"
         self.department = kwargs.get("department") or "UNKNOWN"
         self.application = kwargs.get("application") or "UNKNOWN"
-        self.data_sensitivity = kwargs.get("data_sensitivity") or "UNKNOWN"
+        self.data_classification = kwargs.get("data_classification") or "UNKNOWN"
         self.business_criticality = kwargs.get("business_criticality") or "UNKNOWN"
+        
+        # M1 Day 36 Advanced Context Fields
+        self.internet_exposed = kwargs.get("internet_exposed", False)
+        self.importance_score = kwargs.get("importance_score", 0.0)
 
     def dict(self):
         res = super().dict()
@@ -71,8 +75,10 @@ class CloudAsset(BaseModel):
             "owner": self.owner,
             "department": self.department,
             "application": self.application,
-            "data_sensitivity": self.data_sensitivity,
-            "business_criticality": self.business_criticality
+            "data_classification": self.data_classification,
+            "business_criticality": self.business_criticality,
+            "internet_exposed": self.internet_exposed,
+            "importance_score": self.importance_score
         })
         return res
 

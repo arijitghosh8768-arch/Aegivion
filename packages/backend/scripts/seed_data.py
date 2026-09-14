@@ -47,7 +47,8 @@ def seed_database():
             status="active",
             email_verified=True
         )
-        admin.set_password("Admin123!")
+        admin_pass = os.getenv("SEED_ADMIN_PASSWORD", "Admin123!")
+        admin.set_password(admin_pass)
         db.add(admin)
         
         db.commit()

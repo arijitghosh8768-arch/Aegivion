@@ -27,6 +27,7 @@ class Organization(BaseModel):
             "custom_reports": False,
             "api_access": False
         }
+        self.security_policy = kwargs.get("security_policy") or {"require_exception_approval": False}
         self.users = []  # Loaded dynamically if needed
 
     def is_trial_active(self) -> bool:
@@ -56,7 +57,8 @@ class Organization(BaseModel):
             "subscription_ends_at": self.subscription_ends_at.isoformat() if isinstance(self.subscription_ends_at, datetime) else self.subscription_ends_at,
             "max_users": self.max_users,
             "max_projects": self.max_projects,
-            "features": self.features
+            "features": self.features,
+            "security_policy": self.security_policy
         })
         return res
 

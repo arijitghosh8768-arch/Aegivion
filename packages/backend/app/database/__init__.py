@@ -55,7 +55,8 @@ def get_collection_for_model(db_instance, model):
         "scanjob": "scan_jobs",
         "relationship": "asset_relationships",
         "assetrelationship": "asset_relationships",
-        "finding": "findings"
+        "finding": "findings",
+        "vulnerability": "vulnerabilities"
     }
     col_name = mapping.get(name, name + "s")
     return db_instance[col_name]

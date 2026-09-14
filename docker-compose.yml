@@ -38,7 +38,7 @@ services:
     container_name: aegivion_backend
     restart: always
     ports:
-      - "8000:8000"
+      - "8010:8000"
     depends_on:
       - postgres
       - redis
@@ -51,7 +51,7 @@ services:
     container_name: aegivion_security
     restart: always
     ports:
-      - "8001:8001"
+      - "8011:8001"
     depends_on:
       - postgres
       - redis
@@ -64,7 +64,7 @@ services:
     container_name: aegivion_ai
     restart: always
     ports:
-      - "8002:8002"
+      - "8012:8002"
     depends_on:
       - postgres
       - redis
@@ -79,7 +79,7 @@ services:
     container_name: aegivion_frontend
     restart: always
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - backend
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from uuid import UUID
 
 from app.database import get_db
@@ -9,6 +9,7 @@ from app.models.cloud_account import CloudAccountV2 as CloudAccount
 from app.cloud.models import ConnectionStatus
 from app.cloud.aws.adapter import AWSProvider
 from app.core.security import get_current_user
+from app.api.deps import require_permission, log_audit_action
 
 router = APIRouter()
 
@@ -33,13 +34,18 @@ class CloudAccountCreateRequest(BaseModel):
     aws_secret_access_key: Optional[str] = None
 
 @router.post("/aws/test", response_model=AWSTestResponse)
-def test_aws_connection(payload: AWSTestRequest):
+@require_permission("manage_integrations")
+def test_aws_connection(payload: AWSTestRequest, current_user: Dict[str, Any] = Depends(get_current_user)):
+
     provider = AWSProvider(
         access_key=payload.aws_access_key_id,
         secret_key=payload.aws_secret_access_key,
         default_region=payload.aws_region
     )
     
+
+    org_id = current_user.get("organization_id")
+    log_audit_action("test_aws_connection", "cloud_account", "aws", str(current_user.get("id", "system")), str(org_id), {})
     if provider.validate_connection():
         info = provider.get_account_info()
         return AWSTestResponse(
@@ -58,10 +64,11 @@ def test_aws_connection(payload: AWSTestRequest):
 
 @router.post("")
 @router.post("/", status_code=status.HTTP_201_CREATED)
+@require_permission("manage_integrations")
 def create_cloud_account(
     payload: CloudAccountCreateRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     org_id = current_user.get("organization_id")
     # For MVP safety, verify connectivity first
@@ -82,9 +89,12 @@ def create_cloud_account(
         connection_status=conn_status
     )
     
+
     db.add(new_account)
     db.commit()
     db.refresh(new_account)
+    
+    log_audit_action("create_cloud_account", "cloud_account", str(new_account.id), str(current_user.get("id", "system")), str(org_id), {"provider": payload.provider, "account_id": payload.account_id})
     
     return {
         "success": True,

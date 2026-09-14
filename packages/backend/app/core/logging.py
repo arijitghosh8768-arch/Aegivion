@@ -1,38 +1,26 @@
 import logging
-import json
-from datetime import datetime
-from typing import Any, Dict
-from contextvars import ContextVar
+import sys
+import structlog
 
-request_id_var: ContextVar[str] = ContextVar("request_id", default="")
+def setup_logging():
+    logging.basicConfig(
+        format="%(message)s",
+        stream=sys.stdout,
+        level=logging.INFO,
+    )
 
-class StructuredLogger:
-    def __init__(self, service_name: str):
-        self.service_name = service_name
-        self.logger = logging.getLogger(service_name)
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.INFO)
-            
-    def log(self, level: str, message: str, **kwargs: Any) -> None:
-        log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "service": self.service_name,
-            "level": level,
-            "message": message,
-            "request_id": request_id_var.get(),
-            **kwargs
-        }
-        print(json.dumps(log_entry))
-        
-    def info(self, message: str, **kwargs: Any) -> None:
-        self.log("INFO", message, **kwargs)
-        
-    def error(self, message: str, **kwargs: Any) -> None:
-        self.log("ERROR", message, **kwargs)
-        
-    def debug(self, message: str, **kwargs: Any) -> None:
-        self.log("DEBUG", message, **kwargs)
-
-logger = StructuredLogger("backend")
+    structlog.configure(
+        processors=[
+            structlog.contextvars.merge_contextvars,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.JSONRenderer()
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )

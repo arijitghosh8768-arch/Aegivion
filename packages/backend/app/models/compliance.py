@@ -18,6 +18,7 @@ class ComplianceControlResult(BaseModel):
         self.control_code = kwargs.get("control_code")
         self.framework_id = kwargs.get("framework_id") or "CIS_AWS_v3"
         self.title = kwargs.get("title")
+        self.description = kwargs.get("description")
         self.category = kwargs.get("category")
         self.severity = kwargs.get("severity") or "high"
         self.status = kwargs.get("status") or ComplianceStatus.NOT_ASSESSED
@@ -35,6 +36,7 @@ class ComplianceControlResult(BaseModel):
             "control_code": self.control_code,
             "framework_id": self.framework_id,
             "title": self.title,
+            "description": self.description,
             "category": self.category,
             "severity": self.severity,
             "status": self.status.value if hasattr(self.status, 'value') else str(self.status),

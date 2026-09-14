@@ -65,6 +65,7 @@ class SecurityContext:
     # Metadata
     tags: Dict[str, str]
     assessed_at: str
+    importance_score: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -87,7 +88,8 @@ class SecurityContext:
                 "missing_context": self.missing_context
             },
             "tags": self.tags,
-            "assessed_at": self.assessed_at
+            "assessed_at": self.assessed_at,
+            "importance_score": self.importance_score
         }
 
 class AssetContextBuilder:
@@ -146,6 +148,9 @@ class AssetContextBuilder:
         # Determine collection status
         collection_status, collection_confidence, missing = self._determine_collection_status(asset)
         
+        # Calculate importance score
+        importance_score = self._calculate_importance_score(environment, criticality, exposure)
+        
         return SecurityContext(
             asset_id=asset['asset_id'],
             environment=environment,
@@ -160,7 +165,8 @@ class AssetContextBuilder:
             collection_confidence=collection_confidence,
             missing_context=missing,
             tags=tags,
-            assessed_at=datetime.utcnow().isoformat()
+            assessed_at=datetime.utcnow().isoformat(),
+            importance_score=importance_score
         )
     
     def _determine_environment(self, tags: Dict[str, str]) -> tuple:
@@ -289,3 +295,29 @@ class AssetContextBuilder:
             return CollectionStatus.MINIMAL, 0.50, ['minimal_collection']
         else:
             return CollectionStatus.PARTIAL, 0.60, ['unknown_collection_status']
+
+    def _calculate_importance_score(self, environment: Environment, criticality: Criticality, exposure: Exposure) -> float:
+        """Calculate a 0.0-10.0 importance score based on context"""
+        score = 5.0 # Base score
+        
+        # Environment multiplier/adder
+        if environment == Environment.PRODUCTION:
+            score += 2.0
+        elif environment == Environment.STAGING:
+            score += 1.0
+        elif environment == Environment.DEVELOPMENT:
+            score -= 1.0
+            
+        # Criticality adder
+        if criticality == Criticality.MISSION_CRITICAL:
+            score += 3.0
+        elif criticality == Criticality.HIGH:
+            score += 2.0
+        elif criticality == Criticality.LOW:
+            score -= 1.0
+            
+        # Exposure adder
+        if exposure == Exposure.INTERNET_EXPOSED:
+            score += 1.0 # exposed things are slightly more "important" to secure
+            
+        return max(0.0, min(10.0, score))

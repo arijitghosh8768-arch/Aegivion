@@ -144,6 +144,23 @@ class MitreService:
                     'confidence': 0.90,
                     'reason': 'Public access increases data exfiltration risk'
                 }
+            ],
+            # GCP rules
+            'gcp-iam-privilege-escalation': [
+                {
+                    'technique_id': 'T1078',
+                    'relationship': 'specifically_targets',
+                    'confidence': 0.95,
+                    'reason': 'Abusing service account impersonation for privilege escalation'
+                }
+            ],
+            'gcp-iam-self-modification': [
+                {
+                    'technique_id': 'T1098',
+                    'relationship': 'evidence_of',
+                    'confidence': 0.90,
+                    'reason': 'Self-modifying IAM permissions enable account manipulation'
+                }
             ]
         }
     

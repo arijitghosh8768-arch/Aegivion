@@ -330,18 +330,33 @@ class RemediationEngine:
         return plan
         
     def _is_safe_command(self, command: str) -> bool:
-        command_lower = command.lower()
-        for forbidden in self.safety_patterns['forbidden_commands']:
+        command_lower = command.lower().strip()
+        
+        # Strict allowlist
+        allowed_commands = [
+            'aws iam create-virtual-mfa-device',
+            'aws s3api put-public-access-block',
+            'aws ec2 revoke-security-group-ingress',
+            'aws ec2 authorize-security-group-ingress'
+        ]
+        
+        is_allowed = False
+        for allowed in allowed_commands:
+            if command_lower.startswith(allowed):
+                is_allowed = True
+                break
+                
+        if not is_allowed:
+            return False
+            
+        for forbidden in self.safety_patterns.get('forbidden_commands', []):
             if forbidden in command_lower:
                 return False
-        for pattern in self.safety_patterns['pattern_restrictions']:
+        for pattern in self.safety_patterns.get('pattern_restrictions', []):
             if re.search(pattern, command):
                 return False
-        is_allowed = any(
-            service in command_lower 
-            for service in self.safety_patterns['allowed_services']
-        )
-        return is_allowed
+                
+        return True
         
     def _get_generic_remediation(self, finding: Dict) -> RemediationPlan:
         return RemediationPlan(
