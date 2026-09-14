@@ -45,19 +45,24 @@ class LoginResponse(BaseModel):
 
 async def _verify_google_token(token: str, is_access_token: bool = False) -> Dict[str, Any]:
     """
-    Verifies a Google token using Google's public tokeninfo endpoint.
+    Verifies a Google token. For access_tokens, it hits the userinfo endpoint to get full profile data (name, etc).
+    For id_tokens, it hits tokeninfo.
     Returns the token payload (email, name, sub, etc.) on success.
     Raises HTTPException 401 on failure.
     """
     google_client_id = os.getenv("GOOGLE_CLIENT_ID", "84307924515-g3rteqggcrl485f84i2fh04nl0ki8k9m.apps.googleusercontent.com")
 
-    params = {"access_token": token} if is_access_token else {"id_token": token}
-
     async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.get(
-            "https://oauth2.googleapis.com/tokeninfo",
-            params=params,
-        )
+        if is_access_token:
+            response = await client.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+        else:
+            response = await client.get(
+                "https://oauth2.googleapis.com/tokeninfo",
+                params={"id_token": token},
+            )
 
     if response.status_code != 200:
         raise HTTPException(
@@ -133,6 +138,12 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
             
         if role:
             role_name = role.name
+        
+        # Fix missing names from earlier bug
+        if (user.first_name == "Google" and user.last_name == "User") and (given_name != "Google"):
+            user.first_name = given_name
+            user.last_name = family_name
+
         first_name = user.first_name
         last_name = user.last_name
         user_id = str(user.id)
