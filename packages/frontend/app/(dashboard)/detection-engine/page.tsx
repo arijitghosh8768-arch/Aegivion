@@ -36,7 +36,7 @@ interface LiveFinding {
 }
 
 function getCategoryFromType(type: string, ruleId: string): string {
-  const t = (type + " " + ruleId).toLowerCase();
+  const t = ((type || "") + " " + (ruleId || "")).toLowerCase();
   if (t.includes("iam") || t.includes("user") || t.includes("role")) return "iam";
   if (t.includes("s3") || t.includes("bucket")) return "s3";
   if (t.includes("ec2") || t.includes("instance")) return "ec2";
@@ -292,7 +292,9 @@ function FindingsList({
                 {(f.remediation?.length ?? 0) > 0 && (
                   <div className="mt-3 rounded-xl border border-border bg-card/70 p-3">
                     <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Remediation Steps</div>
-                    <code className="whitespace-pre-wrap text-[11.5px] text-foreground">{f.remediation!.join("\n")}</code>
+                    <code className="whitespace-pre-wrap text-[11.5px] text-foreground">
+                      {Array.isArray(f.remediation) ? f.remediation.join("\n") : f.remediation}
+                    </code>
                   </div>
                 )}
 

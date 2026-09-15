@@ -46,7 +46,7 @@ export function SeverityBadge({
   className?: string;
   showDot?: boolean;
 }) {
-  const cfg = SEVERITY_CONFIG[severity];
+  const cfg = SEVERITY_CONFIG[severity] || SEVERITY_CONFIG.info;
   return (
     <span
       className={cn(

@@ -16,7 +16,7 @@ export function ProviderMark({
   size?: number;
   className?: string;
 }) {
-  const m = META[provider];
+  const m = META[provider] || { letter: "?", color: "#888", bg: "rgba(136,136,136,0.14)" };
   return (
     <span
       className={cn("inline-flex shrink-0 items-center justify-center rounded-xl font-bold", className)}

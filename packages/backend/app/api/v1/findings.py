@@ -61,7 +61,7 @@ def get_all_findings(db: Session = Depends(get_db), current_user: Dict[str, Any]
             "id": str(f.id),
             "title": f.title,
             "description": f.description,
-            "severity": f.severity.value.capitalize() if hasattr(f.severity, 'value') else str(f.severity).capitalize(),
+            "severity": f.severity.value.lower() if hasattr(f.severity, 'value') else str(f.severity).lower(),
             "status": f.status.value if hasattr(f.status, 'value') else str(f.status),
             "resource_id": f.resource_id,
             "resource_type": f.resource_type,
