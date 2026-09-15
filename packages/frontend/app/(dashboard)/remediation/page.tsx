@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Wrench, Check, X, Loader2, RotateCcw, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -8,7 +8,6 @@ import { SeverityBadge, StatusPill } from "@/components/shared/severity";
 import { ProviderMark } from "@/components/shared/provider-mark";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FINDINGS } from "@/lib/data/findings";
 import { cn } from "@/lib/utils";
 import type { Finding } from "@/lib/types";
 
@@ -20,12 +19,6 @@ interface Plan {
   applying: boolean;
 }
 
-function buildPlans(): Plan[] {
-  return FINDINGS.filter((f) => f.autoFixable && (f.status === "open" || f.status === "remediating"))
-    .slice(0, 6)
-    .map((finding) => ({ finding, status: "pending" as PlanStatus, applying: false }));
-}
-
 const IMPACT: Record<Finding["severity"], { impact: string; eta: number; risk: string }> = {
   critical: { impact: "medium", eta: 4, risk: "low" },
   high: { impact: "low", eta: 6, risk: "low" },
@@ -35,8 +28,25 @@ const IMPACT: Record<Finding["severity"], { impact: string; eta: number; risk: s
 };
 
 export default function RemediationPage() {
-  const [plans, setPlans] = useState<Plan[]>(buildPlans());
-  const [expanded, setExpanded] = useState<string | null>(plans[0]?.finding.id ?? null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchPlans() {
+      try {
+        const res = await fetch("/api/v1/findings?status=remediating");
+        if (res.ok) {
+          const data = await res.json();
+          setPlans(data || []);
+        }
+      } catch (e) {
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPlans();
+  }, []);
   const [runAll, setRunAll] = useState(false);
 
   const pending = plans.filter((p) => p.status === "pending").length;
@@ -102,8 +112,17 @@ export default function RemediationPage() {
         ))}
       </div>
 
-      <div className="space-y-3">
-        {plans.map((plan, i) => {
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      ) : plans.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center bg-card">
+          <Wrench className="mb-3 h-8 w-8 text-muted-foreground" />
+          <h3 className="text-[14px] font-semibold">No data yet</h3>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">There are no pending remediations at this time.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+        {plans.map((plan: any, i: number) => {
           const f = plan.finding;
           const meta = IMPACT[f.severity];
           const isOpen = expanded === f.id;
@@ -157,7 +176,16 @@ export default function RemediationPage() {
                       </div>
                       <pre className="code-block max-h-56 overflow-auto rounded-xl border border-border bg-card p-3">{f.terraform || "// No Terraform module — CLI-only fix"}</pre>
                     </div>
-                    <div className="space-y-3">
+                    {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      ) : plans.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center bg-card">
+          <Wrench className="mb-3 h-8 w-8 text-muted-foreground" />
+          <h3 className="text-[14px] font-semibold">No data yet</h3>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">There are no pending remediations at this time.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
                       <div>
                         <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           AWS / provider CLI
@@ -219,6 +247,7 @@ export default function RemediationPage() {
           );
         })}
       </div>
+      )}
 
       <div className="mt-6 flex items-start gap-2.5 rounded-2xl border border-info/25 bg-info/5 p-4">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-info" />

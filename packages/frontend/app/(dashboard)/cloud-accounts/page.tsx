@@ -18,8 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CLOUD_ACCOUNTS } from "@/lib/data/providers";
-import { PROVIDER_META } from "@/lib/data/providers";
 import { cn } from "@/lib/utils";
 import type { CloudAccount, ProviderId } from "@/lib/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +29,15 @@ const STATUS_UI: Record<CloudAccount["status"], string> = {
   connected: "Connected",
   degraded: "Degraded",
   error: "Scan error",
+};
+
+const PROVIDER_META: Record<
+  string,
+  { name: string; short: string; color: string; soft: string }
+> = {
+  aws: { name: "Amazon Web Services", short: "AWS", color: "#FF9900", soft: "rgba(255,153,0,0.14)" },
+  azure: { name: "Microsoft Azure", short: "Azure", color: "#0078D4", soft: "rgba(0,120,212,0.14)" },
+  gcp: { name: "Google Cloud", short: "GCP", color: "#4285F4", soft: "rgba(66,133,244,0.14)" },
 };
 
 export default function CloudAccountsPage() {
@@ -46,7 +53,7 @@ export default function CloudAccountsPage() {
 
   const { data: accountsData, isLoading } = useQuery<{ success: boolean; data: Record<string, unknown>[] }>({
     queryKey: ["cloud_accounts"],
-    queryFn: () => fetchApi("/v1/cloud_accounts"),
+    queryFn: () => fetchApi("/v1/cloud-accounts"),
   });
 
   const accounts: CloudAccount[] = (accountsData?.data || []).map((acc: any) => ({
@@ -68,12 +75,12 @@ export default function CloudAccountsPage() {
   const total = accounts.length;
   const connected = accounts.filter((a) => a.status === "connected").length;
   const critical = accounts.reduce((s, a) => s + a.critical, 0);
-  const avgHealth = Math.round(accounts.reduce((s, a) => s + a.healthScore, 0) / total);
+  const avgHealth = total > 0 ? Math.round(accounts.reduce((s, a) => s + a.healthScore, 0) / total) : 0;
 
   const connectMutation = useMutation({
     mutationFn: async () => {
       if (selectedProvider === "aws") {
-        return fetchApi("/v1/cloud_accounts", {
+        return fetchApi("/v1/cloud-accounts", {
           method: "POST",
           body: JSON.stringify({
             account_name: "My AWS",

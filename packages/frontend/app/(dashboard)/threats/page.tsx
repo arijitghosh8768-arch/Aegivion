@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ShieldAlert, ShieldCheck, Radar, Lock, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge, StatusPill } from "@/components/shared/severity";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MITRE_COVERAGE } from "@/lib/data/alerts";
 import { cn } from "@/lib/utils";
 import type { Alert } from "@/lib/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -84,6 +83,23 @@ export default function ThreatsPage() {
 
     updateMutation.mutate({ id, status: findingStatus });
   };
+
+  const mitreCoverage = useMemo(() => {
+    const tacticCounts: Record<string, Set<string>> = {};
+    alerts.forEach((a) => {
+      if (a.tactic && a.tactic !== "Unknown Tactic" && a.techniqueId && a.techniqueId !== "N/A") {
+        if (!tacticCounts[a.tactic]) tacticCounts[a.tactic] = new Set();
+        tacticCounts[a.tactic].add(a.techniqueId);
+      }
+    });
+
+    const colors = ["#4285F4", "#FF9900", "#0078D4", "#E53E3E", "#22C55E", "#A855F7"];
+    return Object.entries(tacticCounts).map(([tactic, techniquesSet], idx) => ({
+      tactic,
+      techniques: techniquesSet.size,
+      color: colors[idx % colors.length],
+    })).sort((a, b) => b.techniques - a.techniques);
+  }, [alerts]);
 
   return (
     <div>
@@ -226,12 +242,12 @@ export default function ThreatsPage() {
             <p className="text-[11.5px] text-muted-foreground">Tactics observed in the last 30 days</p>
           </div>
           <div className="space-y-3">
-            {MITRE_COVERAGE.map((m) => (
+            {mitreCoverage.length > 0 ? mitreCoverage.map((m) => (
               <div key={m.tactic}>
                 <div className="mb-1 flex items-center justify-between text-[11.5px]">
                   <span className="font-medium text-muted-foreground">{m.tactic}</span>
                   <span className="font-semibold tabular-nums">
-                    {m.techniques} tech{m.techniques > 1 ? "s" : ""}
+                    {m.techniques} tech{m.techniques !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -244,11 +260,14 @@ export default function ThreatsPage() {
                   />
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="py-4 text-center text-[12px] text-muted-foreground">
+                No active tactics mapped.
+              </div>
+            )}
           </div>
           <div className="rounded-xl bg-muted/50 p-3 text-[11px] leading-relaxed text-muted-foreground">
-            <span className="font-semibold text-foreground">Aegivion insight:</span> 3 new techniques detected this
-            week — coverage is expanding as telemetry grows.
+            <span className="font-semibold text-foreground">Aegivion insight:</span> {mitreCoverage.length > 0 ? "Coverage is expanding as telemetry grows." : "System is waiting for security events to map to the MITRE ATT&CK framework."}
           </div>
         </motion.div>
       </div>

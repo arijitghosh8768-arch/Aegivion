@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Line,
@@ -15,12 +16,53 @@ import { PageHeader } from "@/components/shared/page-header";
 import { ChartTooltip } from "@/components/shared/chart-tooltip";
 import { SeverityBadge } from "@/components/shared/severity";
 import { Badge } from "@/components/ui/badge";
-import { INCIDENTS, LEARNED_PATTERNS, REPEATED_MISTAKES, MEMORY_TREND } from "@/lib/data/memory";
 import { cn } from "@/lib/utils";
 
 const axisStyle = { fontSize: 10.5, fill: "var(--muted-foreground)" };
 
 export default function SecurityMemoryPage() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/v1/memory");
+        if (res.ok) {
+          setData(await res.json());
+        }
+      } catch (e) {
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Security Memory" description="Loading..." />
+        <div className="flex justify-center py-12">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!data || !data.incidents || data.incidents.length === 0) {
+    return (
+      <div>
+        <PageHeader title="Security Memory" description="No data yet." />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center bg-card mt-6">
+          <BrainCircuit className="mb-3 h-8 w-8 text-muted-foreground" />
+          <h3 className="text-[14px] font-semibold">No data yet</h3>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">Memory engine requires more telemetry to form patterns.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { INCIDENTS = [], LEARNED_PATTERNS = [], REPEATED_MISTAKES = [], MEMORY_TREND = [] } = data;
+
   return (
     <div>
       <PageHeader

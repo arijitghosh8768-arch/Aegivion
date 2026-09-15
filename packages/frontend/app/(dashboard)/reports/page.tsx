@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FileText, Download, Printer, Loader2, Shield, BarChart3, Scale, Radar, Check } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { REPORT_TEMPLATES, REPORT_HISTORY, POSTURE_CSV_ROWS } from "@/lib/data/reports";
 import type { ReportTemplate } from "@/lib/data/reports";
 import { useAppStore } from "@/lib/store";
 
@@ -20,7 +19,26 @@ const ICONS = {
 export default function ReportsPage() {
   const user = useAppStore((s) => s.user);
   const [generating, setGenerating] = useState<string | null>(null);
-  const [recent, setRecent] = useState(REPORT_HISTORY);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [recent, setRecent] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/v1/reports");
+        if (res.ok) {
+          const data = await res.json();
+          setTemplates(data.templates || []);
+          setRecent(data.history || []);
+        }
+      } catch (e) {
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   const generate = (t: ReportTemplate) => {
     setGenerating(t.id);
@@ -42,7 +60,7 @@ export default function ReportsPage() {
   };
 
   const downloadCsv = () => {
-    const csv = POSTURE_CSV_ROWS.map((r) => r.join(",")).join("\n");
+    const csv = "";
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -70,8 +88,17 @@ export default function ReportsPage() {
 
       {/* templates */}
       <h3 className="mb-3 text-[14px] font-semibold">Report templates</h3>
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      ) : templates.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center bg-card">
+          <FileText className="mb-3 h-8 w-8 text-muted-foreground" />
+          <h3 className="text-[14px] font-semibold">No data yet</h3>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">No templates available.</p>
+        </div>
+      ) : (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {REPORT_TEMPLATES.map((t, i) => {
+        {templates.map((t: any, i: number) => {
           const Icon = ICONS[t.icon];
           return (
             <motion.div
@@ -118,9 +145,17 @@ export default function ReportsPage() {
           );
         })}
       </div>
+      )}
 
       {/* history */}
       <h3 className="mb-3 mt-8 text-[14px] font-semibold">Recent reports</h3>
+      {loading ? null : recent.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center bg-card mt-3">
+          <FileText className="mb-3 h-8 w-8 text-muted-foreground" />
+          <h3 className="text-[14px] font-semibold">No data yet</h3>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">No recent reports found.</p>
+        </div>
+      ) : (
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
@@ -149,6 +184,7 @@ export default function ReportsPage() {
           ))}
         </div>
       </motion.div>
+      )}
 
       <div className="mt-6 flex items-start gap-2.5 rounded-2xl border border-border bg-card p-4 shadow-soft">
         <BarChart3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
