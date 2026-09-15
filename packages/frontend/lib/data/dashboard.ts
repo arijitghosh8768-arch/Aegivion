@@ -8,7 +8,7 @@ export const COMMAND_STATS = [
   {
     id: "assets",
     label: "Total Assets",
-    value: 32,
+    value: 0,
     format: "plain",
     subtitle: "Across 3 Clouds",
     icon: "cube" as const,
@@ -18,7 +18,7 @@ export const COMMAND_STATS = [
   {
     id: "critical",
     label: "Critical Risks",
-    value: 2,
+    value: 0,
     format: "plain",
     subtitle: "Immediate attention",
     subtitleTint: "text-destructive",
@@ -29,7 +29,7 @@ export const COMMAND_STATS = [
   {
     id: "compliance",
     label: "Compliance",
-    value: 75,
+    value: 0,
     format: "pct",
     subtitle: "6/8 Compliant",
     subtitleTint: "text-info",
@@ -55,13 +55,13 @@ export const COMMAND_STATS = [
 /* ------------------------------------------------------------------ */
 
 export const RISK_TREND_7D = [
-  { day: "May 06", score: 55 },
-  { day: "May 07", score: 68 },
-  { day: "May 08", score: 48 },
-  { day: "May 09", score: 51 },
-  { day: "May 10", score: 85 },
-  { day: "May 11", score: 70 },
-  { day: "May 12", score: 71 },
+  { day: "May 06", score: 0 },
+  { day: "May 07", score: 0 },
+  { day: "May 08", score: 0 },
+  { day: "May 09", score: 0 },
+  { day: "May 10", score: 0 },
+  { day: "May 11", score: 0 },
+  { day: "May 12", score: 0 },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -76,36 +76,7 @@ export interface LiveThreatItem {
   level: "critical" | "layers" | "network" | "info";
 }
 
-export const LIVE_THREATS: LiveThreatItem[] = [
-  {
-    id: "lt-1",
-    title: "IAM role over-privilege detected",
-    scope: "AWS Production",
-    time: "2m ago",
-    level: "critical",
-  },
-  {
-    id: "lt-2",
-    title: "Unusual API activity",
-    scope: "Azure Environment",
-    time: "5m ago",
-    level: "layers",
-  },
-  {
-    id: "lt-3",
-    title: "Security group - open SSH",
-    scope: "GCP VPC Network",
-    time: "8m ago",
-    level: "network",
-  },
-  {
-    id: "lt-4",
-    title: "Root login attempt",
-    scope: "AWS Production",
-    time: "12m ago",
-    level: "info",
-  },
-];
+export const LIVE_THREATS: LiveThreatItem[] = [];
 
 /* ------------------------------------------------------------------ */
 /* Top risky assets                                                    */
@@ -121,53 +92,16 @@ export interface RiskyAsset {
   kind: "bucket" | "user" | "group" | "vm";
 }
 
-export const TOP_RISKY_ASSETS: RiskyAsset[] = [
-  {
-    id: "ra-1",
-    title: "S3 bucket - public access",
-    scope: "AWS Production",
-    badge: "Critical",
-    score: 90,
-    provider: "aws",
-    kind: "bucket",
-  },
-  {
-    id: "ra-2",
-    title: "IAM user without MFA",
-    scope: "AWS Production",
-    badge: "High",
-    score: 75,
-    provider: "aws",
-    kind: "user",
-  },
-  {
-    id: "ra-3",
-    title: "Security group - open SSH",
-    scope: "Azure Environment",
-    badge: "High",
-    score: 65,
-    provider: "azure",
-    kind: "group",
-  },
-  {
-    id: "ra-4",
-    title: "Public VM with sensitive data",
-    scope: "GCP Project",
-    badge: "Medium",
-    score: 45,
-    provider: "gcp",
-    kind: "vm",
-  },
-];
+export const TOP_RISKY_ASSETS: RiskyAsset[] = [];
 
 /* ------------------------------------------------------------------ */
 /* AI security insight                                                 */
 /* ------------------------------------------------------------------ */
 
 export const AI_INSIGHT = {
-  messageBefore: "I've analyzed your environment and found 1 critical misconfiguration in ",
-  messageHighlight: "AWS S3 bucket policy.",
-  riskLevel: "High",
-  riskBars: 4, // of 6 filled
+  messageBefore: "All systems operational. No critical misconfigurations found.",
+  messageHighlight: "",
+  riskLevel: "Safe",
+  riskBars: 0, // of 6 filled
   totalBars: 6,
 };

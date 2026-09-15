@@ -45,7 +45,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Security",
     items: [
-      { title: "Threats", href: "/threats", icon: TriangleAlert, badge: "3" },
+      { title: "Threats", href: "/threats", icon: TriangleAlert },
       { title: "Detection Engine", href: "/detection-engine", icon: Radar },
       { title: "Threat Correlation", href: "/threat-correlation", icon: Share2 },
       { title: "Prediction", href: "/prediction", icon: TrendingUp },
@@ -63,7 +63,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Response",
     items: [
-      { title: "Remediation", href: "/remediation", icon: Wrench, badge: "5" },
+      { title: "Remediation", href: "/remediation", icon: Wrench },
       { title: "Security Memory", href: "/security-memory", icon: History },
     ],
   },

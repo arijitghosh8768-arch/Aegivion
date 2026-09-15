@@ -171,18 +171,18 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
                   strokeLinecap="round"
                   strokeDasharray={2 * Math.PI * 35}
                   initial={{ strokeDashoffset: 2 * Math.PI * 35 }}
-                  animate={{ strokeDashoffset: 2 * Math.PI * 35 * (1 - 92 / 100) }}
+                  animate={{ strokeDashoffset: 2 * Math.PI * 35 * (1 - 100 / 100) }}
                   transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[22px] font-bold leading-none tracking-tight">92</span>
+                <span className="text-[22px] font-bold leading-none tracking-tight">100</span>
                 <span className="text-[8.5px] font-medium text-muted-foreground">/ 100</span>
               </div>
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[12px] font-bold text-success">Excellent</div>
-              <div className="text-[10px] font-medium text-success">+7.2% vs last week</div>
+              <div className="text-[10px] font-medium text-success">New Environment</div>
               <svg width="100%" height="20" viewBox="0 0 100 20" preserveAspectRatio="none" className="mt-1.5 block">
                 {(() => {
                   const min = Math.min(...SPARK);

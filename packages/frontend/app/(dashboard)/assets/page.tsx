@@ -105,7 +105,7 @@ export default function AssetsPage() {
     <div>
       <PageHeader
         title="Assets"
-        description="Every discovered resource across your cloud estate — 9,182 total."
+        description={`Every discovered resource across your cloud estate — ${ASSETS.length.toLocaleString()} total.`}
       >
         <Button variant="outline" onClick={() => setExposedOnlyView()}>
           <Globe2 className="h-4 w-4" /> Exposed only
