@@ -52,88 +52,10 @@ def get_risk_intelligence(db: Session = Depends(get_db)):
     except Exception:
         pass
 
-    # 2. Mock fallback to ensure the UI is rich and fully operational
+    # Ensure we use empty arrays rather than mock data if DB is empty
     if not real_findings:
-        real_findings = [
-            {
-                "finding_id": "F-00101",
-                "id": "F-00101",
-                "title": "Console-enabled IAM User Without MFA",
-                "description": "IAM user security-admin-01 has console access without Multi-Factor Authentication.",
-                "severity": "high",
-                "status": "open",
-                "asset_id": "iam:user:security-admin-01",
-                "resource_id": "iam:user:security-admin-01",
-                "resource_name": "security-admin-01",
-                "cloud_provider": "aws",
-                "resource_type": "iam_user",
-                "rule_id": "AWS-IAM-001",
-                "evidence": {"console_access": True, "mfa_enabled": False}
-            },
-            {
-                "finding_id": "F-00102",
-                "id": "F-00102",
-                "title": "Privileged IAM User Without MFA",
-                "description": "IAM user security-admin-01 is a privileged administrative account and has no MFA enabled.",
-                "severity": "critical",
-                "status": "open",
-                "asset_id": "iam:user:security-admin-01",
-                "resource_id": "iam:user:security-admin-01",
-                "resource_name": "security-admin-01",
-                "cloud_provider": "aws",
-                "resource_type": "iam_user",
-                "rule_id": "AWS-IAM-007",
-                "evidence": {"is_privileged": True, "mfa_enabled": False}
-            },
-            {
-                "finding_id": "F-00103",
-                "id": "F-00103",
-                "title": "S3 Bucket Publicly Accessible",
-                "description": "S3 bucket public-production-data has public access protection fully disabled.",
-                "severity": "critical",
-                "status": "open",
-                "asset_id": "s3:public-production-data",
-                "resource_id": "s3:public-production-data",
-                "resource_name": "public-production-data",
-                "cloud_provider": "aws",
-                "resource_type": "s3_bucket",
-                "rule_id": "AWS-S3-001",
-                "evidence": {"public_access": True}
-            }
-        ]
-        
-        real_assets = [
-            {
-                "asset_id": "iam:user:security-admin-01",
-                "provider": "aws",
-                "type": "iam_user",
-                "region": "global",
-                "name": "security-admin-01",
-                "configuration": {
-                    "tags": {"Environment": "production", "Criticality": "high"},
-                    "mfa_enabled": False,
-                    "console_access": True,
-                    "is_privileged": True
-                },
-                "metadata": {"collection_status": "complete"}
-            },
-            {
-                "asset_id": "s3:public-production-data",
-                "provider": "aws",
-                "type": "s3_bucket",
-                "region": "us-east-1",
-                "name": "public-production-data",
-                "configuration": {
-                    "tags": {"Environment": "production", "Criticality": "high"},
-                    "public_access": True,
-                    "public_access_block": {
-                        "block_public_acls": False,
-                        "block_public_policy": False
-                    }
-                },
-                "metadata": {"collection_status": "complete"}
-            }
-        ]
+        real_findings = []
+        real_assets = []
 
     # 3. Build context & calculate risk scores
     rel_engine = RelationshipEngine()
