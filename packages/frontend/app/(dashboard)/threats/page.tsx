@@ -7,19 +7,83 @@ import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge, StatusPill } from "@/components/shared/severity";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ALERTS, MITRE_COVERAGE } from "@/lib/data/alerts";
+import { MITRE_COVERAGE } from "@/lib/data/alerts";
 import { cn } from "@/lib/utils";
 import type { Alert } from "@/lib/types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api-client";
 
 export default function ThreatsPage() {
-  const [alerts, setAlerts] = useState(ALERTS);
-  const [expanded, setExpanded] = useState<string | null>(ALERTS[0]?.id ?? null);
+  const queryClient = useQueryClient();
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const { data, isLoading } = useQuery<{ findings: any[] }>({
+    queryKey: ["findings"],
+    queryFn: () => fetchApi("/v1/findings"),
+  });
+
+  const alerts: Alert[] = (data?.findings || []).map((f) => {
+    let status: Alert["status"] = "active";
+    if (f.status?.toLowerCase() === "investigating" || f.status?.toLowerCase() === "acknowledged") {
+      status = "investigating";
+    } else if (f.status?.toLowerCase() === "contained" || f.status?.toLowerCase() === "remediating") {
+      status = "contained";
+    } else if (f.status?.toLowerCase() === "resolved" || f.status?.toLowerCase() === "remediated") {
+      status = "resolved";
+    }
+
+    let techniqueId = "N/A";
+    let tactic = f.resource_type || "Unknown Tactic";
+    let technique = "Unknown Technique";
+
+    if (f.mitre_mappings && f.mitre_mappings.length > 0) {
+      techniqueId = f.mitre_mappings[0].technique_id || techniqueId;
+      tactic = f.mitre_mappings[0].tactic || tactic;
+      technique = f.mitre_mappings[0].technique || technique;
+    }
+
+    return {
+      id: f.id,
+      title: f.title,
+      description: f.description,
+      severity: (f.severity?.toLowerCase() || "medium") as Alert["severity"],
+      status,
+      tactic,
+      technique,
+      techniqueId,
+      source: f.cloud_provider || "Unknown",
+      target: f.resource_name || f.resource_id || "Unknown",
+      account: "unknown",
+      confidence: f.confidence ?? 90,
+      timestamp: f.first_seen || new Date().toISOString(),
+      evidence: Object.entries(f.evidence || {}).map(([k, v]) => `${k}: ${v}`),
+      affectedAssets: [f.resource_name || f.resource_id].filter(Boolean),
+    };
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      return fetchApi(`/v1/findings/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["findings"] });
+    },
+  });
 
   const bySeverity = (s: Alert["severity"]) => alerts.filter((a) => a.severity === s).length;
   const active = alerts.filter((a) => a.status === "active" || a.status === "investigating").length;
 
-  const update = (id: string, status: Alert["status"]) =>
-    setAlerts((as) => as.map((a) => (a.id === id ? { ...a, status } : a)));
+  const update = (id: string, alertStatus: Alert["status"]) => {
+    let findingStatus = "open";
+    if (alertStatus === "investigating") findingStatus = "acknowledged";
+    if (alertStatus === "contained") findingStatus = "remediating";
+    if (alertStatus === "resolved") findingStatus = "resolved";
+
+    updateMutation.mutate({ id, status: findingStatus });
+  };
 
   return (
     <div>
@@ -46,6 +110,16 @@ export default function ThreatsPage() {
       <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
         {/* alert list */}
         <div className="space-y-3">
+          {isLoading && (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              Loading threats...
+            </div>
+          )}
+          {!isLoading && alerts.length === 0 && (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              No threats detected.
+            </div>
+          )}
           {alerts.map((a, i) => (
             <motion.div
               key={a.id}
@@ -97,33 +171,37 @@ export default function ThreatsPage() {
                         Evidence
                       </div>
                       <ul className="space-y-1.5">
-                        {a.evidence.map((ev, j) => (
-                          <li key={j} className="flex gap-1.5 text-[12px] leading-snug text-muted-foreground">
-                            <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-                            {ev}
-                          </li>
-                        ))}
+                        {a.evidence.length > 0 ? (
+                          a.evidence.map((ev, j) => (
+                            <li key={j} className="flex gap-1.5 text-[12px] leading-snug text-muted-foreground">
+                              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+                              {ev}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-[12px] text-muted-foreground italic">No evidence provided.</li>
+                        )}
                       </ul>
                     </div>
                   </div>
                   <div className="mt-4 flex flex-wrap items-center gap-2">
                     {a.status === "active" && (
                       <>
-                        <Button size="sm" onClick={() => update(a.id, "investigating")}>
+                        <Button size="sm" onClick={() => update(a.id, "investigating")} disabled={updateMutation.isPending}>
                           <Radar className="h-3.5 w-3.5" /> Start investigation
                         </Button>
-                        <Button size="sm" variant="success" onClick={() => update(a.id, "contained")}>
+                        <Button size="sm" variant="success" onClick={() => update(a.id, "contained")} disabled={updateMutation.isPending}>
                           <Lock className="h-3.5 w-3.5" /> Contain
                         </Button>
                       </>
                     )}
                     {a.status === "investigating" && (
-                      <Button size="sm" variant="success" onClick={() => update(a.id, "contained")}>
+                      <Button size="sm" variant="success" onClick={() => update(a.id, "contained")} disabled={updateMutation.isPending}>
                         <Lock className="h-3.5 w-3.5" /> Mark contained
                       </Button>
                     )}
                     {(a.status === "contained" || a.status === "investigating") && (
-                      <Button size="sm" variant="outline" onClick={() => update(a.id, "resolved")}>
+                      <Button size="sm" variant="outline" onClick={() => update(a.id, "resolved")} disabled={updateMutation.isPending}>
                         <CheckCircle2 className="h-3.5 w-3.5" /> Resolve
                       </Button>
                     )}
@@ -202,7 +280,9 @@ function SummaryCard({
 
 function timeShort(iso: string) {
   const d = new Date(iso);
+  if (isNaN(d.getTime())) return "Unknown time";
   const mins = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
   if (mins < 60) return `${mins}m ago`;
   return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
+

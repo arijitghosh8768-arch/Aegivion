@@ -74,6 +74,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
           
           const filteredItems = section.items.filter(item => {
             if (item.title === "Cloud Accounts" && !isAdmin) return false;
+            if (item.href === "/admin" && displayRole.toLowerCase() !== "super admin" && displayRole.toLowerCase() !== "superadmin") return false;
             return true;
           });
           

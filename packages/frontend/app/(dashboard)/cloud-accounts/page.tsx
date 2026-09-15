@@ -22,6 +22,10 @@ import { CLOUD_ACCOUNTS } from "@/lib/data/providers";
 import { PROVIDER_META } from "@/lib/data/providers";
 import { cn } from "@/lib/utils";
 import type { CloudAccount, ProviderId } from "@/lib/types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api-client";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const STATUS_UI: Record<CloudAccount["status"], string> = {
   connected: "Connected",
@@ -30,50 +34,77 @@ const STATUS_UI: Record<CloudAccount["status"], string> = {
 };
 
 export default function CloudAccountsPage() {
-  const [accounts, setAccounts] = useState(CLOUD_ACCOUNTS);
   const [connectOpen, setConnectOpen] = useState(false);
   const [connectStep, setConnectStep] = useState(0);
-  const [connecting, setConnecting] = useState(false);
   const [scanning, setScanning] = useState<string | null>(null);
+
+  const [selectedProvider, setSelectedProvider] = useState<ProviderId>("aws");
+  const [accessKey, setAccessKey] = useState("");
+  const [secretKey, setSecretKey] = useState("");
+
+  const queryClient = useQueryClient();
+
+  const { data: accountsData, isLoading } = useQuery<{ success: boolean; data: Record<string, unknown>[] }>({
+    queryKey: ["cloud_accounts"],
+    queryFn: () => fetchApi("/v1/cloud_accounts"),
+  });
+
+  const accounts: CloudAccount[] = (accountsData?.data || []).map((acc: any) => ({
+    id: acc.id || "unknown",
+    provider: (acc.provider as ProviderId) || "aws",
+    name: acc.account_name || "Unknown",
+    accountId: acc.account_id || "Unknown",
+    status: acc.connection_status?.toLowerCase() === "failed" ? "error" : "connected",
+    regions: acc.default_region ? 1 : 0,
+    lastScan: new Date().toISOString(),
+    resources: 0,
+    findings: 0,
+    critical: 0,
+    healthScore: 100,
+    coverage: ["EC2", "S3", "IAM"],
+    plan: "Pro",
+  }));
 
   const total = accounts.length;
   const connected = accounts.filter((a) => a.status === "connected").length;
   const critical = accounts.reduce((s, a) => s + a.critical, 0);
   const avgHealth = Math.round(accounts.reduce((s, a) => s + a.healthScore, 0) / total);
 
+  const connectMutation = useMutation({
+    mutationFn: async () => {
+      if (selectedProvider === "aws") {
+        return fetchApi("/v1/cloud_accounts", {
+          method: "POST",
+          body: JSON.stringify({
+            account_name: "My AWS",
+            provider: "aws",
+            account_id: "auto",
+            default_region: "us-east-1",
+            aws_access_key_id: accessKey,
+            aws_secret_access_key: secretKey,
+          }),
+        });
+      }
+      throw new Error("Only AWS is supported in this demo.");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cloud_accounts"] });
+      setConnectOpen(false);
+      setConnectStep(0);
+      setAccessKey("");
+      setSecretKey("");
+    },
+    onError: (error: Error) => {
+      alert("Error: " + error.message);
+    }
+  });
+
   const runScan = (id: string) => {
     setScanning(id);
     setTimeout(() => {
       setScanning(null);
-      setAccounts((as) => as.map((a) => (a.id === id ? { ...a, lastScan: new Date().toISOString(), status: "connected" } : a)));
+      // In a real app we'd trigger a mutation here too
     }, 1600);
-  };
-
-  const connectAccount = () => {
-    setConnecting(true);
-    setTimeout(() => {
-      setConnecting(false);
-      setConnectOpen(false);
-      setConnectStep(0);
-      setAccounts((as) => [
-        {
-          id: `acct-${Date.now()}`,
-          provider: "aws" as ProviderId,
-          name: "Acme Analytics (AWS)",
-          accountId: "3301-8821-4417",
-          status: "connected",
-          regions: 4,
-          lastScan: new Date().toISOString(),
-          resources: 128,
-          findings: 0,
-          critical: 0,
-          healthScore: 94,
-          coverage: ["EC2", "S3", "IAM", "Athena", "Glue"],
-          plan: "Pro",
-        },
-        ...as,
-      ]);
-    }, 1800);
   };
 
   return (
@@ -171,7 +202,7 @@ export default function CloudAccountsPage() {
       </div>
 
       {/* connect dialog */}
-      <Dialog open={connectOpen} onOpenChange={(o) => !connecting && setConnectOpen(o)}>
+      <Dialog open={connectOpen} onOpenChange={(o) => !connectMutation.isPending && setConnectOpen(o)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Connect a cloud account</DialogTitle>
@@ -186,7 +217,7 @@ export default function CloudAccountsPage() {
               {(Object.keys(PROVIDER_META) as ProviderId[]).map((p) => (
                 <button
                   key={p}
-                  onClick={() => setConnectStep(1)}
+                  onClick={() => { setSelectedProvider(p); setConnectStep(1); }}
                   className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-left transition hover:border-primary/40 hover:bg-primary/5"
                 >
                   <ProviderMark provider={p} size={40} />
@@ -204,35 +235,61 @@ export default function CloudAccountsPage() {
 
           {connectStep === 1 && (
             <div className="space-y-4 py-2">
-              <StepRow n={1} title="Launch the template" done>
-                Run the Aegivion read-only role template in your provider console.
-              </StepRow>
-              <StepRow n={2} title="Paste the external ID" active>
-                Copy the external ID <Code className="mx-1">aegivion-7f3a-2026</Code> into the template parameter to
-                prevent confused-deputy attacks.
-              </StepRow>
-              <StepRow n={3} title="Verify connection" />
-              <div className="rounded-xl bg-muted/50 p-3 text-[11.5px] leading-relaxed text-muted-foreground">
-                Aegivion will discover resources within ~2 minutes. No write permissions are granted — remediation
-                flows use your existing CI/CD identity.
-              </div>
+              {selectedProvider === "aws" ? (
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="accessKey">AWS Access Key ID</Label>
+                    <Input
+                      id="accessKey"
+                      value={accessKey}
+                      onChange={(e) => setAccessKey(e.target.value)}
+                      placeholder="AKIA..."
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="secretKey">AWS Secret Access Key</Label>
+                    <Input
+                      id="secretKey"
+                      type="password"
+                      value={secretKey}
+                      onChange={(e) => setSecretKey(e.target.value)}
+                      placeholder="••••••••••••••••••••••••"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <StepRow n={1} title="Launch the template" done>
+                    Run the Aegivion read-only role template in your provider console.
+                  </StepRow>
+                  <StepRow n={2} title="Paste the external ID" active>
+                    Copy the external ID <Code className="mx-1">aegivion-7f3a-2026</Code> into the template parameter to
+                    prevent confused-deputy attacks.
+                  </StepRow>
+                  <StepRow n={3} title="Verify connection" />
+                  <div className="rounded-xl bg-muted/50 p-3 text-[11.5px] leading-relaxed text-muted-foreground">
+                    Aegivion will discover resources within ~2 minutes. No write permissions are granted — remediation
+                    flows use your existing CI/CD identity.
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           <DialogFooter>
             {connectStep === 1 && (
-              <Button variant="ghost" onClick={() => setConnectStep(0)} disabled={connecting}>
+              <Button variant="ghost" onClick={() => setConnectStep(0)} disabled={connectMutation.isPending}>
                 Back
               </Button>
             )}
             {connectStep === 1 && (
-              <Button variant="gradient" onClick={connectAccount} disabled={connecting}>
-                {connecting ? (
+              <Button variant="gradient" onClick={() => connectMutation.mutate()} disabled={connectMutation.isPending}>
+                {connectMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Verifying…
                   </>
                 ) : (
-                  "I've deployed the template"
+                  "Connect"
                 )}
               </Button>
             )}

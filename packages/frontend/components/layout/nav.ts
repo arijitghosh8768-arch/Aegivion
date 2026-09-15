@@ -14,8 +14,9 @@ import {
   TrendingUp,
   Wrench,
   History,
-  Cloud,
   Users,
+  ShieldCheck,
+  Cloud,
   type LucideIcon,
 } from "lucide-react";
 
@@ -77,7 +78,8 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "Admin",
     items: [
       { title: "Team", href: "/team", icon: Users },
-      { title: "Settings", href: "/settings", icon: Settings }
+      { title: "Settings", href: "/settings", icon: Settings },
+      { title: "Global Orgs", href: "/admin", icon: ShieldCheck }
     ],
   },
 ];

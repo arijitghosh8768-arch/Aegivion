@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -83,6 +84,31 @@ const THREAT_META = {
 } as const;
 
 export function LiveThreatFeed({ className }: { className?: string }) {
+  const { data: threats = [], isLoading } = useQuery({
+    queryKey: ["live-threats"],
+    queryFn: async () => {
+      const res = await fetch("/api/v1/findings?limit=5");
+      if (!res.ok) throw new Error("Failed to fetch findings");
+      const json = await res.json();
+      return (json.findings || []).slice(0, 5).map((f: any) => {
+        let level = "info";
+        const sev = f.severity?.toLowerCase();
+        if (sev === "critical") level = "critical";
+        else if (sev === "high") level = "layers";
+        else if (sev === "medium") level = "network";
+
+        return {
+          id: f.id,
+          level,
+          title: f.title,
+          scope: `${f.resource_type || "Resource"} • ${(f.cloud_provider || "Cloud").toUpperCase()}`,
+          time: "Just now",
+        };
+      });
+    },
+    refetchInterval: 10000, // optionally poll
+  });
+
   return (
     <div className={cn("flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft", className)}>
       <div className="flex items-center justify-between">
@@ -94,28 +120,34 @@ export function LiveThreatFeed({ className }: { className?: string }) {
       <p className="mt-0.5 text-[11px] text-muted-foreground">Real-time security events</p>
 
       <div className="mt-3 flex flex-1 flex-col justify-between gap-1">
-        {LIVE_THREATS.map((t, i) => {
-          const meta = THREAT_META[t.level];
-          const Icon = meta.icon;
-          return (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.05 * i }}
-              className="flex items-center gap-3 rounded-xl px-1.5 py-2 transition hover:bg-muted/50"
-            >
-              <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", meta.cls)}>
-                <Icon className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[12px] font-semibold">{t.title}</div>
-                <div className="truncate text-[10.5px] text-muted-foreground">{t.scope}</div>
-              </div>
-              <span className="shrink-0 text-[10.5px] font-medium tabular-nums text-muted-foreground">{t.time}</span>
-            </motion.div>
-          );
-        })}
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Loading...</div>
+        ) : threats.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No recent threats.</div>
+        ) : (
+          threats.map((t: any, i: number) => {
+            const meta = THREAT_META[t.level as keyof typeof THREAT_META] || THREAT_META.info;
+            const Icon = meta.icon;
+            return (
+              <motion.div
+                key={t.id}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05 * i }}
+                className="flex items-center gap-3 rounded-xl px-1.5 py-2 transition hover:bg-muted/50"
+              >
+                <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", meta.cls)}>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[12px] font-semibold">{t.title}</div>
+                  <div className="truncate text-[10.5px] text-muted-foreground">{t.scope}</div>
+                </div>
+                <span className="shrink-0 text-[10.5px] font-medium tabular-nums text-muted-foreground">{t.time}</span>
+              </motion.div>
+            );
+          })
+        )}
       </div>
     </div>
   );

@@ -4,8 +4,9 @@ import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Search, X, ShieldAlert, Globe2, ChevronLeft, ChevronRight, Boxes } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api-client";
 import { PageHeader } from "@/components/shared/page-header";
-import { UnifiedTable } from "@/components/inventory/unified-table";
 import { ProviderMark } from "@/components/shared/provider-mark";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,10 +25,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ASSETS } from "@/lib/data/assets";
-import { ASSET_TYPES } from "@/lib/data/assets";
 import { cn } from "@/lib/utils";
-import type { Asset } from "@/lib/types";
+import type { Asset, ProviderId } from "@/lib/types";
 
 const PAGE = 8;
 
@@ -36,6 +35,10 @@ export default function AssetsPage() {
   const [query, setQuery] = useState("");
   const [provider, setProvider] = useState<string>("all");
   const [type, setType] = useState<string>("all");
+  const [risk, setRisk] = useState<string>("all");
+  const [exposedOnly] = useState(() => typeof window !== "undefined" && window.location.search.includes("filter=exposed"));
+  const [selected, setSelected] = useState<Asset | null>(null);
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     const search = new URLSearchParams(window.location.search);
@@ -44,10 +47,34 @@ export default function AssetsPage() {
     if (p) setProvider(p);
     if (t) setType(t);
   }, []);
-  const [risk, setRisk] = useState<string>("all");
-  const [exposedOnly] = useState(() => typeof window !== "undefined" && window.location.search.includes("filter=exposed"));
-  const [selected, setSelected] = useState<Asset | null>(null);
-  const [page, setPage] = useState(0);
+
+  const { data: rawData, isLoading } = useQuery({
+    queryKey: ["assets"],
+    queryFn: () => fetchApi<{ assets: any[] }>("/v1/assets"),
+  });
+
+  const ASSETS = useMemo<Asset[]>(() => {
+    if (!rawData?.assets) return [];
+    return rawData.assets.map((a: any) => ({
+      id: a.resource_id || a.id || "unknown",
+      name: a.name || "Unknown Asset",
+      type: a.type || "unknown",
+      provider: (a.provider?.toLowerCase() || "aws") as ProviderId,
+      region: a.region || "unknown",
+      account: a.account || "unknown",
+      riskScore: a.business_criticality === "HIGH" ? 85 : a.business_criticality === "MEDIUM" ? 50 : 20,
+      critical: a.business_criticality === "HIGH" || a.environment === "PRODUCTION",
+      publicExposed: a.internet_exposed === true,
+      tags: [a.environment, a.department, a.application].filter(Boolean) as string[],
+      lastSeen: a.last_seen || a.updated_at || "Unknown",
+      owner: a.owner || "Unknown",
+      services: [a.application].filter(Boolean) as string[],
+    }));
+  }, [rawData]);
+
+  const ASSET_TYPES = useMemo(() => {
+    return Array.from(new Set(ASSETS.map((a) => a.type))).sort();
+  }, [ASSETS]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -63,7 +90,7 @@ export default function AssetsPage() {
       if (exposedOnly && !a.publicExposed) return false;
       return true;
     });
-  }, [query, provider, type, risk, exposedOnly]);
+  }, [query, provider, type, risk, exposedOnly, ASSETS]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const safePage = Math.min(page, pages - 1);
@@ -109,9 +136,6 @@ export default function AssetsPage() {
         ))}
       </div>
 
-      <div className="mb-8">
-        <UnifiedTable />
-      </div>
 
       {/* filters */}
       <div className="mb-4 flex flex-wrap items-center gap-2.5">

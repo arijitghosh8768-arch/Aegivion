@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown, ArrowRight, Settings2, Lock, ShieldAlert, MonitorSmartphone } from "lucide-react";
@@ -93,6 +94,44 @@ const PROVIDER_LABEL: Record<ProviderId, string> = {
 };
 
 export function TopRiskyAssets({ className }: { className?: string }) {
+  const { data: assets = [], isLoading } = useQuery({
+    queryKey: ["top-risky-assets"],
+    queryFn: async () => {
+      const res = await fetch("/api/v1/assets?sort=risk_score&limit=5");
+      if (!res.ok) throw new Error("Failed to fetch assets");
+      const json = await res.json();
+      return (json.assets || []).slice(0, 5).map((a: any) => {
+        let kind = "group";
+        const t = (a.type || "").toLowerCase();
+        if (t.includes("bucket") || t.includes("storage") || t.includes("s3")) kind = "bucket";
+        else if (t.includes("user") || t.includes("iam")) kind = "user";
+        else if (t.includes("instance") || t.includes("vm") || t.includes("compute") || t.includes("ec2")) kind = "vm";
+
+        let badge = "Medium";
+        const crit = (a.business_criticality || "").toLowerCase();
+        if (crit === "critical") badge = "Critical";
+        else if (crit === "high") badge = "High";
+        else if (crit === "low") badge = "Low";
+
+        let provider = (a.provider || "aws").toLowerCase();
+        if (!PROVIDER_LABEL[provider as ProviderId]) {
+          provider = "aws";
+        }
+
+        return {
+          id: a.id,
+          kind,
+          title: a.name || a.resource_id,
+          provider: provider as ProviderId,
+          scope: `${PROVIDER_LABEL[provider as ProviderId]} ${a.region || "global"} • ${a.environment || "Production"}`,
+          badge,
+          score: a.risk_score || (badge === "Critical" ? 92 : badge === "High" ? 78 : 55),
+        };
+      });
+    },
+    refetchInterval: 10000,
+  });
+
   return (
     <div className={cn("flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft", className)}>
       <div className="flex items-center justify-between">
@@ -103,41 +142,47 @@ export function TopRiskyAssets({ className }: { className?: string }) {
       </div>
 
       <div className="mt-2 flex-1 divide-y divide-border/60">
-        {TOP_RISKY_ASSETS.map((a, i) => {
-          const kind = KIND_META[a.kind];
-          const Icon = kind.icon;
-          return (
-            <Link
-              key={a.id}
-              href={a.kind === "vm" ? "/assets?filter=exposed" : a.kind === "user" ? "/identities" : "/detection-engine"}
-              className="group flex items-center gap-3 py-2.5 transition"
-            >
-              <motion.span
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.06 }}
-                className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", kind.bg)}
-                style={{ color: kind.color }}
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center py-4 text-sm text-muted-foreground">Loading...</div>
+        ) : assets.length === 0 ? (
+          <div className="flex h-full items-center justify-center py-4 text-sm text-muted-foreground">No risky assets.</div>
+        ) : (
+          assets.map((a: any, i: number) => {
+            const kind = KIND_META[a.kind] || KIND_META.group;
+            const Icon = kind.icon;
+            return (
+              <Link
+                key={a.id}
+                href={a.kind === "vm" ? "/assets?filter=exposed" : a.kind === "user" ? "/identities" : "/detection-engine"}
+                className="group flex items-center gap-3 py-2.5 transition"
               >
-                <Icon className="h-4 w-4" />
-              </motion.span>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[12px] font-semibold transition group-hover:text-primary">{a.title}</div>
-                <div className="truncate text-[10.5px] text-muted-foreground">
-                  {PROVIDER_LABEL[a.provider]} {a.scope.replace(PROVIDER_LABEL[a.provider], "").trim()}
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.06 }}
+                  className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", kind.bg)}
+                  style={{ color: kind.color }}
+                >
+                  <Icon className="h-4 w-4" />
+                </motion.span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[12px] font-semibold transition group-hover:text-primary">{a.title}</div>
+                  <div className="truncate text-[10.5px] text-muted-foreground">
+                    {a.scope}
+                  </div>
                 </div>
-              </div>
-              <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold", BADGE_TINT[a.badge])}>
-                {a.badge}
-              </span>
-              <span className="flex shrink-0 items-center gap-2 border-l border-border pl-2.5">
-                <span className="w-7 text-right text-[13px] font-bold tabular-nums" style={{ color: kind.color }}>
-                  <CountUp value={a.score} />
+                <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold", BADGE_TINT[a.badge] || BADGE_TINT.Medium)}>
+                  {a.badge}
                 </span>
-              </span>
-            </Link>
-          );
-        })}
+                <span className="flex shrink-0 items-center gap-2 border-l border-border pl-2.5">
+                  <span className="w-7 text-right text-[13px] font-bold tabular-nums" style={{ color: kind.color }}>
+                    <CountUp value={a.score} />
+                  </span>
+                </span>
+              </Link>
+            );
+          })
+        )}
       </div>
     </div>
   );

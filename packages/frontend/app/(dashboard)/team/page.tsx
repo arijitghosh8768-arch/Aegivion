@@ -22,7 +22,7 @@ export default function TeamPage() {
     // Only admins can view this page
     if (user && user.role !== "admin" && user.role !== "superadmin") {
       router.push("/");
-    } else if (user && user.organization_id) {
+    } else if (user && user.company) {
       fetchInvites();
     }
   }, [user]);
@@ -31,7 +31,7 @@ export default function TeamPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("aegivion_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com"}/api/v1/orgs/${user?.organization_id}/invitations`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com"}/api/v1/orgs/${user?.company}/invitations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -51,7 +51,7 @@ export default function TeamPage() {
     setInviting(true);
     try {
       const token = localStorage.getItem("aegivion_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com"}/api/v1/orgs/${user?.organization_id}/invitations`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com"}/api/v1/orgs/${user?.company}/invitations`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ email, role })

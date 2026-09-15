@@ -9,10 +9,11 @@ export async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `/api${endpoint}`;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com";
+  const url = `${baseUrl}/api${endpoint}`;
 
   // Use a JWT token if it exists in local storage
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("aegivion_token") : null;
 
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
@@ -36,7 +37,7 @@ export async function fetchApi<T>(
     
     // Auto logout on 401
     if (response.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("token");
+      localStorage.removeItem("aegivion_token");
       window.location.href = "/login";
     }
 
