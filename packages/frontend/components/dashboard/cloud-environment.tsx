@@ -103,7 +103,7 @@ type Selection = { kind: "node"; node: EnvNode } | { kind: "core" };
 export function CloudEnvironment({ className }: { className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<SVGGElement>(null);
-  const labelRefs = useRef<Record<string, SVGGElement>>({});
+  const labelRefs = useRef<Record<string, SVGGElement | null>>({});
 
   const { data: telemetry } = useQuery<{ asset_count: number }>({
     queryKey: ["risk-intelligence"],
