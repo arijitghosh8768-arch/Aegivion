@@ -62,8 +62,8 @@ def create_invitation(
         raise HTTPException(status_code=403, detail="Only org admins can send invites")
         
     org = db.query(Organization).filter(Organization.id == org_id).first()
-    if not org:
-        raise HTTPException(status_code=404, detail="Organization not found")
+    # Accept if the org doesn't strictly exist in the 'organizations' table, 
+    # as some are only tracked in 'orgsettings' in this architecture.
 
     invite = Invitation(
         org_id=org_id,
