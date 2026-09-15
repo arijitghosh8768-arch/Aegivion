@@ -24,6 +24,13 @@ export function RiskTrend({ className }: { className?: string }) {
     return () => clearTimeout(t);
   }, []);
 
+  const { data: telemetry } = useQuery<{ asset_count: number }>({
+    queryKey: ["risk-intelligence"],
+    queryFn: () => fetchApi("/v1/risk/intelligence"),
+  });
+
+  const hasData = (telemetry?.asset_count ?? 0) > 0;
+
   return (
     <div className={cn("flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft", className)}>
       <div className="flex items-center justify-between">
@@ -35,7 +42,14 @@ export function RiskTrend({ className }: { className?: string }) {
 
       <div className="mt-2 flex-1">
         {!mounted && <div className="h-[230px] w-full" />}
-        {mounted && <ResponsiveContainer width="100%" height={230}>
+        {mounted && !hasData && (
+          <div className="flex h-[230px] w-full flex-col items-center justify-center text-center">
+            <ShieldAlert className="mb-2 h-8 w-8 text-muted-foreground/30" />
+            <p className="text-[13px] font-medium">No history available</p>
+            <p className="text-[11.5px] text-muted-foreground">Connect environments to track risk over time.</p>
+          </div>
+        )}
+        {mounted && hasData && <ResponsiveContainer width="100%" height={230}>
           <AreaChart data={RISK_TREND_7D} margin={{ top: 8, right: 8, left: -22, bottom: 0 }}>
             <defs>
               <linearGradient id="risk7-grad" x1="0" y1="0" x2="0" y2="1">

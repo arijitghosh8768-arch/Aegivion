@@ -28,6 +28,8 @@ import {
   Sparkles,
   CheckCircle2,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api-client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ScoreRing } from "@/components/shared/score-ring";
@@ -99,12 +101,19 @@ interface ViewState {
 type Selection = { kind: "node"; node: EnvNode } | { kind: "core" };
 
 export function CloudEnvironment({ className }: { className?: string }) {
-  const sceneRef = useRef<SVGGElement>(null);
-  const labelRefs = useRef<Record<string, SVGGElement | null>>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<SVGGElement>(null);
+  const labelRefs = useRef<Record<string, SVGGElement>>({});
+
+  const { data: telemetry } = useQuery<{ asset_count: number }>({
+    queryKey: ["risk-intelligence"],
+    queryFn: () => fetchApi("/v1/risk/intelligence"),
+    refetchInterval: 30000,
+  });
+
   const state = useRef<ViewState>({
     rot: 0,
-    zoom: 1,
+    zoom: 0.9,
     panX: 0,
     panY: 0,
     dragging: false,
@@ -119,6 +128,23 @@ export function CloudEnvironment({ className }: { className?: string }) {
   const [zoomPct, setZoomPct] = useState(100);
   const [auto, setAuto] = useState(true);
   const [spinning, setSpinning] = useState(false);
+
+  if (telemetry && telemetry.asset_count === 0) {
+    return (
+      <div className={cn("relative flex h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-card", className)}>
+        <div className="flex h-full flex-col items-center justify-center text-center p-8">
+           <CloudCog className="h-12 w-12 text-muted-foreground/30 mb-4" />
+           <h3 className="text-[16px] font-semibold">No Environments Connected</h3>
+           <p className="mt-2 text-[13px] max-w-sm text-muted-foreground">
+             Connect your first cloud provider to automatically visualize your topology and scan for risks.
+           </p>
+           <Link href="/cloud-topology" className="mt-5 inline-flex items-center justify-center h-9 px-4 text-[13px] font-medium text-white bg-brand-gradient rounded-lg shadow-soft transition hover:brightness-110">
+             Connect Provider
+           </Link>
+        </div>
+      </div>
+    );
+  }
 
   /* 360-degree continuous rotation render loop — keeps node labels upright while the ring rotates. */
   useEffect(() => {

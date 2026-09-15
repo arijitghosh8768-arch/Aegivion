@@ -67,8 +67,8 @@ export default function AiCopilotPage() {
             <h3 className="text-[13.5px] font-semibold">Context window</h3>
             <div className="mt-2.5 space-y-2 text-[11.5px] text-muted-foreground">
               {[
-                ["Live telemetry", "1.2M events/min"],
-                ["Workspace", "Acme Corp — Production"],
+                ["Live telemetry", "Connected to API"],
+                ["Environment", "Production"],
                 ["Time range", "Last 30 days"],
                 ["Guardrails", "Read-only · explainable"],
               ].map(([k, v]) => (

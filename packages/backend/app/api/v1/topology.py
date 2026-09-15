@@ -25,22 +25,9 @@ def get_topology(
     if user_org_id:
         relationships = [r for r in relationships if str(getattr(r, 'organization_id', '')) == str(user_org_id)]
 
-    # Fallback to Mock Topology matching the controlled scenario if DB is empty
+    # Remove Mock Topology fallback to prevent demo data from rendering when DB is empty.
     if not assets:
-        mock_nodes = [
-            {"id": "aws:vpc:vpc-0101", "type": "VPC", "label": "production-vpc"},
-            {"id": "aws:subnet:subnet-0202", "type": "Subnet", "label": "public-subnet-a"},
-            {"id": "aws:ec2:i-example", "type": "EC2", "label": "production-web-server"},
-            {"id": "aws:sg:sg-example", "type": "SecurityGroup", "label": "web-security-group"},
-            {"id": "aws:igw:igw-0303", "type": "InternetGateway", "label": "vpc-igw"}
-        ]
-        mock_edges = [
-            {"source": "aws:vpc:vpc-0101", "target": "aws:subnet:subnet-0202", "type": "CONTAINS"},
-            {"source": "aws:subnet:subnet-0202", "target": "aws:ec2:i-example", "type": "CONTAINS"},
-            {"source": "aws:ec2:i-example", "target": "aws:sg:sg-example", "type": "PROTECTED_BY"},
-            {"source": "aws:igw:igw-0303", "target": "aws:vpc:vpc-0101", "type": "ATTACHED_TO"}
-        ]
-        return {"nodes": mock_nodes, "edges": mock_edges}
+        return {"nodes": [], "edges": []}
 
     # Map DB assets/relationships to nodes/edges
     nodes = []
