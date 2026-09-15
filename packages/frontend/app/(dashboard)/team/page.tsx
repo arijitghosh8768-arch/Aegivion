@@ -31,7 +31,7 @@ export default function TeamPage() {
   const fetchInvites = async () => {
     setLoading(true);
     try {
-      const res = await fetchApi(`/v1/orgs/${user?.company}/invitations`);
+      const res = await fetchApi<any>(`/v1/orgs/${user?.company}/invitations`);
       if (res) {
         setInvites(res.data || []);
       }

@@ -47,7 +47,7 @@ export function AiPanel({ className, expanded = false }: { className?: string; e
 
     try {
       const { fetchApi } = await import("@/lib/api-client");
-      const res = await fetchApi("/v1/ai/chat", {
+      const res = await fetchApi<any>("/v1/ai/chat", {
         method: "POST",
         body: JSON.stringify({
           message: trimmed,

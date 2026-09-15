@@ -124,7 +124,7 @@ export default function RemediationPage() {
         <div className="space-y-3">
         {plans.map((plan: any, i: number) => {
           const f = plan.finding;
-          const meta = IMPACT[f.severity];
+          const meta = IMPACT[f.severity as keyof typeof IMPACT] || IMPACT["low"];
           const isOpen = expanded === f.id;
           return (
             <motion.div

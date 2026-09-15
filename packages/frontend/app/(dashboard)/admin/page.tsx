@@ -36,7 +36,7 @@ export default function SuperAdminPage() {
   const fetchOrgs = async () => {
     setLoading(true);
     try {
-      const res = await fetchApi("/v1/admin/orgs");
+      const res = await fetchApi<any>("/v1/admin/orgs");
       if (res) {
         setOrgs(res.data || []);
       }

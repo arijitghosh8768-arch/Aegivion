@@ -108,7 +108,7 @@ export default function SecurityMemoryPage() {
             <History className="h-4 w-4 text-primary" /> Historical incidents
           </h3>
           <div className="space-y-3">
-            {INCIDENTS.map((inc) => (
+            {INCIDENTS.map((inc: any) => (
               <div key={inc.id} className="card-hover rounded-2xl border border-border bg-card p-4 shadow-soft">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
@@ -143,7 +143,7 @@ export default function SecurityMemoryPage() {
             <BrainCircuit className="h-4 w-4 text-primary" /> Learned patterns
           </h3>
           <div className="space-y-3">
-            {LEARNED_PATTERNS.map((p) => (
+            {LEARNED_PATTERNS.map((p: any) => (
               <div key={p.id} className="rounded-2xl border border-border bg-card p-4 shadow-soft transition hover:border-primary/30">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function SecurityMemoryPage() {
           </h3>
           <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
             <div className="divide-y divide-border/60">
-              {REPEATED_MISTAKES.map((m) => (
+              {REPEATED_MISTAKES.map((m: any) => (
                 <div key={m.mistake} className="flex items-center gap-3 px-4 py-3">
                   <span
                     className={cn(

@@ -99,7 +99,7 @@ export default function ReportsPage() {
       ) : (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {templates.map((t: any, i: number) => {
-          const Icon = ICONS[t.icon];
+          const Icon = ICONS[t.icon as keyof typeof ICONS] || ICONS["shield"];
           return (
             <motion.div
               key={t.id}
@@ -121,7 +121,7 @@ export default function ReportsPage() {
                 <Badge variant="soft">{t.cadence}</Badge>
               </div>
               <div className="mt-3 space-y-1">
-                {t.sections.slice(0, 3).map((s) => (
+                {t.sections.slice(0, 3).map((s: string) => (
                   <div key={s} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <Check className="h-3 w-3 text-success" /> {s}
                   </div>
