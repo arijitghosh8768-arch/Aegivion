@@ -129,22 +129,6 @@ export function CloudEnvironment({ className }: { className?: string }) {
   const [auto, setAuto] = useState(true);
   const [spinning, setSpinning] = useState(false);
 
-  if (telemetry && telemetry.asset_count === 0) {
-    return (
-      <div className={cn("relative flex h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-card", className)}>
-        <div className="flex h-full flex-col items-center justify-center text-center p-8">
-           <CloudCog className="h-12 w-12 text-muted-foreground/30 mb-4" />
-           <h3 className="text-[16px] font-semibold">No Environments Connected</h3>
-           <p className="mt-2 text-[13px] max-w-sm text-muted-foreground">
-             Connect your first cloud provider to automatically visualize your topology and scan for risks.
-           </p>
-           <Link href="/cloud-topology" className="mt-5 inline-flex items-center justify-center h-9 px-4 text-[13px] font-medium text-white bg-brand-gradient rounded-lg shadow-soft transition hover:brightness-110">
-             Connect Provider
-           </Link>
-        </div>
-      </div>
-    );
-  }
 
   /* 360-degree continuous rotation render loop — keeps node labels upright while the ring rotates. */
   useEffect(() => {
@@ -312,6 +296,22 @@ export function CloudEnvironment({ className }: { className?: string }) {
     return { d: `M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`, ex, ey };
   };
 
+  if (telemetry && telemetry.asset_count === 0) {
+    return (
+      <div className={cn("relative flex h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-card", className)}>
+        <div className="flex h-full flex-col items-center justify-center text-center p-8">
+           <CloudCog className="h-12 w-12 text-muted-foreground/30 mb-4" />
+           <h3 className="text-[16px] font-semibold">No Environments Connected</h3>
+           <p className="mt-2 text-[13px] max-w-sm text-muted-foreground">
+             Connect your first cloud provider to automatically visualize your topology and scan for risks.
+           </p>
+           <Link href="/cloud-topology" className="mt-5 inline-flex items-center justify-center h-9 px-4 text-[13px] font-medium text-white bg-brand-gradient rounded-lg shadow-soft transition hover:brightness-110">
+             Connect Provider
+           </Link>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={cn("flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft", className)}>
       {/* Header */}
