@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { fetchApi } from "@/lib/api-client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,13 +36,9 @@ export default function SuperAdminPage() {
   const fetchOrgs = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("aegivion_token");
-      const res = await fetch((process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com") + "/api/v1/admin/orgs", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setOrgs(data.data || []);
+      const res = await fetchApi("/v1/admin/orgs");
+      if (res) {
+        setOrgs(res.data || []);
       }
     } catch (e) {
       console.error(e);
@@ -55,13 +52,11 @@ export default function SuperAdminPage() {
     if (!orgName) return;
     setCreatingOrg(true);
     try {
-      const token = localStorage.getItem("aegivion_token");
-      const res = await fetch((process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com") + "/api/v1/admin/orgs", {
+      const res = await fetchApi("/v1/admin/orgs", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name: orgName })
       });
-      if (res.ok) {
+      if (res) {
         setOrgName("");
         fetchOrgs();
       }
@@ -75,10 +70,8 @@ export default function SuperAdminPage() {
     if (!adminEmail || !adminPassword || !selectedOrgId) return;
     setCreatingAdmin(true);
     try {
-      const token = localStorage.getItem("aegivion_token");
-      const res = await fetch((process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com") + "/api/v1/admin/users", {
+      const res = await fetchApi("/v1/admin/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ 
           email: adminEmail, 
           password: adminPassword, 
@@ -86,13 +79,12 @@ export default function SuperAdminPage() {
           role: "admin"
         })
       });
-      if (res.ok) {
+      if (res) {
         setAdminEmail("");
         setAdminPassword("");
         alert("Org Admin created successfully!");
       } else {
-        const err = await res.json();
-        alert(err.detail || "Failed to create user");
+        alert("Failed to create user");
       }
     } finally {
       setCreatingAdmin(false);

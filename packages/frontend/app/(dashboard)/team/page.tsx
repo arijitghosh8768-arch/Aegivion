@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { fetchApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,13 +31,9 @@ export default function TeamPage() {
   const fetchInvites = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("aegivion_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com"}/api/v1/orgs/${user?.company}/invitations`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setInvites(data.data || []);
+      const res = await fetchApi(`/v1/orgs/${user?.company}/invitations`);
+      if (res) {
+        setInvites(res.data || []);
       }
     } catch (e) {
       console.error(e);
@@ -50,18 +47,15 @@ export default function TeamPage() {
     if (!email) return;
     setInviting(true);
     try {
-      const token = localStorage.getItem("aegivion_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com"}/api/v1/orgs/${user?.company}/invitations`, {
+      const res = await fetchApi(`/v1/orgs/${user?.company}/invitations`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ email, role })
       });
-      if (res.ok) {
+      if (res) {
         setEmail("");
         fetchInvites();
       } else {
-        const err = await res.json();
-        alert(err.detail || "Failed to invite user");
+        alert("Failed to invite user");
       }
     } finally {
       setInviting(false);
@@ -72,12 +66,10 @@ export default function TeamPage() {
     if (!confirm("Are you sure you want to revoke this invitation?")) return;
     
     try {
-      const token = localStorage.getItem("aegivion_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com"}/api/v1/invitations/${id}`, {
+      const res = await fetchApi(`/v1/invitations/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
+      if (res) {
         fetchInvites();
       }
     } catch (e) {

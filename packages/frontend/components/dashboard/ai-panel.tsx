@@ -35,20 +35,59 @@ export function AiPanel({ className, expanded = false }: { className?: string; e
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || busy) return;
     setInput("");
     setBusy(true);
     setMessages((m) => [...m, { id: `u-${Date.now()}`, role: "user", text: trimmed }]);
-    setTimeout(() => {
-      setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "ai", text: "", thinking: true }]);
-      setTimeout(() => {
-        const res = answer(trimmed);
-        setMessages((m) => m.map((msg) => (msg.thinking ? { ...msg, thinking: false, response: res, text: "" } : msg)));
-        setBusy(false);
-      }, 700);
-    }, 300);
+    
+    // Add thinking placeholder immediately
+    setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "ai", text: "", thinking: true }]);
+
+    try {
+      const { fetchApi } = await import("@/lib/api-client");
+      const res = await fetchApi("/v1/ai/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: trimmed,
+          history: messages.slice(1).map(m => ({
+            role: m.role === "user" ? "user" : "assistant",
+            content: m.text || (m.response?.blocks?.find(b => b.type === "text")?.content) || ""
+          }))
+        })
+      });
+
+      if (res) {
+        const blocks: any[] = [{ type: "text", content: res.response || "No response provided." }];
+        if (res.observed?.length) {
+          blocks.push({ type: "heading", content: "Observed Facts" });
+          blocks.push({ type: "list", items: res.observed });
+        }
+        if (res.inferred?.length) {
+          blocks.push({ type: "heading", content: "Inferred Risks" });
+          blocks.push({ type: "list", items: res.inferred });
+        }
+        if (res.unknown?.length) {
+          blocks.push({ type: "heading", content: "Unknown Context" });
+          blocks.push({ type: "list", items: res.unknown });
+        }
+        
+        const aiRes: AiResponse = {
+          blocks,
+          sources: ["Live DB Context"],
+          latencyMs: 340,
+        };
+        setMessages((m) => m.map((msg) => (msg.thinking ? { ...msg, thinking: false, response: aiRes, text: "" } : msg)));
+      } else {
+        throw new Error("Empty response");
+      }
+    } catch (e) {
+      // Fallback
+      setMessages((m) => m.map((msg) => (msg.thinking ? { ...msg, thinking: false, text: "I encountered an error connecting to the intelligence engine." } : msg)));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
