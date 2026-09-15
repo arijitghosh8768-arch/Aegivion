@@ -3,13 +3,23 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchApi } from "@/lib/api-client";
-import { Workflow, Zap, ShieldCheck, Clock3, ArrowRight, Play, Pause, Wrench } from "lucide-react";
+import { Workflow, Zap, ShieldCheck, Clock3, ArrowRight, Play, Pause, Wrench, Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface Rule {
@@ -25,100 +35,40 @@ interface Rule {
   accent: string;
 }
 
-const INITIAL_RULES: Rule[] = [
-  {
-    id: "r-1",
-    name: "Auto-quarantine public S3 buckets",
-    desc: "When a bucket policy becomes public, immediately block public ACLs and alert the data owner.",
-    trigger: "S3 bucket · public-read",
-    action: "Apply public access block",
-    runs: 14,
-    lastRun: "18m ago",
-    enabled: true,
-    target: "/remediation",
-    accent: "bg-destructive/12 text-destructive",
-  },
-  {
-    id: "r-2",
-    name: "Revoke leaked IAM keys",
-    desc: "On secret-scanner match, disable the access key, notify the owner and stage a rotation plan.",
-    trigger: "GitHub secret scan · AKIA key",
-    action: "Disable access key + stage rotation",
-    runs: 6,
-    lastRun: "1h ago",
-    enabled: true,
-    target: "/remediation",
-    accent: "bg-warning/15 text-warning",
-  },
-  {
-    id: "r-3",
-    name: "Close internet-exposed SSH",
-    desc: "Revoke 0.0.0.0/0 ingress on port 22 and replace with the corporate CIDR range.",
-    trigger: "Security group · tcp/22 0.0.0.0/0",
-    action: "Rewrite ingress rule",
-    runs: 9,
-    lastRun: "3h ago",
-    enabled: true,
-    target: "/detection-engine",
-    accent: "bg-info/12 text-info",
-  },
-  {
-    id: "r-4",
-    name: "Re-enable disabled CloudTrail",
-    desc: "Watchdog restores logging within 5 minutes of a StopLogging call on any trail.",
-    trigger: "CloudTrail · StopLogging",
-    action: "Restart trail + audit log",
-    runs: 3,
-    lastRun: "1d ago",
-    enabled: true,
-    target: "/security-memory",
-    accent: "bg-brand-purple/12 text-brand-purple",
-  },
-  {
-    id: "r-5",
-    name: "Nightly compliance snapshot",
-    desc: "Run a full CIS/SOC2 sweep at 02:00 UTC and post the delta to the Reports workspace.",
-    trigger: "Schedule · 02:00 UTC",
-    action: "Generate compliance snapshot",
-    runs: 112,
-    lastRun: "11h ago",
-    enabled: true,
-    target: "/reports",
-    accent: "bg-success/12 text-success",
-  },
-  {
-    id: "r-6",
-    name: "Auto-suspend dormant admin users",
-    desc: "Flag and suspend admin identities with no activity for 30+ days. Requires manual re-activation.",
-    trigger: "IAM · 30d inactive admin",
-    action: "Suspend identity + notify",
-    runs: 2,
-    lastRun: "2d ago",
-    enabled: false,
-    target: "/identities",
-    accent: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  },
-];
-
 export default function AutomationPage() {
-  const { data: telemetry, isLoading } = useQuery<{ asset_count: number }>({
+  const queryClient = useQueryClient();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newRule, setNewRule] = useState({ name: "", description: "", trigger: "", action: "" });
+
+  const { data: telemetry, isLoading: loadingTelemetry } = useQuery<{ asset_count: number }>({
     queryKey: ["risk-intelligence"],
     queryFn: () => fetchApi<{ asset_count: number }>("/v1/risk/intelligence"),
   });
 
-  const [rules, setRules] = useState(INITIAL_RULES);
-  const [allPaused, setAllPaused] = useState(false);
+  const { data: rulesData, isLoading: loadingRules } = useQuery<{ rules: Rule[] }>({
+    queryKey: ["automation-rules"],
+    queryFn: () => fetchApi<{ rules: Rule[] }>("/v1/automation/rules"),
+  });
 
-  const toggle = (id: string) => setRules((rs) => rs.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)));
-  const toggleAll = () => {
-    setAllPaused((p) => !p);
-    setRules((rs) => rs.map((r) => ({ ...r, enabled: !allPaused })));
-  };
+  const createMutation = useMutation({
+    mutationFn: (rule: typeof newRule) => fetchApi("/v1/automation/rules", { method: "POST", body: JSON.stringify(rule) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["automation-rules"] });
+      setCreateOpen(false);
+      setNewRule({ name: "", description: "", trigger: "", action: "" });
+    }
+  });
 
+  const toggleMutation = useMutation({
+    mutationFn: (id: string) => fetchApi(`/v1/automation/rules/${id}/toggle`, { method: "PATCH" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["automation-rules"] })
+  });
+
+  const rules = rulesData?.rules || [];
   const enabled = rules.filter((r) => r.enabled).length;
   const totalRuns = rules.reduce((s, r) => s + r.runs, 0);
 
-  if (!isLoading && telemetry && telemetry.asset_count === 0) {
+  if (!loadingTelemetry && telemetry && telemetry.asset_count === 0 && rules.length === 0) {
     return (
       <div className="flex h-full flex-col">
         <PageHeader
@@ -142,9 +92,8 @@ export default function AutomationPage() {
         title="Automation"
         description="Self-healing runbooks that remediate known issues without human intervention — every action is logged."
       >
-        <Button variant="outline" onClick={toggleAll}>
-          {allPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-          {allPaused ? "Resume all" : "Pause all"}
+        <Button variant="outline" onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4" /> Create Rule
         </Button>
         <Button variant="gradient" asChild>
           <Link href="/remediation">
@@ -153,7 +102,6 @@ export default function AutomationPage() {
         </Button>
       </PageHeader>
 
-      {/* summary */}
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           { label: "Active runbooks", value: enabled, tint: "text-success" },
@@ -174,7 +122,6 @@ export default function AutomationPage() {
         ))}
       </div>
 
-      {/* rules */}
       <div className="space-y-3">
         {rules.map((r, i) => (
           <motion.div
@@ -212,7 +159,7 @@ export default function AutomationPage() {
                   <div className="text-[11.5px] font-medium tabular-nums">{r.runs}</div>
                 </div>
               </div>
-              <Switch checked={r.enabled} onCheckedChange={() => toggle(r.id)} aria-label={`Toggle ${r.name}`} />
+              <Switch checked={r.enabled} onCheckedChange={() => toggleMutation.mutate(r.id)} aria-label={`Toggle ${r.name}`} />
             </div>
             <div className="mt-3 flex items-center gap-3 border-t border-border/60 pt-2.5 text-[10.5px] text-muted-foreground">
               <Clock3 className="h-3 w-3" /> Last run {r.lastRun}
@@ -222,19 +169,45 @@ export default function AutomationPage() {
             </div>
           </motion.div>
         ))}
+        {!loadingRules && rules.length === 0 && (
+          <div className="py-8 text-center text-sm text-muted-foreground border rounded-2xl bg-card border-dashed">
+            No automation rules configured yet.
+          </div>
+        )}
       </div>
 
-      <div className="mt-6 flex items-start gap-2.5 rounded-2xl border border-success/25 bg-success/8 p-4">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-        <p className="text-[12px] leading-relaxed text-muted-foreground">
-          <span className="font-semibold text-foreground">Guardrails:</span> runbooks only execute write actions through
-          your CI/CD identity, run in canary mode first, and every change ships with an automatic rollback plan. See the{" "}
-          <Link href="/settings" className="font-semibold text-primary hover:underline">
-            Settings
-          </Link>{" "}
-          page to manage approval policies.
-        </p>
-      </div>
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Automation Rule</DialogTitle>
+            <DialogDescription>Define a trigger and action to automate your security operations.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Rule Name</Label>
+              <Input value={newRule.name} onChange={e => setNewRule({...newRule, name: e.target.value})} placeholder="e.g., Auto-quarantine public S3 buckets" />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input value={newRule.description} onChange={e => setNewRule({...newRule, description: e.target.value})} placeholder="What does this rule do?" />
+            </div>
+            <div className="space-y-2">
+              <Label>Trigger Condition</Label>
+              <Input value={newRule.trigger} onChange={e => setNewRule({...newRule, trigger: e.target.value})} placeholder="e.g., S3 bucket > public-read" />
+            </div>
+            <div className="space-y-2">
+              <Label>Action</Label>
+              <Input value={newRule.action} onChange={e => setNewRule({...newRule, action: e.target.value})} placeholder="e.g., Apply public access block" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button onClick={() => createMutation.mutate(newRule)} disabled={createMutation.isPending || !newRule.name}>
+              {createMutation.isPending ? "Creating..." : "Create Rule"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
