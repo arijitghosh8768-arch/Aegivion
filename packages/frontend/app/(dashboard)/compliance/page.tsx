@@ -55,7 +55,7 @@ export default function CompliancePage() {
 
   const frameworks = useMemo<Framework[]>(() => {
     if (!rawData?.frameworks) return [];
-    return rawData.frameworks.map(mapFramework).filter(f => f.total > 0);
+    return rawData.frameworks.map(mapFramework).filter((f: Framework) => f.total > 0);
   }, [rawData]);
 
   const passed = frameworks.reduce((s, f) => s + f.passed, 0);
