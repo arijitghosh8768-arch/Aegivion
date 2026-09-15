@@ -35,18 +35,16 @@ def list_orgs(db: Session = Depends(get_db), current_user: dict = Depends(requir
     orgs = db.query(OrgSettings).all()
     # If no org settings, we can't easily list orgs since orgs don't have a dedicated table yet, 
     # they are inferred or stored in OrgSettings.
-    return {"success": True, "data": [{"id": str(o.id), "name": o.workspace_name, "created_at": o.updated_at} for o in orgs]}
+    return {"success": True, "data": [{"id": str(o.organization_id or o.id), "name": o.branding.get("company_name", "Unknown Org"), "created_at": o.updated_at} for o in orgs]}
 
 @router.post("/orgs")
 def create_org(req: CreateOrgRequest, db: Session = Depends(get_db), current_user: dict = Depends(require_superadmin)):
     new_id = uuid.uuid4()
     org_setting = OrgSettings(
         id=new_id,
-        workspace_name=req.name,
-        company_name=req.name,
-        security_policy="SOC 2",
-        require_exception_approval=True,
-        auto_suppress_non_prod=False
+        organization_id=new_id,
+        branding={"company_name": req.name, "logo_url": "", "theme_color": ""},
+        security_policy={"require_exception_approval": True, "auto_suppress_non_prod": False}
     )
     db.add(org_setting)
     db.commit()
