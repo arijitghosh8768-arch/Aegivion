@@ -58,6 +58,10 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
                 role_name = "admin"
                 first_name = "Admin"
                 last_name = "User"
+            elif login_data.email == "superadmin@aegivion.com":
+                role_name = "superadmin"
+                first_name = "Super"
+                last_name = "Admin"
             elif login_data.email == "analyst@aegivion.com":
                 role_name = "analyst"
                 first_name = "Security"
@@ -136,3 +140,4 @@ def get_me(current_user: Dict[str, Any] = Depends(get_current_user), db: Session
             "organization_id": current_user.get("organization_id")
         }
     }
+
