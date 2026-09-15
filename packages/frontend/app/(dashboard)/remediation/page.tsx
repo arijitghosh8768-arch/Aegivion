@@ -176,16 +176,7 @@ export default function RemediationPage() {
                       </div>
                       <pre className="code-block max-h-56 overflow-auto rounded-xl border border-border bg-card p-3">{f.terraform || "// No Terraform module — CLI-only fix"}</pre>
                     </div>
-                    {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-      ) : plans.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center bg-card">
-          <Wrench className="mb-3 h-8 w-8 text-muted-foreground" />
-          <h3 className="text-[14px] font-semibold">No data yet</h3>
-          <p className="mt-1 text-[12.5px] text-muted-foreground">There are no pending remediations at this time.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
+                    <div className="space-y-3">
                       <div>
                         <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           AWS / provider CLI
