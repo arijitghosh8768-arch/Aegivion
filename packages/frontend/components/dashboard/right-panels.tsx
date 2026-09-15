@@ -15,6 +15,7 @@ import {
   Bot,
   AudioLines,
 } from "lucide-react";
+import { fetchApi } from "@/lib/api-client";
 import { AI_INSIGHT, LIVE_THREATS } from "@/lib/data/dashboard";
 import { answer, getSuggestions, type AiResponse } from "@/lib/data/ai";
 import { cn } from "@/lib/utils";
@@ -87,10 +88,8 @@ export function LiveThreatFeed({ className }: { className?: string }) {
   const { data: threats = [], isLoading } = useQuery({
     queryKey: ["live-threats"],
     queryFn: async () => {
-      const res = await fetch("/api/v1/findings?limit=5");
-      if (!res.ok) throw new Error("Failed to fetch findings");
-      const json = await res.json();
-      return (json.findings || []).slice(0, 5).map((f: any) => {
+      const json = await fetchApi<any>("/v1/findings?limit=5");
+      return (json.findings || []).slice(0, 4).map((f: any) => {
         let level = "info";
         const sev = f.severity?.toLowerCase();
         if (sev === "critical") level = "critical";

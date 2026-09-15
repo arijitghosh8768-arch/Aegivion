@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ChevronDown, ArrowRight, Settings2, Lock, ShieldAlert, MonitorSmartphone } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { RISK_TREND_7D, TOP_RISKY_ASSETS } from "@/lib/data/dashboard";
+import { ChevronDown, ArrowRight, ShieldAlert, MonitorSmartphone, Settings2, Lock } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { RISK_TREND_7D } from "@/lib/data/dashboard";
+import { fetchApi } from "@/lib/api-client";
 import { ChartTooltip } from "@/components/shared/chart-tooltip";
 import { CountUp } from "@/components/shared/count-up";
 import { cn } from "@/lib/utils";
@@ -97,9 +98,7 @@ export function TopRiskyAssets({ className }: { className?: string }) {
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ["top-risky-assets"],
     queryFn: async () => {
-      const res = await fetch("/api/v1/assets?sort=risk_score&limit=5");
-      if (!res.ok) throw new Error("Failed to fetch assets");
-      const json = await res.json();
+      const json = await fetchApi<any>("/v1/assets?sort=risk_score&limit=5");
       return (json.assets || []).slice(0, 5).map((a: any) => {
         let kind = "group";
         const t = (a.type || "").toLowerCase();
