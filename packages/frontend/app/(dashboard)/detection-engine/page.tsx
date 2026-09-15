@@ -2,16 +2,51 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Radar, ShieldCheck, Bug, FileCheck2, ChevronDown, ChevronUp, CheckCircle2, XCircle } from "lucide-react";
+import { Radar, ShieldCheck, Bug, FileCheck2, ChevronDown, ChevronUp, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api-client";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge, StatusPill } from "@/components/shared/severity";
 import { ProviderMark } from "@/components/shared/provider-mark";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FINDINGS } from "@/lib/data/findings";
 import { cn } from "@/lib/utils";
-import type { Finding, FindingStatus } from "@/lib/types";
+import type { ProviderId } from "@/lib/types";
+
+type FindingStatus = "open" | "acknowledged" | "remediating" | "remediated";
+
+interface LiveFinding {
+  id: string;
+  title: string;
+  description: string;
+  severity: "critical" | "high" | "medium" | "low" | "info";
+  status: FindingStatus;
+  rule_id: string;
+  resource_id: string;
+  resource_name: string;
+  resource_type: string;
+  cloud_provider: string;
+  resource_region: string;
+  risk_score: number;
+  evidence: Record<string, unknown>;
+  mitre_technique?: string;
+  mitre_tactic?: string;
+  remediation?: string[];
+}
+
+function getCategoryFromType(type: string, ruleId: string): string {
+  const t = (type + " " + ruleId).toLowerCase();
+  if (t.includes("iam") || t.includes("user") || t.includes("role")) return "iam";
+  if (t.includes("s3") || t.includes("bucket")) return "s3";
+  if (t.includes("ec2") || t.includes("instance")) return "ec2";
+  if (t.includes("sg") || t.includes("security_group") || t.includes("nsg")) return "security-group";
+  if (t.includes("cloudtrail") || t.includes("trail")) return "cloudtrail";
+  if (t.includes("cloudwatch") || t.includes("log")) return "cloudwatch";
+  if (t.includes("k8s") || t.includes("gke") || t.includes("eks") || t.includes("kubernetes")) return "k8s";
+  if (t.includes("rds") || t.includes("sql") || t.includes("db") || t.includes("database")) return "database";
+  return "all";
+}
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -26,21 +61,37 @@ const CATEGORIES = [
 ] as const;
 
 export default function DetectionEnginePage() {
-  const [findings, setFindings] = useState(FINDINGS);
+  const queryClient = useQueryClient();
   const [category, setCategory] = useState<string>("all");
-  const [expanded, setExpanded] = useState<string | null>(FINDINGS[0]?.id ?? null);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
-  const filtered = useMemo(
-    () => findings.filter((f) => category === "all" || f.category === category),
-    [findings, category]
-  );
+  const { data: rawData, isLoading, isError } = useQuery({
+    queryKey: ["findings-list"],
+    queryFn: () => fetchApi<{ findings: LiveFinding[] }>("/v1/findings"),
+    refetchInterval: 30000,
+  });
 
-  const updateStatus = (id: string, status: FindingStatus) =>
-    setFindings((fs) => fs.map((f) => (f.id === id ? { ...f, status } : f)));
+  const findings: LiveFinding[] = useMemo(() => rawData?.findings ?? [], [rawData]);
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: FindingStatus }) =>
+      fetchApi(`/v1/findings/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["findings-list"] }),
+  });
+
+  const scanMutation = useMutation({
+    mutationFn: () => fetchApi("/v1/findings/scan", { method: "POST" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["findings-list"] }),
+  });
+
+  const filtered = useMemo(() => {
+    if (category === "all") return findings;
+    return findings.filter((f) => getCategoryFromType(f.resource_type, f.rule_id) === category);
+  }, [findings, category]);
 
   const open = findings.filter((f) => f.status === "open").length;
   const critical = findings.filter((f) => f.severity === "critical").length;
-  const autoFixable = findings.filter((f) => f.autoFixable && f.status === "open").length;
+  const autoFixable = findings.filter((f) => f.status === "open" && (f.remediation?.length ?? 0) > 0).length;
 
   return (
     <div>
@@ -48,10 +99,11 @@ export default function DetectionEnginePage() {
         title="Detection Engine"
         description="Misconfigurations, vulnerabilities and compliance drift — with evidence and confidence scores."
       >
-        <Button variant="outline">
-          <Radar className="h-4 w-4" /> Scan now
+        <Button variant="outline" onClick={() => scanMutation.mutate()} disabled={scanMutation.isPending}>
+          {scanMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radar className="h-4 w-4" />}
+          {scanMutation.isPending ? "Scanning…" : "Scan now"}
         </Button>
-        <Button variant="gradient">
+        <Button variant="gradient" disabled={autoFixable === 0}>
           <ShieldCheck className="h-4 w-4" /> Auto-fix ({autoFixable})
         </Button>
       </PageHeader>
@@ -59,10 +111,10 @@ export default function DetectionEnginePage() {
       {/* summary */}
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { label: "Total findings", value: findings.length, icon: <Bug className="h-4 w-4" /> },
-          { label: "Open", value: open, tint: "text-destructive" },
-          { label: "Critical", value: critical, tint: "text-destructive" },
-          { label: "Auto-fixable", value: autoFixable, tint: "text-success", icon: <FileCheck2 className="h-4 w-4" /> },
+          { label: "Total findings", value: isLoading ? "…" : findings.length, icon: <Bug className="h-4 w-4" /> },
+          { label: "Open", value: isLoading ? "…" : open, tint: open > 0 ? "text-destructive" : "" },
+          { label: "Critical", value: isLoading ? "…" : critical, tint: critical > 0 ? "text-destructive" : "" },
+          { label: "Auto-fixable", value: isLoading ? "…" : autoFixable, tint: "text-success", icon: <FileCheck2 className="h-4 w-4" /> },
         ].map((s, i) => (
           <motion.div
             key={s.label}
@@ -89,22 +141,36 @@ export default function DetectionEnginePage() {
 
         <TabsContent value="misconfigurations">
           <FilterChips category={category} setCategory={setCategory} />
-          <FindingsList
-            findings={filtered}
-            expanded={expanded}
-            setExpanded={setExpanded}
-            updateStatus={updateStatus}
-          />
+          {isLoading && (
+            <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" /> Loading findings…
+            </div>
+          )}
+          {isError && (
+            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 py-10 text-center text-sm text-destructive">
+              Failed to load findings. Make sure the backend is running.
+            </div>
+          )}
+          {!isLoading && !isError && (
+            <FindingsList
+              findings={filtered}
+              expanded={expanded}
+              setExpanded={setExpanded}
+              updateStatus={(id, status) => updateMutation.mutate({ id, status })}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="vulnerabilities">
           <FilterChips category={category} setCategory={setCategory} showVulnOnly />
-          <FindingsList
-            findings={filtered.filter((f) => f.cve || f.mitre?.length)}
-            expanded={expanded}
-            setExpanded={setExpanded}
-            updateStatus={updateStatus}
-          />
+          {!isLoading && (
+            <FindingsList
+              findings={filtered.filter((f) => f.mitre_technique || f.mitre_tactic)}
+              expanded={expanded}
+              setExpanded={setExpanded}
+              updateStatus={(id, status) => updateMutation.mutate({ id, status })}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="compliance">
@@ -158,15 +224,28 @@ function FindingsList({
   setExpanded,
   updateStatus,
 }: {
-  findings: Finding[];
+  findings: LiveFinding[];
   expanded: string | null;
   setExpanded: (id: string | null) => void;
   updateStatus: (id: string, status: FindingStatus) => void;
 }) {
+  if (findings.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card py-14 text-center text-sm text-muted-foreground">
+        No findings detected. 🎉 Your environment looks clean!
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {findings.map((f) => {
         const isOpen = expanded === f.id;
+        const provider = (f.cloud_provider?.toLowerCase() ?? "aws") as ProviderId;
+        const evidenceStr = typeof f.evidence === "object"
+          ? JSON.stringify(f.evidence, null, 2)
+          : String(f.evidence ?? "No evidence available");
+
         return (
           <motion.div
             key={f.id}
@@ -180,17 +259,17 @@ function FindingsList({
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-3.5 text-left transition hover:bg-muted/30"
             >
               <SeverityBadge severity={f.severity} showDot={false} className="w-[74px] justify-center" />
-              <ProviderMark provider={f.provider} size={28} />
+              <ProviderMark provider={provider} size={28} />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13.5px] font-semibold">{f.title}</div>
                 <div className="mt-0.5 flex items-center gap-2 text-[11.5px] text-muted-foreground">
-                  <span>{f.service}</span>
+                  <span>{f.resource_type}</span>
                   <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground" />
-                  <span>Confidence {f.confidence}%</span>
-                  {f.cve && (
+                  <span>Risk {f.risk_score}/100</span>
+                  {f.mitre_technique && (
                     <>
                       <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground" />
-                      <span className="font-semibold text-warning">{f.cve}</span>
+                      <span className="font-semibold text-warning">{f.mitre_technique}</span>
                     </>
                   )}
                 </div>
@@ -203,21 +282,25 @@ function FindingsList({
 
             {isOpen && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-t border-border bg-muted/20 px-4 py-4">
-                <p className="text-[12.5px] leading-relaxed text-muted-foreground">{f.description}</p>
+                <p className="text-[12.5px] leading-relaxed text-muted-foreground">{f.description || "No description available."}</p>
 
                 <div className="mt-3 rounded-xl border border-border bg-card/70 p-3">
                   <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Evidence</div>
-                  <code className="code-block text-[11.5px] text-foreground">{f.evidence}</code>
+                  <code className="whitespace-pre-wrap text-[11.5px] text-foreground">{evidenceStr}</code>
                 </div>
 
+                {(f.remediation?.length ?? 0) > 0 && (
+                  <div className="mt-3 rounded-xl border border-border bg-card/70 p-3">
+                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Remediation Steps</div>
+                    <code className="whitespace-pre-wrap text-[11.5px] text-foreground">{f.remediation!.join("\n")}</code>
+                  </div>
+                )}
+
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  <Badge variant="soft">{f.framework ?? "Custom policy"}</Badge>
-                  {f.mitre?.map((m) => (
-                    <Badge key={m} variant="purple">
-                      {m}
-                    </Badge>
-                  ))}
-                  {f.autoFixable && <Badge variant="success">Auto-fix available</Badge>}
+                  {f.rule_id && <Badge variant="soft">{f.rule_id}</Badge>}
+                  {f.mitre_technique && <Badge variant="purple">{f.mitre_technique}</Badge>}
+                  {f.mitre_tactic && <Badge variant="purple">{f.mitre_tactic}</Badge>}
+                  {(f.remediation?.length ?? 0) > 0 && <Badge variant="success">Auto-fix available</Badge>}
                 </div>
 
                 {f.status === "open" && (
@@ -238,50 +321,67 @@ function FindingsList({
           </motion.div>
         );
       })}
-      {findings.length === 0 && (
-        <div className="rounded-2xl border border-border bg-card py-14 text-center text-sm text-muted-foreground">
-          No findings in this category. 🎉
-        </div>
-      )}
     </div>
   );
 }
 
 function ComplianceView() {
-  const rows = [
-    { control: "IAM.1", title: "No root account access keys", passed: 5, total: 5 },
-    { control: "S3.3", title: "Public access blocks enabled", passed: 3, total: 5 },
-    { control: "EC2.2", title: "Security groups restrict management ports", passed: 4, total: 6 },
-    { control: "LOG.4", title: "CloudTrail multi-region & validated", passed: 4, total: 7 },
-    { control: "DB.1", title: "Storage encryption at rest", passed: 5, total: 6 },
-    { control: "NET.6", title: "No default network ACL rules", passed: 2, total: 5 },
-  ];
+  const { data: complianceData, isLoading } = useQuery({
+    queryKey: ["compliance-summary"],
+    queryFn: () => fetchApi<any>("/v1/compliance/summary"),
+  });
+
+  const framework = complianceData?.frameworks?.[0];
+  const items: any[] = framework?.items ?? [];
+  const overall = complianceData?.overall;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+        <Loader2 className="h-5 w-5 animate-spin" /> Loading compliance data…
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card py-14 text-center text-sm text-muted-foreground">
+        No compliance data yet. Run a scan to generate compliance results.
+      </div>
+    );
+  }
+
+  const passRate = overall?.pass_rate ?? 0;
+  const passVariant = passRate >= 80 ? "success" : passRate >= 60 ? "warning" : "destructive";
+
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
       <div className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-border bg-muted/40 px-5 py-3.5">
         <div>
-          <h3 className="text-[14px] font-semibold">CIS AWS Foundations v3.0 — evidence pack</h3>
-          <p className="text-[11.5px] text-muted-foreground">Scored across 7 connected accounts · 132 checks</p>
+          <h3 className="text-[14px] font-semibold">{framework?.title ?? "CIS AWS Benchmark"} — evidence pack</h3>
+          <p className="text-[11.5px] text-muted-foreground">
+            {overall?.total_controls ?? 0} controls checked
+          </p>
         </div>
-        <Badge variant="warning">70% · attention</Badge>
+        <Badge variant={passVariant}>{passRate}% compliant</Badge>
       </div>
       <div className="divide-y divide-border/60">
-        {rows.map((r) => (
-          <div key={r.control} className="flex items-center gap-4 px-5 py-3">
-            <span className="w-16 shrink-0 font-mono text-[11px] font-bold text-primary">{r.control}</span>
+        {items.map((r: any) => (
+          <div key={r.control_code} className="flex items-center gap-4 px-5 py-3">
+            <span className="w-16 shrink-0 font-mono text-[11px] font-bold text-primary">{r.control_code}</span>
             <span className="flex-1 text-[12.5px] font-medium">{r.title}</span>
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
                 <div
                   className={cn(
                     "h-full rounded-full",
-                    r.passed === r.total ? "bg-success" : r.passed / r.total >= 0.6 ? "bg-warning" : "bg-destructive"
+                    r.status === "pass" ? "bg-success" : r.status === "fail" ? "bg-destructive" : "bg-muted-foreground"
                   )}
-                  style={{ width: `${(r.passed / r.total) * 100}%` }}
+                  style={{ width: r.status === "pass" ? "100%" : r.status === "fail" ? "30%" : "60%" }}
                 />
               </div>
-              <span className="w-10 text-right text-[11.5px] font-semibold tabular-nums text-muted-foreground">
-                {r.passed}/{r.total}
+              <span className="w-20 text-right text-[11.5px] font-semibold tabular-nums text-muted-foreground capitalize">
+                {r.status}
               </span>
             </div>
           </div>
@@ -290,3 +390,4 @@ function ComplianceView() {
     </div>
   );
 }
+
