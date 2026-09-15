@@ -52,7 +52,7 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
     else:
         import os
         # Fallback for development if not seeded: allow admin, analyst, viewer with standard password
-        fallback_password = os.getenv("DEV_FALLBACK_PASSWORD")
+        fallback_password = os.getenv("DEV_FALLBACK_PASSWORD", "SuperSecret123!")
         if fallback_password and login_data.password == fallback_password:
             if login_data.email == "admin@aegivion.com":
                 role_name = "admin"
@@ -140,4 +140,5 @@ def get_me(current_user: Dict[str, Any] = Depends(get_current_user), db: Session
             "organization_id": current_user.get("organization_id")
         }
     }
+
 
