@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAppStore } from "@/lib/store";
 import { fetchApi } from "@/lib/api-client";
 import { Workflow, Zap, ShieldCheck, Clock3, ArrowRight, Play, Pause, Wrench, Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -37,6 +38,9 @@ interface Rule {
 
 export default function AutomationPage() {
   const queryClient = useQueryClient();
+  const user = useAppStore((s) => s.user);
+  const isAdmin = user?.role === "Super Admin" || user?.role === "organization_admin";
+
   const [createOpen, setCreateOpen] = useState(false);
   const [newRule, setNewRule] = useState({ name: "", description: "", trigger: "", action: "" });
 
@@ -92,9 +96,11 @@ export default function AutomationPage() {
         title="Automation"
         description="Self-healing runbooks that remediate known issues without human intervention — every action is logged."
       >
-        <Button variant="outline" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4" /> Create Rule
-        </Button>
+        {isAdmin && (
+          <Button variant="outline" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4" /> Create Rule
+          </Button>
+        )}
         <Button variant="gradient" asChild>
           <Link href="/remediation">
             <Wrench className="h-4 w-4" /> Remediation queue
@@ -159,7 +165,11 @@ export default function AutomationPage() {
                   <div className="text-[11.5px] font-medium tabular-nums">{r.runs}</div>
                 </div>
               </div>
-              <Switch checked={r.enabled} onCheckedChange={() => toggleMutation.mutate(r.id)} aria-label={`Toggle ${r.name}`} />
+              {isAdmin ? (
+                <Switch checked={r.enabled} onCheckedChange={() => toggleMutation.mutate(r.id)} aria-label={`Toggle ${r.name}`} />
+              ) : (
+                <Badge variant="outline">{r.enabled ? "Active" : "Paused"}</Badge>
+              )}
             </div>
             <div className="mt-3 flex items-center gap-3 border-t border-border/60 pt-2.5 text-[10.5px] text-muted-foreground">
               <Clock3 className="h-3 w-3" /> Last run {r.lastRun}
