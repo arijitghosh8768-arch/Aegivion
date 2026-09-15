@@ -2,29 +2,7 @@ import boto3
 
 def discover_ec2_instances(session=None) -> list:
     if session is None:
-        return [
-            {
-                "instance_id": "i-0987654321fedcba0",
-                "state": "running",
-                "public_ip": "54.210.12.34",
-                "private_ip": "10.0.1.15",
-                "instance_type": "t3.medium",
-                "security_groups": [{"GroupId": "sg-12345678", "GroupName": "web-sg"}],
-                "has_public_ip": True,
-                "region": "ap-south-1"
-            },
-            {
-                "instance_id": "i-0123456789abcdef0",
-                "state": "stopped",
-                "public_ip": None,
-                "private_ip": "10.0.2.45",
-                "instance_type": "t3.nano",
-                "security_groups": [{"GroupId": "sg-87654321", "GroupName": "default"}],
-                "has_public_ip": False,
-                "region": "ap-south-1"
-            }
-        ]
-
+        return []
     ec2_client = session.client("ec2")
     discovered = []
     try:

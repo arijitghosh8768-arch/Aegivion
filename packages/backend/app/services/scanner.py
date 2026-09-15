@@ -22,7 +22,7 @@ def serialize_datetime(obj):
 
 def discover_vpcs(session=None) -> list:
     if session is None:
-        return [{"vpc_id": "vpc-011223344", "cidr_block": "10.0.0.0/16", "is_default": False, "region": "ap-south-1"}]
+        return []
     client = session.client("ec2")
     discovered = []
     try:
@@ -40,7 +40,7 @@ def discover_vpcs(session=None) -> list:
 
 def discover_cloudtrail_trails(session=None) -> list:
     if session is None:
-        return [{"trail_name": "aegivion-audit-trail", "is_logging": True, "multi_region": True, "region": "ap-south-1"}]
+        return []
     client = session.client("cloudtrail")
     discovered = []
     try:

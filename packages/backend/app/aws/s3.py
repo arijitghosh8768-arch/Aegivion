@@ -3,26 +3,7 @@ from botocore.exceptions import ClientError
 
 def discover_s3_buckets(session=None) -> list:
     if session is None:
-        # Mock mode
-        return [
-            {
-                "bucket_name": "aegivion-secure-logs",
-                "arn": "arn:aws:s3:::aegivion-secure-logs",
-                "is_public": False,
-                "encryption_enabled": True,
-                "versioning_enabled": True,
-                "region": "ap-south-1"
-            },
-            {
-                "bucket_name": "aegivion-public-assets",
-                "arn": "arn:aws:s3:::aegivion-public-assets",
-                "is_public": True,
-                "encryption_enabled": False,
-                "versioning_enabled": False,
-                "region": "ap-south-1"
-            }
-        ]
-    
+        return []
     s3_client = session.client("s3")
     discovered = []
     try:
