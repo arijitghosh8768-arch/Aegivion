@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 from app.database import get_db
 from app.core.security import get_current_user
+from app.api.deps import require_permission
 from app.database.base import BaseModel as OrmBaseModel
 import uuid
 
@@ -53,7 +54,7 @@ def list_rules(db: Session = Depends(get_db), current_user: Any = Depends(get_cu
     # Return empty list if no rules exist yet
     return {"rules": [r.dict() for r in rules]}
 
-@router.post("/rules")
+@router.post("/rules", dependencies=[Depends(require_permission("manage_automation"))])
 def create_rule(req: RuleCreateRequest, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
     
@@ -73,7 +74,7 @@ def create_rule(req: RuleCreateRequest, db: Session = Depends(get_db), current_u
     db.commit()
     return new_rule.dict()
 
-@router.patch("/rules/{rule_id}/toggle")
+@router.patch("/rules/{rule_id}/toggle", dependencies=[Depends(require_permission("manage_automation"))])
 def toggle_rule(rule_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
     

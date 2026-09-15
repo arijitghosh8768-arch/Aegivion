@@ -23,6 +23,7 @@ class Permission(str, Enum):
     MANAGE_BILLING = "manage_billing"
     USE_AI_ASSISTANT = "use_ai_assistant"
     MANAGE_KNOWLEDGE = "manage_knowledge"
+    MANAGE_AUTOMATION = "manage_automation"
 
 class RolePolicy:
     POLICIES = {
@@ -33,7 +34,7 @@ class RolePolicy:
             "generate_reports", "view_reports", "delete_reports",
             "view_assets", "manage_assets", "manage_settings",
             "manage_integrations", "manage_billing", "use_ai_assistant",
-            "manage_knowledge"
+            "manage_knowledge", "manage_automation"
         ],
         "security_analyst": [
             "view_findings", "manage_findings", "resolve_findings",
