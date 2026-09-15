@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api-client";
 import { Workflow, Zap, ShieldCheck, Clock3, ArrowRight, Play, Pause, Wrench } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +101,11 @@ const INITIAL_RULES: Rule[] = [
 ];
 
 export default function AutomationPage() {
+  const { data: telemetry, isLoading } = useQuery<{ asset_count: number }>({
+    queryKey: ["risk-intelligence"],
+    queryFn: () => fetchApi<{ asset_count: number }>("/v1/risk/intelligence"),
+  });
+
   const [rules, setRules] = useState(INITIAL_RULES);
   const [allPaused, setAllPaused] = useState(false);
 
@@ -110,6 +117,24 @@ export default function AutomationPage() {
 
   const enabled = rules.filter((r) => r.enabled).length;
   const totalRuns = rules.reduce((s, r) => s + r.runs, 0);
+
+  if (!isLoading && telemetry && telemetry.asset_count === 0) {
+    return (
+      <div className="flex h-full flex-col">
+        <PageHeader
+          title="Automation"
+          description="Self-healing runbooks that remediate known issues without human intervention — every action is logged."
+        />
+        <div className="mt-8 flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/30 p-8 text-center">
+          <Workflow className="mb-4 h-12 w-12 text-muted-foreground/30" />
+          <h3 className="text-lg font-semibold">No Runbooks Active</h3>
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            Connect your cloud environment to automatically provision baseline remediation runbooks.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

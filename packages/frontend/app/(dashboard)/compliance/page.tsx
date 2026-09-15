@@ -31,14 +31,14 @@ interface Framework {
 }
 
 function mapFramework(f: any): Framework {
-  const score: number = f.score ?? f.pass_rate ?? 0;
+  const score: number = f.score ?? f.percent ?? f.pass_rate ?? 0;
   const passed: number = f.passed ?? f.passed_controls ?? 0;
   const total: number = f.total ?? f.total_controls ?? 0;
   const status: FrameworkStatus =
     score >= 80 ? "pass" : score >= 50 ? "attention" : "fail";
   return {
-    id: f.id ?? f.framework_id ?? f.name ?? String(Math.random()),
-    name: f.name ?? f.framework_name ?? "Unknown",
+    id: f.id ?? f.framework_id ?? f.title ?? String(Math.random()),
+    name: f.title ?? f.name ?? f.framework_name ?? "Unknown",
     score,
     passed,
     total,
@@ -55,7 +55,7 @@ export default function CompliancePage() {
 
   const frameworks = useMemo<Framework[]>(() => {
     if (!rawData?.frameworks) return [];
-    return rawData.frameworks.map(mapFramework);
+    return rawData.frameworks.map(mapFramework).filter(f => f.total > 0);
   }, [rawData]);
 
   const passed = frameworks.reduce((s, f) => s + f.passed, 0);
@@ -64,6 +64,24 @@ export default function CompliancePage() {
     ? Math.round(frameworks.reduce((s, f) => s + f.score, 0) / frameworks.length)
     : 0;
   const attention = frameworks.filter((f) => f.status === "attention").length;
+
+  if (!isLoading && frameworks.length === 0) {
+    return (
+      <div className="flex h-full flex-col">
+        <PageHeader
+          title="Compliance"
+          description="Continuous compliance posture across SOC 2, CIS, PCI DSS, HIPAA, NIST and ISO 27001."
+        />
+        <div className="mt-8 flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/30 p-8 text-center">
+          <ShieldCheck className="mb-4 h-12 w-12 text-muted-foreground/30" />
+          <h3 className="text-lg font-semibold">No Compliance Data</h3>
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            Connect your cloud environments and run an initial scan to begin tracking your compliance posture against major frameworks.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
