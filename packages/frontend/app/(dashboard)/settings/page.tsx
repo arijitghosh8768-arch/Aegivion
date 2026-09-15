@@ -37,6 +37,7 @@ import { useAppStore, DEFAULT_PROFILE } from "@/lib/store";
 import { useIntegrationsStore, INTEGRATION_DEFS } from "@/lib/integrations-store";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { fetchApi } from "@/lib/api-client";
 
 type SectionId = "profile" | "organization" | "users" | "notifications" | "security" | "audit" | "cloud" | "appearance" | "integrations";
 
@@ -210,16 +211,34 @@ function ProfileSection() {
     return Object.keys(e).length === 0;
   };
 
-  const save = () => {
+  const save = async () => {
     if (!validate()) return;
     setSaving(true);
-    setTimeout(() => {
-      updateUser({ ...form, avatar });
+    try {
+      const parts = form.name.split(" ");
+      const firstName = parts[0];
+      const lastName = parts.slice(1).join(" ");
+      const res = await fetchApi("/v1/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email: form.email,
+        }),
+      });
+      if (res) {
+        updateUser({ ...form, avatar });
+        setSaved(true);
+        toast("success", "Profile saved", "Your changes are live across Aegivion instantly.");
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        toast("error", "Failed to save", "Could not save profile to backend.");
+      }
+    } catch (e) {
+      toast("error", "Network error", "Failed to reach the server.");
+    } finally {
       setSaving(false);
-      setSaved(true);
-      toast("success", "Profile saved", "Your changes are live across Aegivion instantly.");
-      setTimeout(() => setSaved(false), 2000);
-    }, 900);
+    }
   };
 
   return (
@@ -343,18 +362,17 @@ function OrganizationSection() {
   const save = async () => {
     setSaving(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/orgs/org-1/settings", {
+      const res = await fetchApi("/v1/orgs/org-1/settings", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           security_policy: {
             require_exception_approval: draft.requireExceptionApproval,
             auto_suppress_non_prod: draft.autoSuppressNonProd,
           },
           enabled_cloud_providers: [draft.primaryCloud],
-        })
+        }),
       });
-      if (res.ok) {
+      if (res) {
         setOrg(draft);
         toast("success", "Organization saved", "Workspace settings updated across the platform.");
       } else {
@@ -429,6 +447,7 @@ function NotificationsSection() {
   const prefs = useAppStore((s) => s.notifPrefs);
   const setPrefs = useAppStore((s) => s.setNotifPrefs);
   const [draft, setDraft] = useState(prefs);
+  const [saving, setSaving] = useState(false);
 
   const rows: { key: keyof typeof draft; label: string; desc: string }[] = [
     { key: "emailAlerts", label: "Email alerts", desc: "Send security emails to your inbox" },
@@ -439,6 +458,28 @@ function NotificationsSection() {
     { key: "aiRecommendations", label: "AI recommendations", desc: "Aegivion AI suggestions in your feed" },
     { key: "browserNotifications", label: "Browser notifications", desc: "In-app toast alerts while working" },
   ];
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const res = await fetchApi("/v1/orgs/org-1/settings", {
+        method: "PATCH",
+        body: JSON.stringify({
+          notification_preferences: draft,
+        }),
+      });
+      if (res) {
+        setPrefs(draft);
+        toast("success", "Notification preferences saved");
+      } else {
+        toast("error", "Failed to save notifications");
+      }
+    } catch (e) {
+      toast("error", "Network error");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <SectionShell icon={Bell} title="Notifications" subtitle="Choose how Aegivion reaches you.">
@@ -457,19 +498,16 @@ function NotificationsSection() {
         ))}
       </div>
       <div className="mt-5 flex justify-end gap-2 border-t border-border/60 pt-4">
-        <Button variant="outline" size="sm" onClick={() => setDraft(prefs)} disabled={JSON.stringify(draft) === JSON.stringify(prefs)}>
+        <Button variant="outline" size="sm" onClick={() => setDraft(prefs)} disabled={JSON.stringify(draft) === JSON.stringify(prefs) || saving}>
           Reset
         </Button>
         <Button
           variant="gradient"
           size="sm"
-          disabled={JSON.stringify(draft) === JSON.stringify(prefs)}
-          onClick={() => {
-            setPrefs(draft);
-            toast("success", "Notification preferences saved");
-          }}
+          disabled={JSON.stringify(draft) === JSON.stringify(prefs) || saving}
+          onClick={save}
         >
-          <Check className="h-3.5 w-3.5" /> Save preferences
+          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Save preferences
         </Button>
       </div>
     </SectionShell>

@@ -141,4 +141,30 @@ def get_me(current_user: Dict[str, Any] = Depends(get_current_user), db: Session
         }
     }
 
+class UserProfileUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+@router.patch("/me")
+def update_me(
+    profile_update: UserProfileUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_id = current_user.get("user_id")
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if user:
+        if profile_update.first_name:
+            user.first_name = profile_update.first_name
+        if profile_update.last_name:
+            user.last_name = profile_update.last_name
+        if profile_update.email:
+            user.email = profile_update.email
+        db.commit()
+        return {"success": True, "message": "Profile updated"}
+    
+    return {"success": True, "message": "Mock profile updated"}
+
 
