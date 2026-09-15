@@ -56,9 +56,9 @@ def create_invitation(
     user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
     user_role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
     
-    if str(user_org_id) != str(org_id):
+    if str(user_org_id) != str(org_id) and user_role not in ["superadmin", "super admin"]:
         raise HTTPException(status_code=403, detail="Not authorized to invite to this organization")
-    if not (user_role and "admin" in user_role.lower()):
+    if not (user_role and ("admin" in user_role.lower() or "super" in user_role.lower())):
         raise HTTPException(status_code=403, detail="Only org admins can send invites")
         
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -134,9 +134,9 @@ def revoke_invitation(
     user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
     user_role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
     
-    if str(user_org_id) != str(invite.org_id):
+    if str(user_org_id) != str(invite.org_id) and user_role not in ["superadmin", "super admin"]:
         raise HTTPException(status_code=403, detail="Not authorized")
-    if not (user_role and "admin" in user_role.lower()):
+    if not (user_role and ("admin" in user_role.lower() or "super" in user_role.lower())):
         raise HTTPException(status_code=403, detail="Only org admins can revoke invites")
         
     if invite.status != "PENDING":
