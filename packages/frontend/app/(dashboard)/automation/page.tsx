@@ -49,6 +49,16 @@ export default function AutomationPage() {
     queryFn: () => fetchApi<{ asset_count: number }>("/v1/risk/intelligence"),
   });
 
+  const { data: overview, isLoading: loadingOverview } = useQuery<any>({
+    queryKey: ["automation-overview"],
+    queryFn: () => fetchApi("/v1/automation/overview"),
+  });
+  
+  const { data: agent, isLoading: loadingAgent } = useQuery<any>({
+    queryKey: ["automation-agent"],
+    queryFn: () => fetchApi("/v1/automation/agent/status"),
+  });
+
   const { data: rulesData, isLoading: loadingRules } = useQuery<{ rules: Rule[] }>({
     queryKey: ["automation-rules"],
     queryFn: () => fetchApi<{ rules: Rule[] }>("/v1/automation/rules"),
@@ -108,12 +118,36 @@ export default function AutomationPage() {
         </Button>
       </PageHeader>
 
+      {!loadingAgent && agent && (
+        <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-soft">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold">Autonomous Security Agent</h3>
+                <p className="text-xs text-muted-foreground">Status: <span className="font-medium text-success">{agent.status}</span> • Last heartbeat: {agent.last_heartbeat}</p>
+              </div>
+            </div>
+            <div className="hidden items-center gap-6 md:flex">
+               {Object.entries(agent.workers || {}).map(([key, status]) => (
+                  <div key={key} className="text-center">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{key}</div>
+                    <div className={cn("text-xs font-semibold", (status as string) === "RUNNING" ? "text-success" : "text-muted-foreground")}>{status as string}</div>
+                  </div>
+               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { label: "Active runbooks", value: enabled, tint: "text-success" },
-          { label: "Total rules", value: rules.length },
-          { label: "Executions (30d)", value: totalRuns, tint: "text-primary" },
-          { label: "Auto-resolved", value: "128", tint: "text-success" },
+          { label: "Active runbooks", value: overview?.active_runbooks ?? enabled, tint: "text-success" },
+          { label: "Total rules", value: overview?.total_rules ?? rules.length },
+          { label: "Executions (30d)", value: overview?.total_executions ?? totalRuns, tint: "text-primary" },
+          { label: "Auto-resolved", value: overview?.successful ?? 0, tint: "text-success" },
         ].map((s, i) => (
           <motion.div
             key={s.label}
