@@ -34,8 +34,8 @@ export function RiskTrend({ className }: { className?: string }) {
   return (
     <div className={cn("flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-[13.5px] font-bold tracking-tight">RISK TREND (Last 7 Days)</h3>
-        <button className="flex h-7 cursor-pointer items-center gap-1 rounded-lg border border-border bg-muted/40 px-2.5 text-[11px] font-semibold text-muted-foreground transition hover:text-foreground">
+        <h3 className="text-sm font-bold tracking-tight">RISK TREND (Last 7 Days)</h3>
+        <button className="flex h-7 cursor-pointer items-center gap-1 rounded-lg border border-border bg-muted/40 px-2.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground">
           Overall Risk <ChevronDown className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -46,7 +46,7 @@ export function RiskTrend({ className }: { className?: string }) {
           <div className="flex h-[230px] w-full flex-col items-center justify-center text-center">
             <ShieldAlert className="mb-2 h-8 w-8 text-muted-foreground/30" />
             <p className="text-[13px] font-medium">No history available</p>
-            <p className="text-[11.5px] text-muted-foreground">Connect environments to track risk over time.</p>
+            <p className="text-sm text-muted-foreground">Connect environments to track risk over time.</p>
           </div>
         )}
         {mounted && hasData && <ResponsiveContainer width="100%" height={230}>
@@ -148,8 +148,8 @@ export function TopRiskyAssets({ className }: { className?: string }) {
   return (
     <div className={cn("flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-[13.5px] font-bold tracking-tight">TOP RISKY ASSETS</h3>
-        <Link href="/assets" className="flex items-center gap-0.5 text-[11px] font-semibold text-primary transition hover:gap-1.5">
+        <h3 className="text-sm font-bold tracking-tight">TOP RISKY ASSETS</h3>
+        <Link href="/assets" className="flex items-center gap-0.5 text-xs font-semibold text-primary transition hover:gap-1.5">
           View All <ArrowRight className="h-3 w-3" />
         </Link>
       </div>

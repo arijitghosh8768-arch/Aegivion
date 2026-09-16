@@ -4,7 +4,7 @@ import type { ProviderId } from "@/lib/types";
 /* Topology node model                                                 */
 /* ------------------------------------------------------------------ */
 
-export type TopologyNodeId = ProviderId | "network" | "database" | "users";
+export type TopologyNodeId = ProviderId | "network" | "database" | "users" | "firewall" | "endpoints";
 
 export type NodeStatus = "healthy" | "warning" | "critical" | "disconnected";
 

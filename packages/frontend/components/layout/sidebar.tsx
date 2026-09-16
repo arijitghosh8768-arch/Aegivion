@@ -81,9 +81,14 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
           if (filteredItems.length === 0) return null;
 
           return (
-          <div key={section.label} className="mb-2">
-            {!collapsed && (
-              <div className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+          <details key={section.label} className="group mb-2" open>
+            {!collapsed ? (
+              <summary className="flex cursor-pointer select-none items-center justify-between px-2 mb-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80 hover:text-muted-foreground">
+                {section.label}
+                <svg className="h-3 w-3 transition-transform group-open:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </summary>
+            ) : (
+              <div className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80 hidden">
                 {section.label}
               </div>
             )}
@@ -140,7 +145,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
                 );
               })}
             </div>
-          </div>
+          </details>
         )})}
       </nav>
 

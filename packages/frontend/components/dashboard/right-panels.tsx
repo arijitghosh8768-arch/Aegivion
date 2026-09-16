@@ -29,8 +29,8 @@ export function AiSecurityInsights({ className }: { className?: string }) {
     <div className={cn("flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft", className)}>
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-[13.5px] font-bold tracking-tight">AI SECURITY INSIGHTS</h3>
-          <p className="text-[11px] text-muted-foreground">Powered by Aegivion AI</p>
+          <h3 className="text-sm font-bold tracking-tight">AI SECURITY INSIGHTS</h3>
+          <p className="text-xs text-muted-foreground">Powered by Aegivion AI</p>
         </div>
         <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-gradient">
           <BrainCircuit className="h-4 w-4 text-white" />
@@ -65,7 +65,7 @@ export function AiSecurityInsights({ className }: { className?: string }) {
 
       <Link
         href="/detection-engine"
-        className="mt-4 inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-brand-gradient text-[12.5px] font-semibold text-white shadow-soft transition hover:brightness-110"
+        className="mt-4 inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow transition-colors hover:bg-primary/90"
       >
         View &amp; Resolve <ArrowRight className="h-4 w-4" />
       </Link>
@@ -111,12 +111,12 @@ export function LiveThreatFeed({ className }: { className?: string }) {
   return (
     <div className={cn("flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-[13.5px] font-bold tracking-tight">LIVE THREAT FEED</h3>
-        <Link href="/threats" className="text-[11px] font-semibold text-primary transition hover:underline">
+        <h3 className="text-sm font-bold tracking-tight">Live Threat Feed</h3>
+        <Link href="/threats" className="text-xs font-semibold text-primary transition hover:underline">
           View All
         </Link>
       </div>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">Real-time security events</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">Real-time security events</p>
 
       <div className="mt-3 flex flex-1 flex-col justify-between gap-1">
         {isLoading ? (
@@ -242,7 +242,7 @@ export function AskAegivionAI({ className }: { className?: string }) {
               className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
             >
               {m.role === "ai" ? (
-                <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-border bg-muted/50 px-3 py-2 text-[11.5px] leading-relaxed">
+                <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-border bg-muted/50 px-3 py-2 text-sm leading-relaxed">
                   {m.thinking ? (
                     <span className="flex items-center gap-1 py-0.5">
                       {[0, 1, 2].map((i) => (
@@ -277,7 +277,7 @@ export function AskAegivionAI({ className }: { className?: string }) {
                   )}
                 </div>
               ) : (
-                <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-brand-gradient px-3 py-2 text-[11.5px] font-medium text-white shadow-soft">
+                <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-brand-gradient px-3 py-2 text-sm font-medium text-white shadow-soft">
                   {m.text}
                 </div>
               )}
@@ -286,40 +286,41 @@ export function AskAegivionAI({ className }: { className?: string }) {
         </AnimatePresence>
       </div>
 
-      {/* suggestions */}
-      <div className="flex gap-1.5 overflow-x-auto px-4 pb-1.5">
-        {getSuggestions().slice(0, 3).map((s) => (
-          <button
-            key={s}
-            onClick={() => send(s)}
-            disabled={busy}
-            className="shrink-0 cursor-pointer rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[10.5px] font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
-          >
-            {s}
-          </button>
-        ))}
-      </div>
-
-      {/* input */}
-      <div className="flex items-center gap-2 border-t border-border px-4 py-3">
-        <div className="relative flex-1">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send(input)}
-            placeholder="Ask anything..."
-            className="h-9 w-full rounded-full border border-input bg-muted/40 pl-4 pr-10 text-[12.5px] outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-ring/40"
-          />
-          <AudioLines className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      {/* suggestions and input grouped */}
+      <div className="flex flex-col gap-2 border-t border-border px-4 py-3 bg-card rounded-b-2xl">
+        <div className="flex gap-1.5 overflow-x-auto hide-scrollbar">
+          {getSuggestions().slice(0, 3).map((s) => (
+            <button
+              key={s}
+              onClick={() => send(s)}
+              disabled={busy}
+              className="shrink-0 cursor-pointer rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+            >
+              {s}
+            </button>
+          ))}
         </div>
-        <button
-          onClick={() => send(input)}
-          disabled={busy || !input.trim()}
-          className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-brand-gradient text-white shadow-soft transition hover:brightness-110 disabled:opacity-40"
-          aria-label="Send"
-        >
-          <Send className="h-4 w-4" />
-        </button>
+
+        {/* input */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && send(input)}
+              placeholder="Ask anything..."
+              className="h-9 w-full rounded-full border border-input bg-muted/40 pl-4 pr-10 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-ring/40"
+            />
+            <AudioLines className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          </div>
+          <button
+            onClick={() => send(input)}
+            disabled={busy || !input.trim()}
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-brand-gradient text-white shadow-soft transition hover:brightness-110 disabled:opacity-40"
+          >
+            <Send className="h-4 w-4 -translate-x-[0.5px] translate-y-[0.5px]" strokeWidth={2.4} />
+          </button>
+        </div>
       </div>
     </div>
   );

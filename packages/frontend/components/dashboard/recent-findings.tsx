@@ -17,7 +17,7 @@ export function RecentFindings({ className }: { className?: string }) {
           <CardTitle>Priority Findings</CardTitle>
           <CardDescription>Highest risk, ordered by severity</CardDescription>
         </div>
-        <Link href="/detection-engine" className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline">
+        <Link href="/detection-engine" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
           View all <ArrowRight className="h-3 w-3" />
         </Link>
       </CardHeader>
@@ -31,7 +31,7 @@ export function RecentFindings({ className }: { className?: string }) {
             <ProviderMark provider={f.provider} size={28} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-[12.5px] font-semibold">{f.title}</div>
-              <div className="text-[11px] text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {f.service} · {f.framework ?? f.category}
               </div>
             </div>

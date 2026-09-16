@@ -111,7 +111,7 @@ export function MetricCards() {
                     <CountUp value={m.value as number} />
                   )}
                 </div>
-                <div className={cn("mt-1 text-[11px] font-medium", m.subtitleTint ?? "text-muted-foreground")}>
+                <div className={cn("mt-1 text-xs font-medium", m.subtitleTint ?? "text-muted-foreground")}>
                   {m.subtitle}
                 </div>
               </div>

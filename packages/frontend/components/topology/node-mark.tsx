@@ -1,4 +1,4 @@
-import { Database, Network, Users } from "lucide-react";
+import { Database, Globe, Users, BrickWall, MonitorSmartphone, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TopologyNodeId } from "@/lib/data/topology";
 
@@ -45,6 +45,8 @@ const ICON_COLOR: Record<string, string> = {
   network: "#4f7cf7",
   database: "#8b5cf6",
   users: "#c35df5",
+  firewall: "#FF9900",
+  endpoints: "#22c55e",
 };
 
 export function TopologyNodeMark({
@@ -60,7 +62,7 @@ export function TopologyNodeMark({
   if (nodeId === "azure") return <AzureMark size={size} />;
   if (nodeId === "gcp") return <GcpMark size={size} />;
 
-  const Icon = nodeId === "network" ? Network : nodeId === "database" ? Database : Users;
+  const Icon = nodeId === "network" ? Globe : nodeId === "database" ? Database : nodeId === "firewall" ? BrickWall : nodeId === "endpoints" ? MonitorSmartphone : Users;
   return (
     <span
       className={cn("inline-flex shrink-0 items-center justify-center", className)}
