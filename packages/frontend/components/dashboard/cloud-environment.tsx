@@ -37,7 +37,7 @@ import { TopologyNodeMark } from "@/components/topology/node-mark";
 import type { TopologyNodeId } from "@/lib/data/topology";
 
 const W = 1200;
-const H = 640;
+const H = 840;
 const CX = W / 2;
 const CY = H / 2;
 const RING = 330;
@@ -261,7 +261,7 @@ export function CloudEnvironment({ className }: { className?: string }) {
     s.panY = 0;
     setZoomPct(100);
     if (sceneRef.current) {
-      sceneRef.current.setAttribute("transform", "translate(0,0) scale(1) rotate(0 600 320)");
+      sceneRef.current.setAttribute("transform", `translate(0,0) scale(1) rotate(0 ${CX} ${CY})`);
     }
   }, []);
 

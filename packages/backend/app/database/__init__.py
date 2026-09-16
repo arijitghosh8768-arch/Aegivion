@@ -28,6 +28,28 @@ import certifi
 client = MongoClient(MONGODB_URI, tlsAllowInvalidCertificates=True, tlsCAFile=certifi.where())
 # Extract db name from URI or default to aegivion
 db_name = "aegivion"
+
+SUPABASE_MAPPING = {
+    "CloudAsset": "cloud_assets",
+    "Finding": "findings",
+    "Incident": "incidents",
+    "CloudAccount": "cloud_accounts",
+    "CloudAccountV2": "cloud_accounts_v2",
+    "SecurityGroupAsset": "security_groups",
+    "IAMUserAsset": "iam_users",
+    "S3BucketAsset": "s3_buckets",
+    "EC2InstanceAsset": "ec2_instances",
+    "ScanJob": "scan_jobs",
+    "Relationship": "asset_relationships",
+    "AssetRelationship": "asset_relationships",
+    "Vulnerability": "vulnerabilities",
+    "Runbook": "runbooks",
+    "AgentHeartbeat": "agentheartbeats",
+    "ResponseExecution": "responseexecutions",
+    "PendingApproval": "pendingapprovals",
+    "SyncQuality": "syncqualitys",
+    "EvaluationResult": "evaluationresults"
+}
 try:
     path = MONGODB_URI.split("/")[-1].split("?")[0]
     if path and "." not in path and "@" not in path:
@@ -110,7 +132,7 @@ class MockQuery:
 
     def count(self):
         name = self._model_class.__name__ if isinstance(self._model_class, type) else self._model_class.__class__.__name__
-        supabase_mapping = {"CloudAsset": "cloud_assets", "Finding": "findings", "Incident": "incidents", "CloudAccount": "cloud_accounts"}
+        supabase_mapping = SUPABASE_MAPPING
         if supabase and name in supabase_mapping:
             table = supabase_mapping[name]
             q = supabase.table(table).select("*", count="exact")
@@ -128,7 +150,7 @@ class MockQuery:
 
     def all(self):
         name = self._model_class.__name__ if isinstance(self._model_class, type) else self._model_class.__class__.__name__
-        supabase_mapping = {"CloudAsset": "cloud_assets", "Finding": "findings", "Incident": "incidents", "CloudAccount": "cloud_accounts"}
+        supabase_mapping = SUPABASE_MAPPING
         
         if supabase and name in supabase_mapping:
             table = supabase_mapping[name]
@@ -196,7 +218,7 @@ class MongoSQLSession:
     def commit(self):
         for obj in self._new_objects:
             name = obj.__class__.__name__
-            supabase_mapping = {"CloudAsset": "cloud_assets", "Finding": "findings", "Incident": "incidents", "CloudAccount": "cloud_accounts"}
+            supabase_mapping = SUPABASE_MAPPING
             data = obj.dict() if hasattr(obj, "dict") else obj.__dict__
             if supabase and name in supabase_mapping:
                 try:
@@ -209,7 +231,7 @@ class MongoSQLSession:
                 
         for obj in self._queried_objects:
             name = obj.__class__.__name__
-            supabase_mapping = {"CloudAsset": "cloud_assets", "Finding": "findings", "Incident": "incidents", "CloudAccount": "cloud_accounts"}
+            supabase_mapping = SUPABASE_MAPPING
             data = obj.dict() if hasattr(obj, "dict") else obj.__dict__
             if supabase and name in supabase_mapping:
                 try:
