@@ -50,9 +50,6 @@ def create_invitation(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
-    # Enforce manage_org permission or custom invite permission logic here
-    # Assuming require_permission is a Depends decorator or we check manually
-    # Let's check manually for now since it's an org-scoped route
     user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
     user_role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
     
@@ -62,14 +59,28 @@ def create_invitation(
         raise HTTPException(status_code=403, detail="Only org admins can send invites")
         
     org = db.query(Organization).filter(Organization.id == org_id).first()
-    # Accept if the org doesn't strictly exist in the 'organizations' table, 
-    # as some are only tracked in 'orgsettings' in this architecture.
+    
+    # 1. Normalize Email
+    normalized_email = request.email.strip().lower()
+    
+    # 2. Validate Role
+    allowed_roles = ["VIEWER", "ANALYST", "SECURITY_ANALYST", "ADMIN", "ORG_ADMIN", "SECURITY_ADMIN", "MEMBER"]
+    normalized_role = request.role.upper().replace(" ", "_")
+    if normalized_role not in allowed_roles:
+        raise HTTPException(status_code=400, detail="Invalid role specified")
+        
+    # 3. Duplicate Prevention
+    existing = db.query(Invitation).filter(Invitation.org_id == org_id).all()
+    for inv in existing:
+        if inv.email.strip().lower() == normalized_email and inv.status in ["PENDING", "ACCEPTED", "ACTIVE"]:
+            raise HTTPException(status_code=400, detail="This employee is already on the allowlist or has a pending invitation.")
 
     invite = Invitation(
         org_id=org_id,
-        email=request.email,
-        role_id=request.role,
-        invited_by=str(current_user.get("id")) if isinstance(current_user, dict) else getattr(current_user, "id")
+        email=normalized_email,
+        role_id=normalized_role,
+        invited_by=str(current_user.get("id")) if isinstance(current_user, dict) else getattr(current_user, "id"),
+        status="PENDING"
     )
     db.add(invite)
     
