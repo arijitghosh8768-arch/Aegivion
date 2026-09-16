@@ -25,3 +25,5 @@ api_router.include_router(org_settings.router, prefix="/v1/orgs", tags=["Organiz
 api_router.include_router(invitations.router, prefix="/v1", tags=["Invitations"])
 api_router.include_router(admin.router, prefix="/v1/admin", tags=["Admin"])
 api_router.include_router(automation.router, prefix="/v1/automation", tags=["Automation"])
+from .v1 import events
+api_router.include_router(events.router, prefix="/v1/events", tags=["Events"])

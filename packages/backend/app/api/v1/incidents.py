@@ -28,192 +28,30 @@ def get_incidents(
     account_id: Optional[str] = None,
     region: Optional[str] = None,
     sort: Optional[str] = "risk_desc",
-    db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):
-    """Retrieve incidents with tenant isolation, running CorrelationEngineV2 to synchronize new groups"""
     user_org_id = getattr(current_user, 'organization_id', None)
-    
-    # 1. Fetch DB findings
-    real_findings = []
-    try:
-        findings_db = db.query(Finding).all()
-        for f in findings_db:
-            f_dict = f.dict() if hasattr(f, 'dict') else f.__dict__
-            if user_org_id and str(f_dict.get("organization_id")) != str(user_org_id):
-                continue
-            real_findings.append(f_dict)
-    except Exception:
-        pass
-
-    # 2. Fetch DB assets
-    real_assets = []
-    try:
-        assets_db = db.query(CloudAsset).all()
-        for a in assets_db:
-            a_dict = a.dict() if hasattr(a, 'dict') else a.__dict__
-            if user_org_id and str(a_dict.get("organization_id")) != str(user_org_id):
-                continue
-            real_assets.append(a_dict)
-    except Exception:
-        pass
-
-    # 3. Fetch DB relationships
-    real_rels = []
-    try:
-        rels_db = db.query(AssetRelationship).all()
-        for r in rels_db:
-            r_dict = r.dict() if hasattr(r, 'dict') else r.__dict__
-            if user_org_id and str(r_dict.get("organization_id")) != str(user_org_id):
-                continue
-            real_rels.append(r_dict)
-    except Exception:
-        pass
-
-    # Mock fallbacks if empty
-    if not real_findings:
-        real_findings = [
-            {
-                "finding_id": "F-001",
-                "id": "F-001",
-                "title": "Public SSH Port Exposed",
-                "description": "Port 22 permits unrestricted ingress from the Internet.",
-                "severity": "critical",
-                "resource_id": "aws:ec2:i-example",
-                "rule_id": "AWS-SG-001",
-                "cloud_provider": "aws",
-                "organization_id": user_org_id or "org-default"
-            },
-            {
-                "finding_id": "F-002",
-                "id": "F-002",
-                "title": "Privileged IAM Role Attached",
-                "description": "EC2 instance utilizes a role containing full administrative credentials.",
-                "severity": "high",
-                "resource_id": "aws:iam:role:example-role",
-                "rule_id": "AWS-IAM-004",
-                "cloud_provider": "aws",
-                "organization_id": user_org_id or "org-default"
-            }
-        ]
-        real_assets = [
-            {
-                "asset_id": "aws:ec2:i-example",
-                "resource_id": "aws:ec2:i-example",
-                "name": "production-web-server",
-                "type": "ec2_instance",
-                "provider": "aws",
-                "region": "ap-south-1",
-                "configuration": {
-                    "vpc_id": "vpc-0101",
-                    "tags": {"Environment": "production", "Criticality": "high"}
-                },
-                "organization_id": user_org_id or "org-default"
-            },
-            {
-                "asset_id": "aws:iam:role:example-role",
-                "resource_id": "aws:iam:role:example-role",
-                "name": "example-role",
-                "type": "iam_role",
-                "provider": "aws",
-                "region": "global",
-                "configuration": {},
-                "organization_id": user_org_id or "org-default"
-            }
-        ]
-        real_rels = [
-            {
-                "source_asset_id": "aws:ec2:i-example",
-                "target_asset_id": "aws:iam:role:example-role",
-                "relationship_type": "USES_ROLE",
-                "confidence": "CONFIRMED",
-                "organization_id": user_org_id or "org-default"
-            }
-        ]
-
-    # Run Correlation Engine V2
-    engine = CorrelationEngineV2()
-    engine.load_data(real_findings, real_assets, real_rels)
-    correlated_groups = engine.correlate()
-
-    # Synchronize groups into persistent DB incidents
-    existing_incidents = db.query(Incident).all()
-    
-    for group in correlated_groups:
-        fingerprint = group.group_id
+    if not user_org_id:
+        raise HTTPException(status_code=403, detail="No organization context")
         
-        # Check if already exists in database
-        matched_inc = next((i for i in existing_incidents if i.correlation_fingerprint == fingerprint), None)
+    try:
+        from app.database.supabase_client import supabase
+        result = supabase.table("incidents").select("*").eq("organization_id", user_org_id).execute()
+        incidents = result.data or []
         
-        has_critical = any(next((f for f in real_findings if f.get("finding_id") == fid), {}).get("severity") == "critical" for fid in group.finding_ids)
-        sev_label = "critical" if has_critical else "high"
-        risk_score = 94 if group.strength == "strong" else 82 if group.strength == "moderate" else 55
-        title = "Internet-exposed privileged compute resource" if group.strength == "strong" else "Correlated identity vulnerabilities"
-        
-        if matched_inc:
-            # Update fields
-            matched_inc.finding_ids = group.finding_ids
-            matched_inc.asset_ids = group.asset_ids
-            matched_inc.risk_score = risk_score
-            matched_inc.severity = sev_label
-            matched_inc.last_seen_at = datetime.utcnow()
-        else:
-            # Create new persistent incident
-            new_inc = Incident(
-                id=str(uuid.uuid4()),
-                organization_id=user_org_id or "org-default",
-                cloud_account_id="acc-default",
-                title=title,
-                severity=sev_label,
-                risk_score=risk_score,
-                status=IncidentStatus.OPEN,
-                correlation_fingerprint=fingerprint,
-                finding_ids=group.finding_ids,
-                asset_ids=group.asset_ids,
-                timeline=[
-                    {
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "title": "Incident Opened",
-                        "description": "Correlated incident candidate automatically registered from cloud vulnerability signals."
-                    }
-                ]
-            )
-            db.add(new_inc)
+        if severity:
+            incidents = [i for i in incidents if i.get("severity") == severity.upper()]
+        if status:
+            incidents = [i for i in incidents if i.get("status") == status.upper()]
             
-    db.commit()
-
-    # Fetch fresh list to return
-    db_incidents = db.query(Incident).all()
-    if user_org_id:
-        db_incidents = [i for i in db_incidents if str(getattr(i, 'organization_id', '')) == str(user_org_id)]
-
-    # Apply filters
-    if severity:
-        db_incidents = [i for i in db_incidents if i.severity.lower() == severity.lower()]
-    if status:
-        db_incidents = [i for i in db_incidents if i.status.value.lower() == status.lower()]
-    if account_id:
-        db_incidents = [i for i in db_incidents if i.cloud_account_id == account_id]
-    if region:
-        # Default all mocks to ap-south-1
-        db_incidents = [i for i in db_incidents if region.lower() == "ap-south-1"]
-
-    # Sort
-    if sort == "risk_desc":
-        db_incidents.sort(key=lambda x: x.risk_score, reverse=True)
-    elif sort == "risk_asc":
-        db_incidents.sort(key=lambda x: x.risk_score)
-
-    start = (page - 1) * page_size
-    end = start + page_size
-    paginated = db_incidents[start:end]
-
-    return {
-        "incidents": [i.dict() for i in paginated],
-        "total": len(db_incidents),
-        "page": page,
-        "page_size": page_size
-    }
+        return {
+            "incidents": incidents,
+            "total": len(incidents),
+            "page": page,
+            "page_size": page_size
+        }
+    except Exception as e:
+        return {"incidents": [], "error": str(e)}
 
 @router.get("/{incident_id}")
 def get_incident_detail(incident_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):

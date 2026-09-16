@@ -94,3 +94,19 @@ ALTER TABLE findings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY isolate_org_findings ON findings
     FOR ALL
     USING (organization_id = current_setting('request.jwt.claims')::json->>'org_id');
+
+CREATE TABLE IF NOT EXISTS incidents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id VARCHAR NOT NULL,
+    title VARCHAR NOT NULL,
+    description TEXT,
+    severity VARCHAR NOT NULL,
+    status VARCHAR NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE incidents ENABLE ROW LEVEL SECURITY;
+CREATE POLICY isolate_org_incidents ON incidents
+    FOR ALL
+    USING (organization_id = current_setting('request.jwt.claims')::json->>'org_id');
