@@ -83,3 +83,22 @@ def create_org_admin(req: CreateOrgAdminRequest, db: Session = Depends(get_db), 
     db.add(new_user)
     db.commit()
     return {"success": True, "message": "Org admin created successfully."}
+
+@router.get('/users')
+def list_org_admins(db: Session = Depends(get_db), current_user: dict = Depends(require_superadmin)):
+    users = db.query(User).all()
+    orgs = {str(o.organization_id or o.id): o.branding.get('company_name', 'Unknown') for o in db.query(OrgSettings).all()}
+    
+    data = []
+    for u in users:
+        # filter only org admins (or just show all users, but let's show users with orgs)
+        if u.email != 'superadmin@aegivion.com':
+            org_name = orgs.get(str(u.organization_id), 'Unassigned')
+            data.append({
+                'id': str(u.id),
+                'email': u.email,
+                'org_name': org_name,
+                'created_at': u.created_at if isinstance(u.created_at, str) else (u.created_at.isoformat() if hasattr(u, 'created_at') and u.created_at else None)
+            })
+    return {'success': True, 'data': data}
+
