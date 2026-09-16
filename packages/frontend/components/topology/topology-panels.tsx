@@ -161,9 +161,9 @@ export function ConnectedCloudsSidebar({
 }) {
   const available = (Object.keys(PROVIDER_META) as ProviderId[]).filter((p) => !connected.includes(p));
 
-  const { data: cloudAccountsRes } = useQuery({ queryKey: ['cloud-accounts'], queryFn: () => fetchApi('/v1/cloud-accounts') });
-  const { data: findingsRes } = useQuery({ queryKey: ['findings'], queryFn: () => fetchApi('/v1/findings') });
-  const { data: topologyRes } = useQuery({ queryKey: ['topology'], queryFn: () => fetchApi('/v1/topology') });
+  const { data: cloudAccountsRes } = useQuery<any>({ queryKey: ['cloud-accounts'], queryFn: () => fetchApi('/v1/cloud-accounts') });
+  const { data: findingsRes } = useQuery<any>({ queryKey: ['findings'], queryFn: () => fetchApi('/v1/findings') });
+  const { data: topologyRes } = useQuery<any>({ queryKey: ['topology'], queryFn: () => fetchApi('/v1/topology') });
   
   const liveAccounts = cloudAccountsRes?.data || [];
   const liveFindings = findingsRes?.findings || [];
@@ -298,8 +298,8 @@ export function ConnectedCloudsSidebar({
 }
 export function BottomPanel({ region = "all", risk = "all" }: { region?: string; risk?: string }) {
   const [activeTab, setActiveTab] = useState("discoveries");
-  const { data: findingsRes } = useQuery({ queryKey: ['findings'], queryFn: () => fetchApi('/v1/findings') });
-  const { data: topologyRes } = useQuery({ queryKey: ['topology'], queryFn: () => fetchApi('/v1/topology') });
+  const { data: findingsRes } = useQuery<any>({ queryKey: ['findings'], queryFn: () => fetchApi('/v1/findings') });
+  const { data: topologyRes } = useQuery<any>({ queryKey: ['topology'], queryFn: () => fetchApi('/v1/topology') });
   
   const liveFindings = findingsRes?.findings || [];
   const liveNodes = topologyRes?.nodes || [];
