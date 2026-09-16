@@ -53,8 +53,21 @@ class AWSCloudSync:
         try:
             total_assets = 0
             for collector in self.collectors:
+                import asyncio
+                import inspect
                 raw_resources = collector.collect()
-                normalized_assets = [self._normalize(r, collector.resource_type) for r in raw_resources]
+                if inspect.isawaitable(raw_resources):
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    if loop.is_running():
+                        import nest_asyncio
+                        nest_asyncio.apply()
+                    raw_resources = loop.run_until_complete(raw_resources)
+                rtype = getattr(collector, 'resource_type', collector.__class__.__name__.replace('Collector', '').lower())
+                normalized_assets = [self._normalize(r, rtype) for r in raw_resources]
                 self._store_in_supabase(normalized_assets)
                 total_assets += len(normalized_assets)
                 
