@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api-client";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -91,7 +93,7 @@ export function TopologyToolbar({
         <input
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Search resources, nodes…"
+          placeholder="Search resources, nodesâ€¦"
           className="h-9 w-full rounded-xl border border-input bg-muted/40 pl-9 pr-3 text-[12.5px] outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-ring/40"
         />
       </div>
@@ -124,7 +126,7 @@ export function TopologyToolbar({
 
       <div className="ml-auto flex items-center gap-2">
         <span className="hidden items-center gap-1.5 text-[11px] text-muted-foreground xl:flex">
-          <Clock3 className="h-3.5 w-3.5" /> Last scan · {lastScan}
+          <Clock3 className="h-3.5 w-3.5" /> Last scan Â· {lastScan}
         </span>
         <button
           onClick={onRefresh}
@@ -158,17 +160,28 @@ export function ConnectedCloudsSidebar({
   onDisconnect: (p: ProviderId) => void;
 }) {
   const available = (Object.keys(PROVIDER_META) as ProviderId[]).filter((p) => !connected.includes(p));
-  const totalAssets = TOPOLOGY_PROVIDERS.filter((p) => connected.includes(p.id)).reduce(
-    (s, p) => s + p.resourceCount,
-    0
-  );
+
+  const { data: cloudAccountsRes } = useQuery({ queryKey: ['cloud-accounts'], queryFn: () => fetchApi('/v1/cloud-accounts') });
+  const { data: findingsRes } = useQuery({ queryKey: ['findings'], queryFn: () => fetchApi('/v1/findings') });
+  const { data: topologyRes } = useQuery({ queryKey: ['topology'], queryFn: () => fetchApi('/v1/topology') });
+  
+  const liveAccounts = cloudAccountsRes?.data || [];
+  const liveFindings = findingsRes?.findings || [];
+  const liveNodes = topologyRes?.nodes || [];
+
+  const totalAssets = liveNodes.length;
 
   const healthFor = (p: ProviderId) => {
-    const accts = CLOUD_ACCOUNTS.filter((a) => a.provider === p);
-    if (!accts.length) return 0;
-    return Math.round(accts.reduce((s, a) => s + a.healthScore, 0) / accts.length);
+    const pFindings = liveFindings.filter((f: any) => f.cloud_provider?.toLowerCase() === p);
+    if (!pFindings.length && !liveAccounts.find((a: any) => a.provider?.toLowerCase() === p)) return 0;
+    if (!pFindings.length) return 100;
+    
+    const score = 100 - pFindings.reduce((acc: number, f: any) => {
+        return acc + (f.severity?.toLowerCase() === 'critical' ? 5 : f.severity?.toLowerCase() === 'high' ? 2 : 1);
+    }, 0);
+    return Math.max(0, Math.min(100, score));
   };
-  const scoreColor = (v: number) => (v >= 80 ? "#22c55e" : v >= 60 ? "#f59e0b" : "#ef4444");
+  const scoreColor = (v: number) => (v >= 80 ? '#22c55e' : v >= 60 ? '#f59e0b' : '#ef4444');
 
   return (
     <div className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-soft xl:sticky xl:top-4 xl:self-start">
@@ -177,16 +190,17 @@ export function ConnectedCloudsSidebar({
           <Layers className="h-4 w-4 text-primary" /> Connected Clouds
         </h3>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
-          {connected.length} of 3 providers · {totalAssets.toLocaleString()} assets
+          {connected.length} of 3 providers — {totalAssets.toLocaleString()} assets
         </p>
       </div>
 
       <div className="space-y-2.5">
         {connected.map((p) => {
           const meta = PROVIDER_META[p];
-          const tp = TOPOLOGY_PROVIDERS.find((x) => x.id === p)!;
-          const critical = tp.critical;
-          const findings = FINDINGS.filter((f) => f.provider === p).length;
+          const providerNodes = liveNodes.filter((n: any) => n.provider === p);
+          const providerFindings = liveFindings.filter((f: any) => f.cloud_provider?.toLowerCase() === p);
+          const critical = providerFindings.filter((f: any) => f.severity?.toLowerCase() === 'critical').length;
+          
           return (
             <motion.div
               key={p}
@@ -218,7 +232,7 @@ export function ConnectedCloudsSidebar({
               </div>
               <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
                 <div className="rounded-lg bg-card px-1 py-1.5">
-                  <div className="text-[12px] font-bold tabular-nums">{tp.resourceCount.toLocaleString()}</div>
+                  <div className="text-[12px] font-bold tabular-nums">{providerNodes.length.toLocaleString()}</div>
                   <div className="text-[9px] text-muted-foreground">Assets</div>
                 </div>
                 <div className={cn("rounded-lg bg-card px-1 py-1.5", critical > 0 && "ring-1 ring-destructive/25")}>
@@ -228,7 +242,7 @@ export function ConnectedCloudsSidebar({
                   <div className="text-[9px] text-muted-foreground">Critical</div>
                 </div>
                 <div className="rounded-lg bg-card px-1 py-1.5">
-                  <div className="text-[12px] font-bold tabular-nums">{findings}</div>
+                  <div className="text-[12px] font-bold tabular-nums">{providerFindings.length.toLocaleString()}</div>
                   <div className="text-[9px] text-muted-foreground">Findings</div>
                 </div>
               </div>
@@ -249,212 +263,127 @@ export function ConnectedCloudsSidebar({
                   />
                 </div>
               </div>
-              <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2 text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Clock3 className="h-3 w-3" /> 4m ago
-                </span>
-                <Link href={`/detection-engine?provider=${p}`} className="font-semibold text-primary hover:underline">
-                  Open
-                </Link>
-              </div>
             </motion.div>
           );
         })}
       </div>
 
       {available.length > 0 && (
-        <div className="space-y-2">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <div className="pt-2">
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             Available to connect
-          </div>
-          {available.map((p) => (
-            <button
-              key={p}
-              onClick={() => onConnect(p)}
-              className="group flex w-full cursor-pointer items-center gap-2.5 rounded-xl border border-dashed border-border px-3 py-2.5 text-left transition hover:border-primary/40 hover:bg-primary/5"
-            >
-              <ProviderMark provider={p} size={26} />
-              <span className="flex-1 text-[12.5px] font-medium">{PROVIDER_META[p].name}</span>
-              <Plus className="h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
-            </button>
-          ))}
-        </div>
-      )}
-
-      <Link
-        href="/cloud-accounts"
-        className="flex items-center justify-center gap-1 rounded-xl border border-border bg-muted/30 py-2 text-[11.5px] font-semibold text-muted-foreground transition hover:text-foreground"
-      >
-        Manage accounts <ArrowRight className="h-3.5 w-3.5" />
-      </Link>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Bottom panel — Recent activity                                      */
-/* ------------------------------------------------------------------ */
-
-const CHANGE_META: Record<string, { cls: string; icon: React.ReactNode }> = {
-  added: { cls: "bg-success/12 text-success", icon: <Plus className="h-3 w-3" /> },
-  removed: { cls: "bg-destructive/12 text-destructive", icon: <X className="h-3 w-3" /> },
-  modified: { cls: "bg-info/12 text-info", icon: <GitBranch className="h-3 w-3" /> },
-  risk: { cls: "bg-warning/15 text-warning", icon: <CircleAlert className="h-3 w-3" /> },
-};
-
-type Tab = "discoveries" | "findings" | "changes" | "timeline";
-
-export function BottomPanel({ region = "all", risk = "all" }: { region?: string; risk?: string }) {
-  const [tab, setTab] = useState<Tab>("discoveries");
-
-  const discoveries = useMemo(
-    () => RECENT_DISCOVERIES.filter((d) => region === "all" || d.region === region),
-    [region]
-  );
-  const findings = useMemo(
-    () => RECENT_TOPOLOGY_FINDINGS.filter((f) => risk === "all" || f.severity === risk),
-    [risk]
-  );
-
-  const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "discoveries", label: "Recent Discoveries", icon: <Boxes className="h-3.5 w-3.5" /> },
-    { id: "findings", label: "Recent Findings", icon: <CircleAlert className="h-3.5 w-3.5" /> },
-    { id: "changes", label: "Topology Changes", icon: <History className="h-3.5 w-3.5" /> },
-    { id: "timeline", label: "Asset Timeline", icon: <TrendingUp className="h-3.5 w-3.5" /> },
-  ];
-
-  return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
-      <div className="flex flex-wrap gap-1 border-b border-border px-3 pt-2">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={cn(
-              "flex cursor-pointer items-center gap-1.5 rounded-t-xl border-b-2 px-3 py-2 text-[12px] font-semibold transition",
-              tab === t.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {t.icon}
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="p-4">
-        {tab === "discoveries" && (
-          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {discoveries.length === 0 && (
-              <p className="col-span-full py-8 text-center text-[12.5px] text-muted-foreground">
-                No discoveries match the current region filter.
-              </p>
-            )}
-            {discoveries.map((d, i) => (
-              <motion.div
-                key={d.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="flex items-center gap-3 rounded-xl border border-border/70 px-3 py-2.5"
-              >
-                <ProviderMark provider={d.provider} size={26} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[12px] font-semibold">{d.name}</div>
-                  <div className="truncate text-[10.5px] text-muted-foreground">
-                    {d.type} · {d.region}
-                  </div>
-                </div>
-                <span className="shrink-0 text-[10px] text-muted-foreground">{d.time}</span>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        {tab === "findings" && (
+          </p>
           <div className="space-y-1.5">
-            {findings.length === 0 && (
-              <p className="py-8 text-center text-[12.5px] text-muted-foreground">
-                No findings match the current risk filter.
-              </p>
-            )}
-            {findings.map((f, i) => (
-              <motion.div
-                key={f.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="flex items-center gap-3 rounded-xl border border-border/70 px-3 py-2.5"
-              >
-                <SeverityBadge severity={f.severity} showDot={false} className="w-[72px] justify-center" />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[12px] font-semibold">{f.title}</div>
-                  <div className="truncate text-[10.5px] text-muted-foreground">
-                    {f.type} · {PROVIDER_META[f.provider].name}
-                  </div>
-                </div>
-                <span className="hidden shrink-0 text-[10px] font-medium tabular-nums text-muted-foreground sm:block">
-                  {f.confidence}% conf
-                </span>
-                <span className="shrink-0 text-[10px] text-muted-foreground">{f.time}</span>
-              </motion.div>
-            ))}
-            <Link href="/detection-engine" className="mt-2 flex items-center justify-center gap-1 py-1 text-[11.5px] font-semibold text-primary hover:underline">
-              View all findings <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-        )}
-
-        {tab === "changes" && (
-          <div className="space-y-1.5">
-            {TOPOLOGY_CHANGES.map((c, i) => {
-              const m = CHANGE_META[c.kind];
+            {available.map((p) => {
+              const meta = PROVIDER_META[p];
               return (
-                <motion.div
-                  key={c.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  className="flex items-center gap-3 rounded-xl border border-border/70 px-3 py-2.5"
+                <button
+                  key={p}
+                  onClick={() => onConnect(p)}
+                  className="flex w-full items-center justify-between rounded-lg border border-border bg-card p-2 text-left transition hover:bg-muted/50"
                 >
-                  <span className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-lg", m.cls)}>
-                    {m.icon}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[12px] font-semibold">{c.label}</div>
-                    <div className="truncate text-[10.5px] text-muted-foreground">{c.detail}</div>
+                  <div className="flex items-center gap-2">
+                    <ProviderMark provider={p} size={20} />
+                    <span className="text-[12px] font-medium">{meta.name}</span>
                   </div>
-                  <Badge variant="soft" className="shrink-0">
-                    {PROVIDER_META[c.provider].short}
-                  </Badge>
-                  <span className="shrink-0 text-[10px] text-muted-foreground">{c.time}</span>
-                </motion.div>
+                  <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
               );
             })}
           </div>
-        )}
+        </div>
+      )}
+    </div>
+  );
+}
+export function BottomPanel({ region = "all", risk = "all" }: { region?: string; risk?: string }) {
+  const [activeTab, setActiveTab] = useState("discoveries");
+  const { data: findingsRes } = useQuery({ queryKey: ['findings'], queryFn: () => fetchApi('/v1/findings') });
+  const { data: topologyRes } = useQuery({ queryKey: ['topology'], queryFn: () => fetchApi('/v1/topology') });
+  
+  const liveFindings = findingsRes?.findings || [];
+  const liveNodes = topologyRes?.nodes || [];
+  
+  const recentNodes = liveNodes.slice(0, 5);
+  const recentFindings = liveFindings.filter((f: any) => risk === 'all' || f.severity?.toLowerCase() === risk.toLowerCase()).slice(0, 5);
 
-        {tab === "timeline" && (
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={ASSET_TIMELINE} margin={{ top: 6, right: 8, left: -18, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="tl-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6d5df6" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#6d5df6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="week" tick={{ fontSize: 10.5, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10.5, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-                <Tooltip content={<ChartTooltip />} />
-                <Area type="monotone" dataKey="net" name="Net assets" stroke="#6d5df6" strokeWidth={2.2} fill="url(#tl-grad)" dot={{ r: 2.5 }} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </div>
+  return (
+    <div className="absolute bottom-4 left-4 right-4 z-10 mx-auto max-w-5xl">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="overflow-hidden rounded-xl border border-border bg-card/95 shadow-xl backdrop-blur-xl"
+      >
+        <div className="flex border-b border-border/50">
+          <button
+            onClick={() => setActiveTab("discoveries")}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-2 border-b-2 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider transition",
+              activeTab === "discoveries"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+            )}
+          >
+            <Boxes className="h-3.5 w-3.5" /> Recent Discoveries
+          </button>
+          <button
+            onClick={() => setActiveTab("findings")}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-2 border-b-2 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider transition",
+              activeTab === "findings"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+            )}
+          >
+            <CircleAlert className="h-3.5 w-3.5" /> Recent Findings
+          </button>
+        </div>
+
+        <div className="p-2">
+          {activeTab === "discoveries" && (
+            <div className="grid grid-cols-3 gap-2">
+              {recentNodes.length === 0 ? (
+                <div className="col-span-3 p-4 text-center text-sm text-muted-foreground">No recent assets.</div>
+              ) : (
+                recentNodes.map((item: any, i: number) => (
+                  <div key={item.id || i} className="flex items-center justify-between rounded-lg border border-border/50 bg-background/50 p-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <ProviderMark provider={item.provider || "aws"} size={20} />
+                      <div className="truncate">
+                        <div className="truncate text-[12px] font-medium">{item.label}</div>
+                        <div className="text-[10px] text-muted-foreground">{item.type}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab === "findings" && (
+            <div className="grid grid-cols-2 gap-2">
+              {recentFindings.length === 0 ? (
+                <div className="col-span-2 p-4 text-center text-sm text-muted-foreground">No recent findings.</div>
+              ) : (
+                recentFindings.map((item: any, i: number) => (
+                  <div key={item.id || i} className="flex items-center justify-between rounded-lg border border-border/50 bg-background/50 p-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <SeverityBadge severity={item.severity} />
+                      <div className="truncate">
+                        <div className="truncate text-[12px] font-medium">{item.title}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {item.resource_id}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 }

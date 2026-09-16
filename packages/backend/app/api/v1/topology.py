@@ -35,7 +35,8 @@ def get_topology(
         nodes.append({
             "id": asset.resource_id,
             "type": asset.type,
-            "label": asset.name or asset.resource_id
+            "label": asset.name or asset.resource_id,
+            "provider": str(getattr(asset, 'provider', 'aws')).lower()
         })
 
     edges = []
