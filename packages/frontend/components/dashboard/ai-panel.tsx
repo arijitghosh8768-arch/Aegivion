@@ -181,7 +181,7 @@ export function AiPanel({ className, expanded = false }: { className?: string; e
           </button>
         </div>
         {expanded && (
-          <button className="mt-2 flex w-full cursor-pointer items-center justify-center gap-1 rounded-xl border border-border bg-muted/30 py-2 text-[11px] font-semibold text-muted-foreground transition hover:text-foreground">
+          <button className="mt-2 flex w-full cursor-pointer items-center justify-center gap-1 rounded-xl border border-border bg-muted/30 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground">
             Open full Copilot workspace <ArrowUpRight className="h-3.5 w-3.5" />
           </button>
         )}
@@ -228,7 +228,7 @@ function AiBlocks({ blocks }: { blocks: AiResponse["blocks"] }) {
           );
         if (b.type === "code")
           return (
-            <pre key={i} className="code-block overflow-x-auto rounded-lg bg-foreground/[0.06] p-2.5 text-[11px] dark:bg-black/40">
+            <pre key={i} className="code-block overflow-x-auto rounded-lg bg-foreground/[0.06] p-2.5 text-xs dark:bg-black/40">
               {b.content}
             </pre>
           );

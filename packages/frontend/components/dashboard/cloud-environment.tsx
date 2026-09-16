@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -40,7 +40,7 @@ const W = 1200;
 const H = 640;
 const CX = W / 2;
 const CY = H / 2;
-const RING = 250;
+const RING = 330;
 
 /* Round coordinates so server & client render identical values (fixes hydration mismatch). */
 const r2 = (v: number) => Math.round(v * 100) / 100;
@@ -55,26 +55,23 @@ interface EnvNode {
   color: string;
   soft: string;
   kind: "cloud" | "database" | "users" | "network";
-  status: "Secure" | "Attention";
+  status: string;
   link: string;
+  _score?: number;
 }
 
 const NODES: EnvNode[] = [
-  { id: "aws", label: "aws", displayName: "AWS", sub: "Amazon Web Services", assets: "12 Assets", angle: 270, color: "#FF9900", soft: "rgba(255,153,0,0.16)", kind: "cloud", status: "Secure", link: "/cloud-topology?p=aws" },
-  { id: "gcp", label: "gcp", displayName: "Google Cloud", sub: "GCP Project", assets: "10 Assets", angle: 0, color: "#4285F4", soft: "rgba(66,133,244,0.16)", kind: "cloud", status: "Secure", link: "/cloud-topology?p=gcp" },
-  { id: "azure", label: "azure", displayName: "Azure", sub: "Microsoft Azure", assets: "10 Assets", angle: 48, color: "#0078D4", soft: "rgba(0,120,212,0.16)", kind: "cloud", status: "Secure", link: "/cloud-topology?p=azure" },
-  { id: "database", label: "database", displayName: "Database", sub: "Monitored engines", assets: "4 Assets", angle: 96, color: "#8b5cf6", soft: "rgba(139,92,246,0.16)", kind: "database", status: "Secure", link: "/assets" },
-  { id: "users", label: "users", displayName: "Users", sub: "Identities & IAM", assets: "9 Identities", angle: 150, color: "#c35df5", soft: "rgba(195,93,245,0.16)", kind: "users", status: "Secure", link: "/identities" },
-  { id: "network", label: "network", displayName: "Network", sub: "VPC · subnets · SGs", assets: "6 Assets", angle: 205, color: "#4f7cf7", soft: "rgba(79,124,247,0.16)", kind: "network", status: "Secure", link: "/cloud-topology" },
+  { id: "aws", label: "AWS", displayName: "AWS", sub: "Amazon Web Services", assets: "12 Assets", angle: 270, color: "#c35df5", soft: "rgba(195,93,245,0.16)", kind: "cloud", status: "Secure", link: "/cloud-topology?p=aws" },
+  { id: "network", label: "Network", displayName: "Network", sub: "VPC, Subnets", assets: "8 Assets", angle: 321.43, color: "#4f7cf7", soft: "rgba(79,124,247,0.16)", kind: "network", status: "Secure", link: "/cloud-topology" },
+  { id: "firewall", label: "Firewall", displayName: "Firewall", sub: "WAF & Security Groups", assets: "6 Assets", angle: 12.86, color: "#FF9900", soft: "rgba(255,153,0,0.16)", kind: "cloud", status: "Secure", link: "/cloud-topology" },
+  { id: "endpoints", label: "Endpoints", displayName: "Endpoints", sub: "Devices", assets: "9 Assets", angle: 64.29, color: "#22c55e", soft: "rgba(34,197,94,0.16)", kind: "cloud", status: "Secure", link: "/cloud-topology" },
+  { id: "gcp", label: "GCP", displayName: "GCP", sub: "GCP Project", assets: "12 Assets", angle: 115.71, color: "#4285F4", soft: "rgba(66,133,244,0.16)", kind: "cloud", status: "Secure", link: "/cloud-topology?p=gcp" },
+  { id: "azure", label: "Azure", displayName: "Azure", sub: "Microsoft Azure", assets: "10 Assets", angle: 167.14, color: "#0078D4", soft: "rgba(0,120,212,0.16)", kind: "cloud", status: "Secure", link: "/cloud-topology?p=azure" },
+  { id: "database", label: "Database", displayName: "Database", sub: "Monitored engines", assets: "4 Assets", angle: 218.57, color: "#8b5cf6", soft: "rgba(139,92,246,0.16)", kind: "database", status: "Secure", link: "/assets" },
 ];
 
 /* Arc sector labels (rotate with the ring) */
-const ARCS = [
-  { text: "I D E N T I T I E S", from: 300, to: 355, r: 318 },
-  { text: "C O M P U T E", from: 42, to: 102, r: 318 },
-  { text: "A P P L I C A T I O N S", from: 140, to: 212, r: 318 },
-  { text: "N E T W O R K", from: 238, to: 292, r: 318 },
-];
+const ARCS: any[] = [];
 
 function polar(angleDeg: number, radius: number) {
   const rad = (angleDeg * Math.PI) / 180;
@@ -83,7 +80,13 @@ function polar(angleDeg: number, radius: number) {
 
 /* Shared brand marks for every node — consistent with the full topology */
 function NodeGlyph({ node }: { node: EnvNode }) {
-  return <TopologyNodeMark nodeId={node.id as TopologyNodeId} size={32} />;
+  return (
+    <foreignObject x={-20} y={-20} width={40} height={40} style={{ pointerEvents: 'none' }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <TopologyNodeMark nodeId={node.id as TopologyNodeId} size={32} />
+      </div>
+    </foreignObject>
+  );
 }
 
 interface ViewState {
@@ -105,15 +108,55 @@ export function CloudEnvironment({ className }: { className?: string }) {
   const sceneRef = useRef<SVGGElement>(null);
   const labelRefs = useRef<Record<string, SVGGElement | null>>({});
 
-  const { data: telemetry } = useQuery<{ asset_count: number }>({
+  const { data: telemetry } = useQuery<any>({
     queryKey: ["risk-intelligence"],
     queryFn: () => fetchApi("/v1/risk/intelligence"),
     refetchInterval: 30000,
   });
+  const { data: topData } = useQuery<any>({
+    queryKey: ["topology-data"],
+    queryFn: () => fetchApi("/v1/topology"),
+    refetchInterval: 30000,
+  });
+
+  const displayNodes: EnvNode[] = useMemo(() => {
+    return NODES.map((n) => {
+      let count = n.assets;
+      let stat = n.status;
+      let score = NODE_DETAILS[n.id]?.score ?? 100;
+
+      if (telemetry && !telemetry.error) {
+        let realCount = 0;
+        if (n.id === "aws") realCount = telemetry.aws_assets || 0;
+        else if (n.id === "azure") realCount = telemetry.azure_assets || 0;
+        else if (n.id === "gcp") realCount = telemetry.gcp_assets || 0;
+        else if (topData && topData.nodes) {
+          const nodes = topData.nodes as any[];
+          if (n.id === "database") realCount = nodes.filter(x => x.type === "database").length;
+          if (n.id === "network") realCount = nodes.filter(x => x.type === "network" || x.type === "vpc").length;
+          if (n.id === "firewall") realCount = nodes.filter(x => x.type === "firewall").length;
+          if (n.id === "endpoints") realCount = nodes.filter(x => x.type === "compute" || x.type === "endpoint").length;
+        }
+        
+        count = `${realCount} Assets`;
+        if (realCount === 0) {
+          stat = "Disconnected";
+          score = 0;
+        } else if (telemetry.critical_risks > 0 && ["aws", "azure", "gcp"].includes(n.id)) {
+          stat = "At Risk";
+          score = Math.max(10, 100 - (telemetry.critical_risks * 10));
+        } else {
+          stat = "Secure";
+          score = 100;
+        }
+      }
+      return { ...n, assets: count, status: stat, _score: score };
+    });
+  }, [telemetry, topData]);
 
   const state = useRef<ViewState>({
     rot: 0,
-    zoom: 0.9,
+    zoom: 0.85,
     panX: 0,
     panY: 0,
     dragging: false,
@@ -125,12 +168,12 @@ export function CloudEnvironment({ className }: { className?: string }) {
   const [selection, setSelection] = useState<Selection | null>(null);
   const selectNode = useCallback((node: EnvNode) => setSelection({ kind: "node", node }), []);
   const selectCore = useCallback(() => setSelection({ kind: "core" }), []);
-  const [zoomPct, setZoomPct] = useState(100);
+  const [zoomPct, setZoomPct] = useState(85);
   const [auto, setAuto] = useState(true);
   const [spinning, setSpinning] = useState(false);
 
 
-  /* 360-degree continuous rotation render loop — keeps node labels upright while the ring rotates. */
+  /* pan/zoom/rotate render loop */
   useEffect(() => {
     if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       state.current.autoRotate = false;
@@ -151,13 +194,16 @@ export function CloudEnvironment({ className }: { className?: string }) {
         sceneRef.current.setAttribute("transform", transform);
         lastTransform = transform;
       }
-      // Keep node labels readable: counter-rotate by the same angle around each label's origin.
+      
+      // Counter rotate nodes to keep them upright while orbiting
+      const counterRot = `rotate(${r2(-s.rot)})`;
       for (const n of NODES) {
         const el = labelRefs.current[n.id];
-        if (el) {
-          el.setAttribute("transform", `rotate(${r2(-s.rot)})`);
-        }
+        if (el) el.setAttribute("transform", counterRot);
       }
+      const coreEl = labelRefs.current['core'];
+      if (coreEl) coreEl.setAttribute("transform", counterRot);
+
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -245,17 +291,13 @@ export function CloudEnvironment({ className }: { className?: string }) {
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.button !== 2) return;
-    e.preventDefault();
     const s = state.current;
     s.dragging = true;
     s.lastX = e.clientX;
     s.lastY = e.clientY;
+    (s as any).startX = e.clientX;
+    (s as any).startY = e.clientY;
     s.mode = e.button === 2 || e.ctrlKey || e.metaKey ? "pan" : "rotate";
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {
-      /* noop */
-    }
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const s = state.current;
@@ -318,7 +360,7 @@ export function CloudEnvironment({ className }: { className?: string }) {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-5 py-3.5">
         <div>
           <h2 className="text-[14.5px] font-bold tracking-tight">CLOUD ENVIRONMENT OVERVIEW</h2>
-          <p className="text-[11.5px] text-muted-foreground">Real-time 360° security visualization</p>
+          <p className="text-sm text-muted-foreground">Real-time 360° security visualization</p>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -332,7 +374,7 @@ export function CloudEnvironment({ className }: { className?: string }) {
           <button
             onClick={toggleAuto}
             className={cn(
-              "flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-[11.5px] font-semibold transition",
+              "flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-sm font-semibold transition",
               auto
                 ? "border-primary/30 bg-primary/10 text-primary"
                 : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
@@ -388,7 +430,7 @@ export function CloudEnvironment({ className }: { className?: string }) {
               <stop offset="0%" stopColor="#6d5df6" stopOpacity="0.7" />
               <stop offset="100%" stopColor="#4f7cf7" stopOpacity="0" />
             </radialGradient>
-            {NODES.map((n) => (
+            {displayNodes.map((n) => (
               <linearGradient key={`env-link-${n.id}`} id={`env-link-${n.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor={n.color} stopOpacity="0.95" />
                 <stop offset="100%" stopColor="#6d5df6" stopOpacity="0.25" />
@@ -407,7 +449,7 @@ export function CloudEnvironment({ className }: { className?: string }) {
             </g>
 
             {/* connections + packets */}
-            {NODES.map((n) => {
+            {displayNodes.map((n) => {
               const g = linkD(n.angle);
               return (
                 <g key={`conn-${n.id}`}>
@@ -435,7 +477,7 @@ export function CloudEnvironment({ className }: { className?: string }) {
             })}
 
             {/* orbiting resource dots around each node */}
-            {NODES.map((n) => {
+            {displayNodes.map((n) => {
               const p = polar(n.angle, RING);
               return (
                 <g key={`orbit-${n.id}`} transform={`translate(${p.x},${p.y})`}>
@@ -456,7 +498,7 @@ export function CloudEnvironment({ className }: { className?: string }) {
             })}
 
             {/* nodes */}
-            {NODES.map((n) => {
+            {displayNodes.map((n) => {
               const p = polar(n.angle, RING);
               const selected = selection?.kind === "node" && selection.node.id === n.id;
               return (
@@ -464,6 +506,11 @@ export function CloudEnvironment({ className }: { className?: string }) {
                   key={n.id}
                   transform={`translate(${p.x},${p.y})`}
                   className="cursor-pointer focus:outline-none"
+                  onPointerUp={(e) => {
+                    const s = state.current as any;
+                    const dist = Math.hypot(e.clientX - (s.startX || e.clientX), e.clientY - (s.startY || e.clientY));
+                    if (dist < 10) selectNode(n);
+                  }}
                   onClick={() => selectNode(n)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -475,32 +522,34 @@ export function CloudEnvironment({ className }: { className?: string }) {
                   tabIndex={0}
                   aria-label={`${n.displayName} node`}
                 >
-                  {selected && (
-                    <circle r="72" fill="none" stroke={n.color} strokeWidth="1.5" strokeDasharray="4 6" className="animate-dash" opacity="0.9" />
-                  )}
-                  {/* badge */}
-                  <circle r="46" fill={n.soft} stroke={n.color} strokeWidth="2.5" filter="url(#env-glow)" opacity="0.95" />
-                  <circle r="38" fill="var(--card)" stroke={n.color} strokeWidth="1.5" opacity="0.95" />
-                  <g transform="translate(0,-2)">
-                    <NodeGlyph node={n} />
-                  </g>
-                  {/* label block — counter-rotated every frame so text stays upright */}
                   <g ref={(el) => { labelRefs.current[n.id] = el; }} transform="rotate(0)">
-                    <text textAnchor="middle" dy="64" fontSize="11.5" fontWeight="700" fill="var(--foreground)">
-                      {n.label}
-                    </text>
-                    <g transform="translate(0, 74)">
-                      <rect x="-30" y="-9.5" width="60" height="19" rx="9.5" fill={n.status === "Secure" ? "rgba(34,197,94,0.1)" : "rgba(245,158,11,0.12)"} />
-                      <circle cx="-19" cy="0" r="3" fill={n.status === "Secure" ? "#22c55e" : "#f59e0b"}>
-                        <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" />
-                      </circle>
-                      <text x="2" textAnchor="middle" dy="3.5" fontSize="10" fontWeight="700" fill={n.status === "Secure" ? "#16a34a" : "#d97706"}>
-                        {n.status}
+                    {selected && (
+                      <circle r="72" fill="none" stroke={n.color} strokeWidth="1.5" strokeDasharray="4 6" className="animate-dash" opacity="0.9" />
+                    )}
+                    {/* badge */}
+                    <circle r="46" fill={n.soft} stroke={n.color} strokeWidth="2.5" filter="url(#env-glow)" opacity="0.95" />
+                    <circle r="38" fill="var(--card)" stroke={n.color} strokeWidth="1.5" opacity="0.95" />
+                    <g transform="translate(0,-2)">
+                      <NodeGlyph node={n} />
+                    </g>
+                    {/* label block */}
+                    <g>
+                      <text textAnchor="middle" dy="64" fontSize="11.5" fontWeight="700" fill="var(--foreground)">
+                        {n.label}
+                      </text>
+                      <g transform="translate(0, 74)">
+                        <rect x="-30" y="-9.5" width="60" height="19" rx="9.5" fill={n.status === "Secure" ? "rgba(34,197,94,0.1)" : "rgba(245,158,11,0.12)"} />
+                        <circle cx="-19" cy="0" r="3" fill={n.status === "Secure" ? "#22c55e" : "#f59e0b"}>
+                          <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                        <text x="2" textAnchor="middle" dy="3.5" fontSize="10" fontWeight="700" fill={n.status === "Secure" ? "#16a34a" : "#d97706"}>
+                          {n.status}
+                        </text>
+                      </g>
+                      <text textAnchor="middle" dy="102" fontSize="9.5" fontWeight="500" fill="var(--muted-foreground)">
+                        {n.assets}
                       </text>
                     </g>
-                    <text textAnchor="middle" dy="102" fontSize="9.5" fontWeight="500" fill="var(--muted-foreground)">
-                      {n.assets}
-                    </text>
                   </g>
                 </g>
               );
@@ -540,7 +589,12 @@ export function CloudEnvironment({ className }: { className?: string }) {
             {/* central core */}
             <g
               transform={`translate(${CX},${CY})`}
-              onClick={selectCore}
+              onPointerUp={(e) => {
+                const s = state.current as any;
+                const dist = Math.hypot(e.clientX - (s.startX || e.clientX), e.clientY - (s.startY || e.clientY));
+                if (dist < 10) selectCore();
+              }}
+              onClick={() => selectCore()}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -566,13 +620,18 @@ export function CloudEnvironment({ className }: { className?: string }) {
               <circle r="118" fill="url(#env-dot)" />
               <circle r="84" fill="rgba(109,93,246,0.10)" stroke="url(#env-core-grad)" strokeWidth="2.5" filter="url(#env-glow)" />
               <circle r="66" fill="var(--card)" stroke="url(#env-core-grad)" strokeWidth="1.5" />
-              <ShieldCheck width={46} height={46} x={-23} y={-28} className="text-brand-purple" strokeWidth={1.7} />
-              <text textAnchor="middle" dy="40" fontSize="12.5" fontWeight="800" fill="var(--foreground)">
-                Aegivion Security Core
-              </text>
-              <text textAnchor="middle" dy="56" fontSize="9.5" fontWeight="500" fill="var(--muted-foreground)">
-                Decision Intelligence Engine
-              </text>
+              <g ref={(el) => { labelRefs.current['core'] = el; }} transform="rotate(0)">
+                <ShieldCheck width={36} height={36} x={-18} y={-42} className="text-brand-purple" strokeWidth={1.8} />
+                <text textAnchor="middle" dy="16" fontSize="18" fontWeight="800" fill="var(--foreground)">
+                  Aegivion
+                </text>
+                <text textAnchor="middle" dy="36" fontSize="12" fontWeight="500" fill="var(--muted-foreground)">
+                  Cloud Security
+                </text>
+                <text textAnchor="middle" dy="52" fontSize="12" fontWeight="500" fill="var(--muted-foreground)">
+                  Management
+                </text>
+              </g>
             </g>
           </g>
         </svg>
@@ -602,7 +661,7 @@ export function CloudEnvironment({ className }: { className?: string }) {
               <span className="absolute h-full w-full animate-ping rounded-full bg-success opacity-60" />
               <span className="relative h-2 w-2 rounded-full bg-success" />
             </span>
-            <span className="text-[11px] font-semibold text-foreground">All Systems Operational</span>
+            <span className="text-xs font-semibold text-foreground">All Systems Operational</span>
           </div>
         </div>
 
@@ -613,7 +672,16 @@ export function CloudEnvironment({ className }: { className?: string }) {
 
         {/* futuristic full-detail overlay */}
         <AnimatePresence>
-          {selection && <DetailOverlay selection={selection} onClose={() => setSelection(null)} />}
+          {selection && (
+            <DetailOverlay
+              selection={
+                selection.kind === "node"
+                  ? { kind: "node", node: displayNodes.find((d) => d.id === selection.node.id) || selection.node }
+                  : selection
+              }
+              onClose={() => setSelection(null)}
+            />
+          )}
         </AnimatePresence>
       </div>
     </div>
@@ -862,7 +930,7 @@ function DetailAction({
       href={href}
       onClick={onClick}
       className={cn(
-        "flex h-9 items-center justify-center gap-1.5 rounded-xl px-3.5 text-[11.5px] font-semibold transition",
+        "flex h-9 items-center justify-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold transition",
         primary
           ? "bg-brand-gradient text-white shadow-soft hover:brightness-110"
           : "border border-border bg-card/70 text-muted-foreground hover:border-primary/40 hover:text-foreground"
@@ -908,7 +976,7 @@ function LiveList({ items, delay = 0.2 }: { items: LiveEvent[]; delay?: number }
             <span className={cn("absolute h-full w-full animate-ping rounded-full opacity-60", LIVE_DOT[ev.tone])} />
             <span className={cn("relative h-2 w-2 rounded-full", LIVE_DOT[ev.tone])} />
           </span>
-          <span className="min-w-0 flex-1 truncate text-[11.5px] text-foreground/85">{ev.text}</span>
+          <span className="min-w-0 flex-1 truncate text-sm text-foreground/85">{ev.text}</span>
           <span className="shrink-0 font-mono text-[10px] tabular-nums text-muted-foreground">{ev.time}</span>
         </motion.div>
       ))}
@@ -928,7 +996,7 @@ function RecommendationList({ items, delay = 0.2 }: { items: string[]; delay?: n
           className="flex items-start gap-2 rounded-xl border border-primary/10 bg-primary/5 px-2.5 py-2"
         >
           <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
-          <span className="text-[11.5px] leading-snug text-foreground/85">{rec}</span>
+          <span className="text-sm leading-snug text-foreground/85">{rec}</span>
         </motion.div>
       ))}
     </div>
@@ -1044,11 +1112,21 @@ function NodeDetailBody({ node, onClose }: { node: EnvNode; onClose: () => void 
                 <h3 className="text-[17px] font-bold tracking-tight">{node.displayName}</h3>
                 <span className="rounded-full border border-success/25 bg-success/10 px-2 py-0.5 text-[10px] font-bold text-success">
                   <span className="mr-1 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-success align-middle" />
-                  {node.status}
+                  {node.status === "Secure" ? "Connected & Secure" : node.status}
                 </span>
               </div>
-              <p className="text-[11.5px] text-muted-foreground">{node.sub}</p>
-              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em]" style={{ color: node.color }}>
+              <p className="text-sm text-muted-foreground">{node.sub}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <RefreshCw className="h-3 w-3" />
+                  Last sync: 2 mins ago
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <ShieldAlert className="h-3 w-3" />
+                  Last scan: Just now
+                </span>
+              </div>
+              <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em]" style={{ color: node.color }}>
                 {node.label} · {node.assets} · {detail.mitre.length} techniques mapped
               </p>
             </div>
@@ -1067,7 +1145,7 @@ function NodeDetailBody({ node, onClose }: { node: EnvNode; onClose: () => void 
       <div className="grid gap-5 p-6 md:grid-cols-5">
         <div className="space-y-4 md:col-span-2">
           <div className="flex items-center justify-center rounded-2xl border border-border/70 bg-muted/30 p-5">
-            <ScoreRing value={detail.score} size={150} label="Health" color={node.color} sublabel={node.assets} />
+            <ScoreRing value={node._score ?? detail.score} size={150} label="Health" color={node.color} sublabel={node.assets} />
           </div>
           <StatTiles stats={detail.stats} delay={0.12} />
         </div>
@@ -1170,7 +1248,7 @@ function CoreDetailBody({ onClose }: { onClose: () => void }) {
                   Operational
                 </span>
               </div>
-              <p className="text-[11.5px] text-muted-foreground">Decision Intelligence Engine</p>
+              <p className="text-sm text-muted-foreground">Decision Intelligence Engine</p>
               <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-purple">
                 Correlating 3 clouds · 214 rules · live MITRE mapping
               </p>
