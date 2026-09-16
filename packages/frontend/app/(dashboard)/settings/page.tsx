@@ -270,7 +270,7 @@ function ProfileSection() {
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[14.5px] font-bold">{form.name}</div>
-          <div className="text-[11.5px] text-muted-foreground">@{form.username}</div>
+          <div className="text-sm text-muted-foreground">@{form.username}</div>
           <div className="mt-1.5 flex gap-2">
             {avatar && (
               <Button variant="outline" size="sm" onClick={() => setAvatar("")}>
@@ -318,7 +318,7 @@ function ProfileSection() {
       </div>
 
       <div className="mt-5 flex items-center justify-end gap-2 border-t border-border/60 pt-4">
-        <span className="mr-auto text-[11.5px] text-muted-foreground">
+        <span className="mr-auto text-sm text-muted-foreground">
           {dirty ? (
             <span className="flex items-center gap-1.5 font-medium text-warning">
               <span className="h-1.5 w-1.5 rounded-full bg-warning" /> Unsaved changes
@@ -414,14 +414,14 @@ function OrganizationSection() {
           <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3">
             <div>
               <div className="text-[13px] font-medium">Require Exception Approvals</div>
-              <div className="text-[11.5px] text-muted-foreground">Require separate approval for exceptions on Critical/High findings</div>
+              <div className="text-sm text-muted-foreground">Require separate approval for exceptions on Critical/High findings</div>
             </div>
             <Switch checked={draft.requireExceptionApproval ?? false} onCheckedChange={(v) => setDraft((d) => ({ ...d, requireExceptionApproval: v }))} />
           </div>
           <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3">
             <div>
               <div className="text-[13px] font-medium">Auto-suppress non-production</div>
-              <div className="text-[11.5px] text-muted-foreground">Automatically suppress Low/Info findings in non-prod environments</div>
+              <div className="text-sm text-muted-foreground">Automatically suppress Low/Info findings in non-prod environments</div>
             </div>
             <Switch checked={draft.autoSuppressNonProd ?? false} onCheckedChange={(v) => setDraft((d) => ({ ...d, autoSuppressNonProd: v }))} />
           </div>
@@ -491,7 +491,7 @@ function NotificationsSection() {
           >
             <div>
               <div className="text-[13px] font-medium">{r.label}</div>
-              <div className="text-[11.5px] text-muted-foreground">{r.desc}</div>
+              <div className="text-sm text-muted-foreground">{r.desc}</div>
             </div>
             <Switch checked={draft[r.key]} onCheckedChange={(v) => setDraft((d) => ({ ...d, [r.key]: v }))} />
           </div>
@@ -529,7 +529,7 @@ function SecuritySection() {
         <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3">
           <div>
             <div className="text-[13px] font-medium">Change password</div>
-            <div className="text-[11.5px] text-muted-foreground">Last changed 34 days ago</div>
+            <div className="text-sm text-muted-foreground">Last changed 34 days ago</div>
           </div>
           <Button variant="outline" size="sm" onClick={() => toast("info", "Password reset email sent")}>
             <KeyRound className="h-3.5 w-3.5" /> Change
@@ -539,7 +539,7 @@ function SecuritySection() {
         <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3">
           <div>
             <div className="text-[13px] font-medium">Two-factor authentication (MFA)</div>
-            <div className="text-[11.5px] text-muted-foreground">Required for all admin roles</div>
+            <div className="text-sm text-muted-foreground">Required for all admin roles</div>
           </div>
           <Switch checked={mfa} onCheckedChange={(v) => { setMfa(v); toast(v ? "success" : "info", v ? "MFA enabled" : "MFA disabled"); }} />
         </div>
@@ -561,7 +561,7 @@ function SecuritySection() {
               </span>
               <div>
                 <div className="text-[13px] font-medium">Active sessions</div>
-                <div className="text-[11.5px] text-muted-foreground">Windows · Chrome · New York — this device</div>
+                <div className="text-sm text-muted-foreground">Windows · Chrome · New York — this device</div>
               </div>
               <Badge variant="success" className="ml-2">Current</Badge>
             </div>
@@ -582,7 +582,7 @@ function SecuritySection() {
         <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3">
           <div>
             <div className="text-[13px] font-medium">API tokens</div>
-            <div className="text-[11.5px] text-muted-foreground">ak_aeg_7f3a…9c21 · last used 2h ago</div>
+            <div className="text-sm text-muted-foreground">ak_aeg_7f3a…9c21 · last used 2h ago</div>
           </div>
           <Button variant="outline" size="sm" onClick={() => toast("success", "API token rotated", "The previous token was revoked.")}>
             <KeyRound className="h-3.5 w-3.5" /> Rotate
@@ -647,10 +647,10 @@ function CloudSection() {
         <div className="space-y-1">
           <Label>Scanning behavior</Label>
           <div className="flex h-9 items-center gap-4 rounded-xl border border-border/60 bg-card/50 px-3">
-            <label className="flex cursor-pointer items-center gap-1.5 text-[11.5px] font-medium">
+            <label className="flex cursor-pointer items-center gap-1.5 text-sm font-medium">
               <input type="checkbox" className="accent-[#6d5df6]" checked={draft.autoRefresh} onChange={(e) => setDraft((d) => ({ ...d, autoRefresh: e.target.checked }))} /> Auto refresh
             </label>
-            <label className="flex cursor-pointer items-center gap-1.5 text-[11.5px] font-medium">
+            <label className="flex cursor-pointer items-center gap-1.5 text-sm font-medium">
               <input type="checkbox" className="accent-[#6d5df6]" checked={draft.autoScan} onChange={(e) => setDraft((d) => ({ ...d, autoScan: e.target.checked }))} /> Auto scan
             </label>
           </div>
@@ -690,7 +690,7 @@ function IntegrationsCard() {
         <h3 className="flex items-center gap-2 text-[13px] font-semibold">
           <Plug2 className="h-4 w-4 text-primary" /> Integrations
         </h3>
-        <Link href="/settings/integrations" className="flex items-center gap-0.5 text-[11px] font-semibold text-primary transition hover:gap-1.5">
+        <Link href="/settings/integrations" className="flex items-center gap-0.5 text-xs font-semibold text-primary transition hover:gap-1.5">
           Manage <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
@@ -708,12 +708,12 @@ function IntegrationsCard() {
           </div>
         ))}
         {connected.length === 0 && (
-          <div className="rounded-xl border border-dashed border-border px-3 py-4 text-center text-[11.5px] text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground">
             No integrations connected yet.
           </div>
         )}
       </div>
-      <div className="mt-3 border-t border-border/60 pt-2.5 text-[11px] text-muted-foreground">
+      <div className="mt-3 border-t border-border/60 pt-2.5 text-xs text-muted-foreground">
         {connected.length}/{INTEGRATION_DEFS.length} integrations active
       </div>
     </div>
@@ -730,7 +730,7 @@ function AppearanceCard() {
         <h3 className="flex items-center gap-2 text-[13px] font-semibold">
           <Palette className="h-4 w-4 text-primary" /> Appearance
         </h3>
-        <Link href="/settings/appearance" className="flex items-center gap-0.5 text-[11px] font-semibold text-primary transition hover:gap-1.5">
+        <Link href="/settings/appearance" className="flex items-center gap-0.5 text-xs font-semibold text-primary transition hover:gap-1.5">
           Customize <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
@@ -743,7 +743,7 @@ function AppearanceCard() {
                 key={m}
                 onClick={() => setAppearance({ themeMode: m })}
                 className={cn(
-                  "flex h-8 flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg border text-[11px] font-semibold capitalize transition",
+                  "flex h-8 flex-1 cursor-pointer items-center justify-center gap-1 rounded-lg border text-xs font-semibold capitalize transition",
                   appearance.themeMode === m
                     ? "border-primary/40 bg-primary/10 text-primary"
                     : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
@@ -807,7 +807,7 @@ function SectionShell({
         </span>
         <div>
           <h3 className="text-[15px] font-bold leading-tight">{title}</h3>
-          {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground">{subtitle}</p>}
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
       {children}
@@ -830,7 +830,7 @@ function Field({
     <div className={cn("space-y-1.5", className)}>
       <Label className="text-[12.5px] font-medium">{label}</Label>
       {children}
-      {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
+      {error && <p className="text-xs font-medium text-destructive">{error}</p>}
     </div>
   );
 }
@@ -860,7 +860,7 @@ function UsersSection() {
               </Avatar>
               <div>
                 <div className="text-[13px] font-medium">{u.name}</div>
-                <div className="text-[11.5px] text-muted-foreground">{u.email}</div>
+                <div className="text-sm text-muted-foreground">{u.email}</div>
               </div>
             </div>
             <div className="flex items-center gap-4">

@@ -89,7 +89,7 @@ export default function IntegrationsPage() {
         description="Connect Aegivion to your workflow — alerts, ticketing, SIEM and CI/CD."
       >
         <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-[11.5px] font-semibold sm:flex">
+          <div className="hidden items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm font-semibold sm:flex">
             <span className="h-2 w-2 rounded-full bg-success" /> {connectedCount} active
           </div>
           <Badge variant="soft" className="gap-1.5">
@@ -115,7 +115,7 @@ export default function IntegrationsPage() {
               key={c}
               onClick={() => setCat(c)}
               className={cn(
-                "cursor-pointer rounded-full border px-3 py-1.5 text-[11.5px] font-semibold capitalize transition",
+                "cursor-pointer rounded-full border px-3 py-1.5 text-sm font-semibold capitalize transition",
                 cat === c
                   ? "border-primary/40 bg-primary/10 text-primary"
                   : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground"
@@ -147,7 +147,7 @@ export default function IntegrationsPage() {
                     <h3 className="truncate text-[14px] font-bold">{def.name}</h3>
                     <span className={cn("rounded-full border px-2 py-0.5 text-[9.5px] font-bold", meta.cls)}>{meta.label}</span>
                   </div>
-                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">{def.description}</p>
+                  <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">{def.description}</p>
                 </div>
               </div>
 
@@ -206,7 +206,7 @@ export default function IntegrationsPage() {
         <div className="rounded-2xl border border-dashed border-border py-14 text-center">
           <Plug2 className="mx-auto h-8 w-8 text-muted-foreground/50" />
           <p className="mt-2 text-[13px] font-semibold">No integrations match</p>
-          <p className="text-[11.5px] text-muted-foreground">Try a different search or category.</p>
+          <p className="text-sm text-muted-foreground">Try a different search or category.</p>
         </div>
       )}
 
@@ -272,11 +272,11 @@ function OAuthFlow({ def, onDone, onClose }: { def: IntegrationDefinition; onDon
               <div className="text-[12px] font-semibold">Aegivion will be able to:</div>
               <ul className="mt-2 space-y-1.5">
                 {def.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-[11.5px] text-muted-foreground">
+                  <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Check className="h-3.5 w-3.5 text-success" /> {f}
                   </li>
                 ))}
-                <li className="flex items-center gap-2 text-[11.5px] text-muted-foreground">
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Read-only security telemetry
                 </li>
               </ul>
@@ -294,7 +294,7 @@ function OAuthFlow({ def, onDone, onClose }: { def: IntegrationDefinition; onDon
               <Loader2 className="h-7 w-7 animate-spin text-white" />
             </motion.div>
             <p className="mt-4 text-[13px] font-semibold">Redirecting to {def.name}…</p>
-            <p className="text-[11px] text-muted-foreground">Completing OAuth 2.0 authorization code flow</p>
+            <p className="text-xs text-muted-foreground">Completing OAuth 2.0 authorization code flow</p>
           </div>
         )}
 
@@ -309,7 +309,7 @@ function OAuthFlow({ def, onDone, onClose }: { def: IntegrationDefinition; onDon
               <CheckCircle2 className="h-8 w-8 text-success" />
             </motion.div>
             <p className="mt-4 text-[14px] font-bold">Authorization complete</p>
-            <p className="mt-1 text-center text-[11.5px] text-muted-foreground">
+            <p className="mt-1 text-center text-sm text-muted-foreground">
               {workspace} granted access · OAuth tokens encrypted and stored securely.
             </p>
           </motion.div>
@@ -438,7 +438,7 @@ function ConfigDialog({ def, onClose }: { def: IntegrationDefinition; onClose: (
               key={t}
               onClick={() => setTab(t)}
               className={cn(
-                "flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg py-1.5 text-[11.5px] font-semibold capitalize transition",
+                "flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg py-1.5 text-sm font-semibold capitalize transition",
                 tab === t ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -515,7 +515,7 @@ function ConfigDialog({ def, onClose }: { def: IntegrationDefinition; onClose: (
                 )}
               </motion.div>
             )}
-            <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+            <p className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
               Validates credentials, endpoint reachability and permission scope against {def.name}.
             </p>
           </div>
@@ -530,7 +530,7 @@ function ConfigDialog({ def, onClose }: { def: IntegrationDefinition; onClose: (
               <div key={l.id} className="flex items-center gap-2.5 rounded-lg border border-border/50 px-3 py-2">
                 <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", l.kind === "success" ? "bg-success" : l.kind === "error" ? "bg-destructive" : l.kind === "warning" ? "bg-warning" : "bg-info")} />
                 <span className="w-10 shrink-0 text-[10.5px] font-semibold tabular-nums text-muted-foreground">{l.time}</span>
-                <span className="text-[11.5px]">{l.message}</span>
+                <span className="text-sm">{l.message}</span>
               </div>
             ))}
           </div>
@@ -586,7 +586,7 @@ function DisconnectDialog({ def, onClose }: { def: IntegrationDefinition; onClos
             cached credentials removed.
           </DialogDescription>
         </DialogHeader>
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-3 text-[11.5px] text-muted-foreground">
+        <div className="rounded-xl border border-border/60 bg-muted/30 p-3 text-sm text-muted-foreground">
           Dashboard, Detection Engine and Settings will reflect the disconnected status instantly.
         </div>
         <DialogFooter>

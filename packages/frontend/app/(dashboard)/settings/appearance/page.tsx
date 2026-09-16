@@ -57,7 +57,7 @@ export default function AppearancePage() {
         title="Appearance"
         description="Theme, accent color and interface density — applied instantly across the entire platform."
       >
-        <span className="flex items-center gap-1.5 rounded-full border border-success/25 bg-success/10 px-3 py-1 text-[11px] font-semibold text-success">
+        <span className="flex items-center gap-1.5 rounded-full border border-success/25 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute h-full w-full animate-ping rounded-full bg-success opacity-60" />
             <span className="relative h-1.5 w-1.5 rounded-full bg-success" />
@@ -97,7 +97,7 @@ export default function AppearancePage() {
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-[11.5px] text-muted-foreground">
+            <p className="mt-3 text-sm text-muted-foreground">
               Current OS resolution: <span className="font-semibold text-foreground capitalize">{resolvedTheme}</span>. Use the
               moon icon in the top bar to switch instantly — it stays in sync with this page.
             </p>
@@ -147,7 +147,7 @@ export default function AppearancePage() {
                     className="h-9 w-16 border-2 transition"
                     style={{ borderRadius: r.px, borderColor: appearance.radius === id ? "currentColor" : "var(--border)" }}
                   />
-                  <span className="text-[11.5px] font-semibold">{r.label}</span>
+                  <span className="text-sm font-semibold">{r.label}</span>
                 </button>
               ))}
             </div>
@@ -185,7 +185,7 @@ export default function AppearancePage() {
             </div>
             <div className="space-y-3 p-4">
               <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: ACCENT_META[appearance.accent].hex }}>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: ACCENT_META[appearance.accent].hex }}>
                   AM
                 </span>
                 <div className="flex-1">
@@ -195,7 +195,7 @@ export default function AppearancePage() {
                 <span className="h-2 w-2 rounded-full bg-success" />
               </div>
               <div className="rounded-xl border border-border p-3">
-                <div className="text-[11.5px] font-bold">Security score</div>
+                <div className="text-sm font-bold">Security score</div>
                 <div className="mt-2 flex h-2 overflow-hidden rounded-full bg-muted">
                   <div className="h-full w-[92%]" style={{ background: ACCENT_META[appearance.accent].hex }} />
                 </div>
@@ -206,21 +206,21 @@ export default function AppearancePage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <div className="flex h-8 flex-1 items-center justify-center rounded-lg text-[11px] font-semibold text-white" style={{ background: ACCENT_META[appearance.accent].hex }}>
+                <div className="flex h-8 flex-1 items-center justify-center rounded-lg text-xs font-semibold text-white" style={{ background: ACCENT_META[appearance.accent].hex }}>
                   Primary button
                 </div>
-                <div className="flex h-8 flex-1 items-center justify-center rounded-lg border border-border text-[11px] font-semibold text-muted-foreground">
+                <div className="flex h-8 flex-1 items-center justify-center rounded-lg border border-border text-xs font-semibold text-muted-foreground">
                   Secondary
                 </div>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                <span className="text-[11px] font-medium">Dark mode card</span>
+                <span className="text-xs font-medium">Dark mode card</span>
                 <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-4 text-[11.5px] leading-relaxed text-muted-foreground shadow-soft">
+          <div className="rounded-2xl border border-border bg-card p-4 text-sm leading-relaxed text-muted-foreground shadow-soft">
             <span className="mb-1 flex items-center gap-1.5 font-semibold text-foreground">
               <Contrast className="h-3.5 w-3.5 text-primary" /> Everything syncs
             </span>
@@ -263,7 +263,7 @@ function Card({
         </span>
         <div>
           <h3 className="text-[14.5px] font-bold leading-tight">{title}</h3>
-          {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground">{subtitle}</p>}
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
       {children}
@@ -286,7 +286,7 @@ function Row({
     <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3 transition hover:bg-muted/30">
       <div>
         <div className="text-[13px] font-medium">{label}</div>
-        <div className="text-[11.5px] text-muted-foreground">{desc}</div>
+        <div className="text-sm text-muted-foreground">{desc}</div>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>

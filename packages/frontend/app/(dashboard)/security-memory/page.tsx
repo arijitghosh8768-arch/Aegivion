@@ -83,9 +83,9 @@ export default function SecurityMemoryPage() {
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-[14px] font-semibold">Incidents & repeat rate</h3>
-            <p className="text-[11.5px] text-muted-foreground">Last 6 months · repeat rate down 25%</p>
+            <p className="text-sm text-muted-foreground">Last 6 months · repeat rate down 25%</p>
           </div>
-          <div className="flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-bold text-success">
+          <div className="flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-xs font-bold text-success">
             <TrendingDown className="h-3.5 w-3.5" /> Improving
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function SecurityMemoryPage() {
                 </div>
                 <div className="mt-2 text-[14px] font-semibold">{inc.title}</div>
                 <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{inc.summary}</p>
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                   <Badge variant="success">{inc.outcome}</Badge>
                   <Badge variant="soft">MTTR {inc.durationHrs}h</Badge>
                   <Badge variant="soft">
