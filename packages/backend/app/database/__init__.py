@@ -2,6 +2,10 @@ import os
 import uuid
 from datetime import datetime
 from pymongo import MongoClient
+try:
+    from app.database.supabase_client import supabase
+except ImportError:
+    supabase = None
 
 # Load root environment variables if not already loaded
 from dotenv import load_dotenv
@@ -105,11 +109,50 @@ class MockQuery:
         return MockQuery(self._db, self._model_class, self._filters, field, desc, self._session)
 
     def count(self):
+        name = self._model_class.__name__ if isinstance(self._model_class, type) else self._model_class.__class__.__name__
+        supabase_mapping = {"CloudAsset": "cloud_assets", "Finding": "findings", "Incident": "incidents", "CloudAccount": "cloud_accounts"}
+        if supabase and name in supabase_mapping:
+            table = supabase_mapping[name]
+            q = supabase.table(table).select("*", count="exact")
+            for k, v in self._filters.items():
+                if isinstance(v, dict) and "$ne" in v:
+                    q = q.neq(k, v["$ne"])
+                else:
+                    q = q.eq(k, str(v))
+            res = q.execute()
+            return res.count if hasattr(res, 'count') and res.count is not None else len(res.data)
+            
         collection = get_collection_for_model(self._db, self._model_class)
         mongo_filters = convert_filters(self._filters)
         return collection.count_documents(mongo_filters)
 
     def all(self):
+        name = self._model_class.__name__ if isinstance(self._model_class, type) else self._model_class.__class__.__name__
+        supabase_mapping = {"CloudAsset": "cloud_assets", "Finding": "findings", "Incident": "incidents", "CloudAccount": "cloud_accounts"}
+        
+        if supabase and name in supabase_mapping:
+            table = supabase_mapping[name]
+            q = supabase.table(table).select("*")
+            for k, v in self._filters.items():
+                if isinstance(v, dict) and "$ne" in v:
+                    q = q.neq(k, v["$ne"])
+                else:
+                    q = q.eq(k, str(v))
+            
+            try:
+                res = q.execute()
+                docs = res.data or []
+            except Exception:
+                docs = []
+                
+            results = []
+            for doc in docs:
+                obj = self._model_class(**doc)
+                if self._session:
+                    self._session._queried_objects.append(obj)
+                results.append(obj)
+            return results
+
         collection = get_collection_for_model(self._db, self._model_class)
         mongo_filters = convert_filters(self._filters)
         cursor = collection.find(mongo_filters)
@@ -152,13 +195,31 @@ class MongoSQLSession:
 
     def commit(self):
         for obj in self._new_objects:
-            collection = get_collection_for_model(self._db, obj)
+            name = obj.__class__.__name__
+            supabase_mapping = {"CloudAsset": "cloud_assets", "Finding": "findings", "Incident": "incidents", "CloudAccount": "cloud_accounts"}
             data = obj.dict() if hasattr(obj, "dict") else obj.__dict__
-            collection.replace_one({"id": data["id"]}, data, upsert=True)
+            if supabase and name in supabase_mapping:
+                try:
+                    supabase.table(supabase_mapping[name]).upsert(data).execute()
+                except Exception:
+                    pass
+            else:
+                collection = get_collection_for_model(self._db, obj)
+                collection.replace_one({"id": data["id"]}, data, upsert=True)
+                
         for obj in self._queried_objects:
-            collection = get_collection_for_model(self._db, obj)
+            name = obj.__class__.__name__
+            supabase_mapping = {"CloudAsset": "cloud_assets", "Finding": "findings", "Incident": "incidents", "CloudAccount": "cloud_accounts"}
             data = obj.dict() if hasattr(obj, "dict") else obj.__dict__
-            collection.replace_one({"id": data["id"]}, data, upsert=True)
+            if supabase and name in supabase_mapping:
+                try:
+                    supabase.table(supabase_mapping[name]).upsert(data).execute()
+                except Exception:
+                    pass
+            else:
+                collection = get_collection_for_model(self._db, obj)
+                collection.replace_one({"id": data["id"]}, data, upsert=True)
+                
         self._new_objects = []
         self._queried_objects = []
 
