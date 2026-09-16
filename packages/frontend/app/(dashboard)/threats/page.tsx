@@ -150,15 +150,15 @@ export default function ThreatsPage() {
               >
                 <SeverityBadge severity={a.severity} showDot={false} className="w-[76px] justify-center" />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13.5px] font-semibold">{a.title}</div>
-                  <div className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
+                  <div className="truncate text-sm font-semibold">{a.title}</div>
+                  <div className="mt-0.5 truncate text-sm text-muted-foreground">
                     {a.tactic} · {a.technique} ({a.techniqueId})
                   </div>
                 </div>
                 <div className="hidden sm:block">
                   <StatusPill status={a.status} />
                 </div>
-                <span className="text-[11px] tabular-nums text-muted-foreground">{timeShort(a.timestamp)}</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{timeShort(a.timestamp)}</span>
               </button>
 
               {expanded === a.id && (
@@ -183,7 +183,7 @@ export default function ThreatsPage() {
                       </div>
                     </div>
                     <div>
-                      <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Evidence
                       </div>
                       <ul className="space-y-1.5">
@@ -239,12 +239,12 @@ export default function ThreatsPage() {
         >
           <div>
             <h3 className="text-[14px] font-semibold">MITRE ATT&CK Coverage</h3>
-            <p className="text-[11.5px] text-muted-foreground">Tactics observed in the last 30 days</p>
+            <p className="text-sm text-muted-foreground">Tactics observed in the last 30 days</p>
           </div>
           <div className="space-y-3">
             {mitreCoverage.length > 0 ? mitreCoverage.map((m) => (
               <div key={m.tactic}>
-                <div className="mb-1 flex items-center justify-between text-[11.5px]">
+                <div className="mb-1 flex items-center justify-between text-sm">
                   <span className="font-medium text-muted-foreground">{m.tactic}</span>
                   <span className="font-semibold tabular-nums">
                     {m.techniques} tech{m.techniques !== 1 ? "s" : ""}
@@ -266,7 +266,7 @@ export default function ThreatsPage() {
               </div>
             )}
           </div>
-          <div className="rounded-xl bg-muted/50 p-3 text-[11px] leading-relaxed text-muted-foreground">
+          <div className="rounded-xl bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
             <span className="font-semibold text-foreground">Aegivion insight:</span> {mitreCoverage.length > 0 ? "Coverage is expanding as telemetry grows." : "System is waiting for security events to map to the MITRE ATT&CK framework."}
           </div>
         </motion.div>
@@ -288,7 +288,7 @@ function SummaryCard({
 }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         {icon}
         {label}
       </div>

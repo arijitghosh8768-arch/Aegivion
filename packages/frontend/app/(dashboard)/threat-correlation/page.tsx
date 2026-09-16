@@ -260,7 +260,7 @@ export default function ThreatCorrelationPage() {
               );
             })}
             {activeChain?.title && (
-              <span className="ml-auto hidden text-[11.5px] text-muted-foreground md:block">
+              <span className="ml-auto hidden text-sm text-muted-foreground md:block">
                 {activeChain.title}
               </span>
             )}
@@ -313,7 +313,7 @@ export default function ThreatCorrelationPage() {
                       <span className="text-[12.5px] font-semibold">{activeNode.label}</span>
                       <SeverityBadge severity={activeNode.severity} />
                     </div>
-                    <div className="flex items-center gap-2 text-[11.5px] text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Badge variant="purple" className="font-mono">
                         {activeNode.techniqueId}
                       </Badge>
@@ -331,7 +331,7 @@ export default function ThreatCorrelationPage() {
                         </div>
                         <ul className="space-y-1.5">
                           {activeAlert.evidence.slice(0, 3).map((ev, i) => (
-                            <li key={i} className="flex gap-1.5 text-[11.5px] leading-snug text-muted-foreground">
+                            <li key={i} className="flex gap-1.5 text-sm leading-snug text-muted-foreground">
                               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
                               {ev}
                             </li>
@@ -370,7 +370,7 @@ export default function ThreatCorrelationPage() {
                         onClick={() => setSelectedNode(n.id)}
                         className="cursor-pointer text-left"
                       >
-                        <div className="text-[11.5px] font-medium text-muted-foreground">
+                        <div className="text-sm font-medium text-muted-foreground">
                           {n.tactic} · <span className="font-mono">{n.techniqueId}</span>
                         </div>
                         <div className="text-[12.5px] font-semibold">{n.label}</div>
@@ -382,7 +382,7 @@ export default function ThreatCorrelationPage() {
 
               <div className="flex items-start gap-2.5 rounded-2xl border border-warning/25 bg-warning/5 p-4">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-                <p className="text-[11.5px] leading-relaxed text-muted-foreground">
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   <span className="font-semibold text-foreground">Aegivion estimate:</span> correlations shown
                   reflect live scan results.{" "}
                   <span className="text-primary">Open remediation</span> to stage fixes.
