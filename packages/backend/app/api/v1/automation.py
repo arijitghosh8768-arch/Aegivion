@@ -86,18 +86,20 @@ def get_agent_status(db: Session = Depends(get_db), current_user: Any = Depends(
     heartbeats = OrmBaseModel.find(db, "agentheartbeats", {"organization_id": user_org_id})
     
     workers = {
-        "discovery": "IDLE",
-        "detection": "IDLE",
-        "investigation": "IDLE",
-        "response": "IDLE",
-        "verification": "IDLE"
+        "discovery": "OFFLINE",
+        "detection": "OFFLINE",
+        "investigation": "OFFLINE",
+        "response": "OFFLINE",
+        "verification": "OFFLINE"
     }
     
-    latest_hb = "Just now"
-    activity = "Monitoring"
-    status = "ONLINE"
+    latest_hb = "Never"
+    activity = "Idle"
+    status = "OFFLINE"
     
-    if heartbeats:
+    if heartbeats and len(heartbeats) > 0:
+        status = "ONLINE"
+        # Sort by created_at or assume sequential insertion
         for hb in heartbeats:
             w_name = hb.get("worker", "").lower()
             if w_name in workers:
