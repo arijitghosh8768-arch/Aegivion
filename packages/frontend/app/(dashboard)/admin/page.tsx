@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Building2, Users, Loader2 } from "lucide-react";
+import { Plus, Building2, Users, Loader2, Trash2 } from "lucide-react";
 
 export default function SuperAdminPage() {
   const router = useRouter();
@@ -58,6 +58,31 @@ export default function SuperAdminPage() {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  
+  const handleDeleteOrg = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this organization?")) return;
+    try {
+      const res = await fetchApi(`/v1/admin/orgs/${id}`, { method: "DELETE" });
+      if (res) {
+        fetchOrgs();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteAdmin = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this admin user?")) return;
+    try {
+      const res = await fetchApi(`/v1/admin/users/${id}`, { method: "DELETE" });
+      if (res) {
+        fetchAdmins();
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -200,12 +225,13 @@ export default function SuperAdminPage() {
                 <th className="px-6 py-3 font-medium text-muted-foreground">ID</th>
                 <th className="px-6 py-3 font-medium text-muted-foreground">Name</th>
                 <th className="px-6 py-3 font-medium text-muted-foreground">Created At</th>
+                <th className="px-6 py-3 font-medium text-muted-foreground text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {orgs.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
                     No organizations found. Create one above.
                   </td>
                 </tr>
@@ -215,6 +241,11 @@ export default function SuperAdminPage() {
                     <td className="px-6 py-4 font-mono text-xs">{org.id}</td>
                     <td className="px-6 py-4 font-medium">{org.name || "Unnamed Organization"}</td>
                     <td className="px-6 py-4 text-muted-foreground">{new Date(org.created_at || Date.now()).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteOrg(org.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -236,12 +267,13 @@ export default function SuperAdminPage() {
                 <th className="px-6 py-3 font-medium text-muted-foreground">Admin Email (Login ID)</th>
                 <th className="px-6 py-3 font-medium text-muted-foreground">Organization Name</th>
                 <th className="px-6 py-3 font-medium text-muted-foreground">Created At</th>
+                <th className="px-6 py-3 font-medium text-muted-foreground text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {admins.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
                     No org admins found. Provision one above.
                   </td>
                 </tr>
@@ -251,6 +283,11 @@ export default function SuperAdminPage() {
                     <td className="px-6 py-4 font-medium">{admin.email}</td>
                     <td className="px-6 py-4">{admin.org_name || "Unassigned"}</td>
                     <td className="px-6 py-4 text-muted-foreground">{admin.created_at ? new Date(admin.created_at).toLocaleDateString() : "N/A"}</td>
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteAdmin(admin.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </td>
                   </tr>
                 ))
               )}
