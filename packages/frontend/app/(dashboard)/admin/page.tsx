@@ -15,6 +15,7 @@ export default function SuperAdminPage() {
   const user = useAppStore((s) => s.user);
   
   const [orgs, setOrgs] = useState<any[]>([]);
+  const [admins, setAdmins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatingOrg, setCreatingOrg] = useState(false);
   const [orgName, setOrgName] = useState("");
@@ -30,8 +31,21 @@ export default function SuperAdminPage() {
       router.push("/");
     } else if (user) {
       fetchOrgs();
+      fetchAdmins();
     }
   }, [user]);
+
+  
+  const fetchAdmins = async () => {
+    try {
+      const res = await fetchApi<any>("/v1/admin/users");
+      if (res) {
+        setAdmins(res.data || []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchOrgs = async () => {
     setLoading(true);
@@ -83,6 +97,7 @@ export default function SuperAdminPage() {
         setAdminEmail("");
         setAdminPassword("");
         alert("Org Admin created successfully!");
+        fetchAdmins();
       } else {
         alert("Failed to create user");
       }
@@ -207,6 +222,43 @@ export default function SuperAdminPage() {
           </table>
         </div>
       </div>
+
+      {/* Admins List */}
+      <div className="rounded-xl border bg-card shadow-sm mt-4 mb-8">
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-semibold">Registered Org Admins</h2>
+          <p className="text-sm text-muted-foreground mt-1">Passwords are securely hashed in MongoDB and cannot be displayed.</p>
+        </div>
+        <div className="p-0">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-muted/50 border-b">
+              <tr>
+                <th className="px-6 py-3 font-medium text-muted-foreground">Admin Email (Login ID)</th>
+                <th className="px-6 py-3 font-medium text-muted-foreground">Organization Name</th>
+                <th className="px-6 py-3 font-medium text-muted-foreground">Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {admins.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-6 py-8 text-center text-muted-foreground">
+                    No org admins found. Provision one above.
+                  </td>
+                </tr>
+              ) : (
+                admins.map((admin) => (
+                  <tr key={admin.id} className="border-b last:border-0 hover:bg-muted/20">
+                    <td className="px-6 py-4 font-medium">{admin.email}</td>
+                    <td className="px-6 py-4">{admin.org_name || "Unassigned"}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{admin.created_at ? new Date(admin.created_at).toLocaleDateString() : "N/A"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   );
 }
