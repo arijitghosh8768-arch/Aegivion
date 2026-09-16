@@ -39,7 +39,7 @@ export default function AiCopilotPage() {
             transition={{ delay: 0.08 }}
             className="rounded-2xl border border-border bg-card p-4 shadow-soft"
           >
-            <h3 className="flex items-center gap-2 text-[13.5px] font-semibold">
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
               <Bot className="h-4 w-4 text-primary" /> What I can do
             </h3>
             <div className="mt-3 grid grid-cols-2 gap-2">
@@ -51,7 +51,7 @@ export default function AiCopilotPage() {
                   <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${c.accent}`}>
                     <c.icon className="h-3.5 w-3.5" />
                   </span>
-                  <div className="mt-1.5 text-[11.5px] font-semibold leading-tight">{c.title}</div>
+                  <div className="mt-1.5 text-sm font-semibold leading-tight">{c.title}</div>
                   <div className="mt-1 text-[10px] leading-snug text-muted-foreground">{c.desc}</div>
                 </div>
               ))}
@@ -64,8 +64,8 @@ export default function AiCopilotPage() {
             transition={{ delay: 0.14 }}
             className="rounded-2xl border border-border bg-card p-4 shadow-soft"
           >
-            <h3 className="text-[13.5px] font-semibold">Context window</h3>
-            <div className="mt-2.5 space-y-2 text-[11.5px] text-muted-foreground">
+            <h3 className="text-sm font-semibold">Context window</h3>
+            <div className="mt-2.5 space-y-2 text-sm text-muted-foreground">
               {[
                 ["Live telemetry", "Connected to API"],
                 ["Environment", "Production"],

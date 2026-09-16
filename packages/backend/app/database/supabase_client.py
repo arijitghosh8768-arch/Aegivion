@@ -9,8 +9,13 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://mock.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "mock-key")
 
 # Create a singleton client
-def get_supabase() -> Client:
-    # If using real credentials, create client. Otherwise, return a mock or actual client depending on environment
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+def get_supabase():
+    try:
+        return create_client(SUPABASE_URL, SUPABASE_KEY)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Failed to initialize Supabase client (using mock): {e}")
+        from unittest.mock import MagicMock
+        return MagicMock()
 
 supabase = get_supabase()

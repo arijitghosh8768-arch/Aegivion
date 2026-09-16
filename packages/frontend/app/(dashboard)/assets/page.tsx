@@ -130,7 +130,7 @@ export default function AssetsPage() {
             transition={{ delay: i * 0.05 }}
             className="rounded-2xl border border-border bg-card p-4 shadow-soft"
           >
-            <div className="text-[11px] font-medium text-muted-foreground">{s.label}</div>
+            <div className="text-xs font-medium text-muted-foreground">{s.label}</div>
             <div className={cn("mt-1 text-2xl font-bold tracking-tight tabular-nums", s.tint)}>{s.value}</div>
           </motion.div>
         ))}
@@ -209,7 +209,7 @@ export default function AssetsPage() {
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 {["Asset", "Provider", "Type", "Region", "Risk", "Status", "Last seen", "Owner"].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     {h}
                   </th>
                 ))}
@@ -271,14 +271,14 @@ export default function AssetsPage() {
           </table>
         </div>
         <div className="flex items-center justify-between border-t border-border px-4 py-3">
-          <span className="text-[11.5px] text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             Showing <b>{rows.length}</b> of <b>{filtered.length}</b> assets
           </span>
           <div className="flex items-center gap-1.5">
             <Button variant="outline" size="iconSm" disabled={safePage === 0} onClick={() => setPage(safePage - 1)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="px-2 text-[11.5px] font-medium tabular-nums text-muted-foreground">
+            <span className="px-2 text-sm font-medium tabular-nums text-muted-foreground">
               {safePage + 1} / {pages}
             </span>
             <Button variant="outline" size="iconSm" disabled={safePage >= pages - 1} onClick={() => setPage(safePage + 1)}>
@@ -309,7 +309,7 @@ function RiskBar({ score }: { score: number }) {
       <div className="h-1.5 w-14 overflow-hidden rounded-full bg-muted">
         <div className="h-full rounded-full" style={{ width: `${score}%`, background: color }} />
       </div>
-      <span className="text-[11.5px] font-bold tabular-nums" style={{ color }}>
+      <span className="text-sm font-bold tabular-nums" style={{ color }}>
         {score}
       </span>
     </div>
