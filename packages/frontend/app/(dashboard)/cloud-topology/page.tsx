@@ -241,7 +241,7 @@ export default function CloudTopologyPage() {
                       <Zap className="h-3.5 w-3.5" /> Resource types
                     </span>
                     {types.length > 0 && (
-                      <button onClick={() => setTypes([])} className="text-[11px] font-semibold text-primary hover:underline">
+                      <button onClick={() => setTypes([])} className="text-xs font-semibold text-primary hover:underline">
                         Clear
                       </button>
                     )}
@@ -254,7 +254,7 @@ export default function CloudTopologyPage() {
                           key={t}
                           onClick={() => toggleType(t)}
                           className={cn(
-                            "cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
+                            "cursor-pointer rounded-full border px-2.5 py-1 text-xs font-medium transition",
                             on
                               ? "border-primary/30 bg-primary/10 text-primary"
                               : "border-border bg-muted/40 text-muted-foreground hover:border-primary/30 hover:text-foreground"
@@ -268,8 +268,8 @@ export default function CloudTopologyPage() {
                 </div>
                 
                 <div className="rounded-xl bg-muted/50 p-3">
-                  <div className="text-[11px] font-semibold text-muted-foreground">Information</div>
-                  <div className="mt-2 space-y-1.5 text-[11px] text-muted-foreground">
+                  <div className="text-xs font-semibold text-muted-foreground">Information</div>
+                  <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
                     <div>Connected directly to live backend.</div>
                     <div>Drag to pan, scroll to zoom.</div>
                   </div>

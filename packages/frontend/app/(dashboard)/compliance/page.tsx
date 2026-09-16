@@ -111,7 +111,7 @@ export default function CompliancePage() {
             transition={{ delay: i * 0.05 }}
             className="rounded-2xl border border-border bg-card p-4 shadow-soft"
           >
-            <div className="text-[11px] font-medium text-muted-foreground">{s.label}</div>
+            <div className="text-xs font-medium text-muted-foreground">{s.label}</div>
             <div className={cn("mt-1 text-2xl font-bold tracking-tight tabular-nums", s.tint)}>{s.value}</div>
           </motion.div>
         ))}
@@ -139,7 +139,7 @@ export default function CompliancePage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-[14.5px] font-semibold leading-tight">{f.name}</div>
-                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    <div className="mt-0.5 text-xs text-muted-foreground">
                       {f.passed}/{f.total} controls
                     </div>
                   </div>
@@ -149,7 +149,7 @@ export default function CompliancePage() {
                   <ScoreRing value={f.score} size={88} stroke={8} label="score" />
                   <div className="flex-1 space-y-2">
                     <div>
-                      <div className="mb-1 flex items-center justify-between text-[11px]">
+                      <div className="mb-1 flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">Trend</span>
                         <span className={cn("flex items-center gap-0.5 font-semibold tabular-nums", f.trend >= 0 ? "text-success" : "text-destructive")}>
                           {f.trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -165,7 +165,7 @@ export default function CompliancePage() {
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       {f.status === "pass" ? <ShieldCheck className="h-3.5 w-3.5 text-success" /> : <TriangleAlert className="h-3.5 w-3.5 text-warning" />}
                       {f.status === "pass" ? "All critical controls passing" : "Remediation backlog detected"}
                     </div>
@@ -173,7 +173,7 @@ export default function CompliancePage() {
                 </div>
                 <Link
                   href="/detection-engine?framework=CIS"
-                  className="mt-4 flex items-center gap-1 text-[11.5px] font-semibold text-primary transition hover:gap-1.5"
+                  className="mt-4 flex items-center gap-1 text-sm font-semibold text-primary transition hover:gap-1.5"
                 >
                   View failing controls <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
@@ -194,7 +194,7 @@ export default function CompliancePage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-[14px] font-bold tracking-tight">COMPLIANCE TREND</h3>
-              <p className="text-[11.5px] text-muted-foreground">Avg score across frameworks</p>
+              <p className="text-sm text-muted-foreground">Avg score across frameworks</p>
             </div>
             <Badge variant="soft">Live</Badge>
           </div>

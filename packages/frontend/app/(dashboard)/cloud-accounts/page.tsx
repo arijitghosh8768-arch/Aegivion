@@ -139,7 +139,7 @@ export default function CloudAccountsPage() {
             transition={{ delay: i * 0.05 }}
             className="rounded-2xl border border-border bg-card p-4 shadow-soft"
           >
-            <div className="text-[11px] font-medium text-muted-foreground">{s.label}</div>
+            <div className="text-xs font-medium text-muted-foreground">{s.label}</div>
             <div className={cn("mt-1 text-2xl font-bold tracking-tight tabular-nums", s.tint)}>
               <CountUp value={typeof s.value === "number" ? s.value : 0} />
               {typeof s.value === "string" ? s.value : ""}
@@ -164,7 +164,7 @@ export default function CloudAccountsPage() {
                   <ProviderMark provider={a.provider} size={40} />
                   <div>
                     <div className="text-[14px] font-semibold leading-tight">{a.name}</div>
-                    <div className="text-[11px] text-muted-foreground">Account {a.accountId}</div>
+                    <div className="text-xs text-muted-foreground">Account {a.accountId}</div>
                   </div>
                 </div>
                 <StatusPill status={STATUS_UI[a.status]} />
@@ -190,13 +190,13 @@ export default function CloudAccountsPage() {
               </div>
 
               <div className="mt-4 flex items-center justify-between border-t border-border/70 pt-3">
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   Last scan · <span className="font-medium text-foreground">{formatScan(a.lastScan)}</span>
                 </span>
                 <button
                   onClick={() => runScan(a.id)}
                   disabled={scanning === a.id}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-semibold text-primary transition hover:bg-primary/10 disabled:opacity-60"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10 disabled:opacity-60"
                 >
                   <RefreshCw className={cn("h-3 w-3", scanning === a.id && "animate-spin")} />
                   {scanning === a.id ? "Scanning…" : "Scan now"}
@@ -229,7 +229,7 @@ export default function CloudAccountsPage() {
                   <ProviderMark provider={p} size={40} />
                   <div className="flex-1">
                     <div className="text-[14px] font-semibold">{PROVIDER_META[p].name}</div>
-                    <div className="text-[11.5px] text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                       {p === "aws" ? "CloudFormation stack · 5 min" : p === "azure" ? "Bicep deployment · 5 min" : "Deployment Manager · 5 min"}
                     </div>
                   </div>
@@ -273,7 +273,7 @@ export default function CloudAccountsPage() {
                     prevent confused-deputy attacks.
                   </StepRow>
                   <StepRow n={3} title="Verify connection" />
-                  <div className="rounded-xl bg-muted/50 p-3 text-[11.5px] leading-relaxed text-muted-foreground">
+                  <div className="rounded-xl bg-muted/50 p-3 text-sm leading-relaxed text-muted-foreground">
                     Aegivion will discover resources within ~2 minutes. No write permissions are granted — remediation
                     flows use your existing CI/CD identity.
                   </div>
@@ -330,7 +330,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
     <div className="flex items-start gap-3">
       <span
         className={cn(
-          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
           done ? "bg-success/15 text-success" : active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
         )}
       >
@@ -338,7 +338,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
       </span>
       <div>
         <div className="text-[13px] font-semibold">{title}</div>
-        {children && <div className="mt-0.5 text-[11.5px] leading-relaxed text-muted-foreground">{children}</div>}
+        {children && <div className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{children}</div>}
       </div>
     </div>
   );
@@ -346,7 +346,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 
 function Code({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <code className={cn("code-block rounded-md bg-foreground/[0.06] px-1.5 py-0.5 text-[11px] text-primary", className)}>
+    <code className={cn("code-block rounded-md bg-foreground/[0.06] px-1.5 py-0.5 text-xs text-primary", className)}>
       {children}
     </code>
   );
