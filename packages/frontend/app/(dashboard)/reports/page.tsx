@@ -122,12 +122,12 @@ export default function ReportsPage() {
               </div>
               <div className="mt-3 space-y-1">
                 {t.sections.slice(0, 3).map((s: string) => (
-                  <div key={s} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <div key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Check className="h-3 w-3 text-success" /> {s}
                   </div>
                 ))}
                 {t.sections.length > 3 && (
-                  <div className="pl-4 text-[11px] text-muted-foreground">+{t.sections.length - 3} more sections</div>
+                  <div className="pl-4 text-xs text-muted-foreground">+{t.sections.length - 3} more sections</div>
                 )}
               </div>
               <Button variant="gradient" size="sm" className="mt-4 w-full" onClick={() => generate(t)} disabled={generating === t.id}>
@@ -169,14 +169,14 @@ export default function ReportsPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-semibold">{r.name}</div>
-                <div className="text-[11px] text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
                   {r.date} · {r.format} · {r.size} · by {r.generatedBy}
                 </div>
               </div>
               <Badge variant="success">ready</Badge>
               <button
                 onClick={r.format === "CSV" ? downloadCsv : printReport}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-[11.5px] font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-sm font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
               >
                 <Download className="h-3.5 w-3.5" /> Download
               </button>

@@ -94,7 +94,7 @@ export default function PredictionPage() {
                   <h3 className="flex items-center gap-2 text-[14px] font-semibold">
                     <TrendingUp className="h-4 w-4 text-primary" /> Attack probability forecast
                   </h3>
-                  <p className="text-[11.5px] text-muted-foreground">Next 14 days · confidence band shown</p>
+                  <p className="text-sm text-muted-foreground">Next 14 days · confidence band shown</p>
                 </div>
                 {peakLabel && (
                   <Badge variant="warning">
@@ -147,7 +147,7 @@ export default function PredictionPage() {
             >
               <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
                 <h3 className="text-[14px] font-semibold">Next-72h likelihood</h3>
-                <p className="mb-4 text-[11.5px] text-muted-foreground">
+                <p className="mb-4 text-sm text-muted-foreground">
                   {riskData?.attack_type ?? riskData?.category ?? "Attack probability"}
                 </p>
                 <div className="flex items-center justify-center">
@@ -162,7 +162,7 @@ export default function PredictionPage() {
                 {riskFactors.length > 0 && (
                   <div className="mt-4 space-y-2">
                     {riskFactors.slice(0, 3).map((f) => (
-                      <div key={f.factor} className="flex items-center justify-between text-[11.5px]">
+                      <div key={f.factor} className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{f.factor}</span>
                         <span
                           className={cn(

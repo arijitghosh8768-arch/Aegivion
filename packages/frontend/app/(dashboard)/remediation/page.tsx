@@ -106,7 +106,7 @@ export default function RemediationPage() {
             transition={{ delay: i * 0.05 }}
             className="rounded-2xl border border-border bg-card p-4 shadow-soft"
           >
-            <div className="text-[11px] font-medium text-muted-foreground">{s.label}</div>
+            <div className="text-xs font-medium text-muted-foreground">{s.label}</div>
             <div className={cn("mt-1 text-2xl font-bold tabular-nums tracking-tight", s.tint)}>{s.value}</div>
           </motion.div>
         ))}
@@ -148,8 +148,8 @@ export default function RemediationPage() {
                   {plan.status === "applied" ? <ShieldCheck className="h-4 w-4" /> : <Wrench className="h-4 w-4" />}
                 </span>
                 <button onClick={() => setExpanded(isOpen ? null : f.id)} className="min-w-0 flex-1 cursor-pointer text-left">
-                  <div className="truncate text-[13.5px] font-semibold">{f.title}</div>
-                  <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <div className="truncate text-sm font-semibold">{f.title}</div>
+                  <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                     <ProviderMark provider={f.provider} size={16} />
                     <span>{f.service}</span>
                     <span>·</span>
