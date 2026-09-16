@@ -159,7 +159,7 @@ export default function IdentitiesPage() {
             transition={{ delay: i * 0.05 }}
             className="rounded-2xl border border-border bg-card p-4 shadow-soft"
           >
-            <div className="text-[11px] font-medium text-muted-foreground">{s.label}</div>
+            <div className="text-xs font-medium text-muted-foreground">{s.label}</div>
             <div className={cn("mt-1 text-2xl font-bold tracking-tight tabular-nums", s.tint)}>{s.value}</div>
           </motion.div>
         ))}
@@ -218,7 +218,7 @@ export default function IdentitiesPage() {
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 {["Identity", "Kind", "Provider", "Privileges", "MFA", "Keys", "Risk", "Last used", "Status"].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     {h}
                   </th>
                 ))}
@@ -270,11 +270,11 @@ export default function IdentitiesPage() {
                         </td>
                         <td className="px-4 py-3">
                           {id.mfa ? (
-                            <span className="flex items-center gap-1 text-[11.5px] font-semibold text-success">
+                            <span className="flex items-center gap-1 text-sm font-semibold text-success">
                               <Fingerprint className="h-3.5 w-3.5" /> Enabled
                             </span>
                           ) : (
-                            <span className="flex items-center gap-1 text-[11.5px] font-semibold text-destructive">
+                            <span className="flex items-center gap-1 text-sm font-semibold text-destructive">
                               <ShieldAlert className="h-3.5 w-3.5" /> Missing
                             </span>
                           )}
@@ -288,14 +288,14 @@ export default function IdentitiesPage() {
                                 style={{ width: `${id.risk}%`, background: id.risk >= 75 ? "#ef4444" : id.risk >= 50 ? "#f59e0b" : "#22c55e" }}
                               />
                             </div>
-                            <span className={cn("text-[11.5px] font-bold tabular-nums", id.risk >= 75 ? "text-destructive" : id.risk >= 50 ? "text-warning" : "text-success")}>
+                            <span className={cn("text-sm font-bold tabular-nums", id.risk >= 75 ? "text-destructive" : id.risk >= 50 ? "text-warning" : "text-success")}>
                               {id.risk}
                             </span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-[12px] text-muted-foreground">{id.lastUsed}</td>
                         <td className="px-4 py-3">
-                          <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[11px] font-medium capitalize", st.dot === "bg-destructive" && "text-destructive", st.dot === "bg-warning" && "text-warning")}>
+                          <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-xs font-medium capitalize", st.dot === "bg-destructive" && "text-destructive", st.dot === "bg-warning" && "text-warning")}>
                             <span className={cn("h-1.5 w-1.5 rounded-full", st.dot)} />
                             {st.label}
                           </span>
@@ -316,10 +316,10 @@ export default function IdentitiesPage() {
           </table>
         </div>
         <div className="flex items-center justify-between border-t border-border px-4 py-3">
-          <span className="text-[11.5px] text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             Showing <b>{filtered.length}</b> identities · avg risk <b>{avgRisk}</b>/100
           </span>
-          <Link href="/settings" className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline">
+          <Link href="/settings" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
             Identity provider settings <ArrowRight className="h-3 w-3" />
           </Link>
         </div>

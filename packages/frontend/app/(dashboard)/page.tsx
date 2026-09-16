@@ -9,6 +9,7 @@ import { RiskTrend, TopRiskyAssets } from "@/components/dashboard/risk-assets";
 export default function DashboardPage() {
   return (
     <div className="space-y-4">
+      <h1 className="sr-only">Aegivion Security Dashboard Overview</h1>
       {/* Top stats row */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <MetricCards />

@@ -123,7 +123,7 @@ export default function DetectionEnginePage() {
             transition={{ delay: i * 0.05 }}
             className="rounded-2xl border border-border bg-card p-4 shadow-soft"
           >
-            <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               {s.icon}
               {s.label}
             </div>
@@ -199,7 +199,7 @@ function FilterChips({
             key={c.id}
             onClick={() => setCategory(c.id)}
             className={cn(
-              "cursor-pointer rounded-full border px-3 py-1 text-[11.5px] font-medium transition",
+              "cursor-pointer rounded-full border px-3 py-1 text-sm font-medium transition",
               on
                 ? "border-primary/30 bg-primary/10 text-primary"
                 : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground"
@@ -261,8 +261,8 @@ function FindingsList({
               <SeverityBadge severity={f.severity} showDot={false} className="w-[74px] justify-center" />
               <ProviderMark provider={provider} size={28} />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13.5px] font-semibold">{f.title}</div>
-                <div className="mt-0.5 flex items-center gap-2 text-[11.5px] text-muted-foreground">
+                <div className="truncate text-sm font-semibold">{f.title}</div>
+                <div className="mt-0.5 flex items-center gap-2 text-sm text-muted-foreground">
                   <span>{f.resource_type}</span>
                   <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground" />
                   <span>Risk {f.risk_score}/100</span>
@@ -286,13 +286,13 @@ function FindingsList({
 
                 <div className="mt-3 rounded-xl border border-border bg-card/70 p-3">
                   <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Evidence</div>
-                  <code className="whitespace-pre-wrap text-[11.5px] text-foreground">{evidenceStr}</code>
+                  <code className="whitespace-pre-wrap text-sm text-foreground">{evidenceStr}</code>
                 </div>
 
                 {(f.remediation?.length ?? 0) > 0 && (
                   <div className="mt-3 rounded-xl border border-border bg-card/70 p-3">
                     <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Remediation Steps</div>
-                    <code className="whitespace-pre-wrap text-[11.5px] text-foreground">
+                    <code className="whitespace-pre-wrap text-sm text-foreground">
                       {Array.isArray(f.remediation) ? f.remediation.join("\n") : f.remediation}
                     </code>
                   </div>
@@ -361,7 +361,7 @@ function ComplianceView() {
       <div className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-border bg-muted/40 px-5 py-3.5">
         <div>
           <h3 className="text-[14px] font-semibold">{framework?.title ?? "CIS AWS Benchmark"} — evidence pack</h3>
-          <p className="text-[11.5px] text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {overall?.total_controls ?? 0} controls checked
           </p>
         </div>
@@ -370,7 +370,7 @@ function ComplianceView() {
       <div className="divide-y divide-border/60">
         {items.map((r: any) => (
           <div key={r.control_code} className="flex items-center gap-4 px-5 py-3">
-            <span className="w-16 shrink-0 font-mono text-[11px] font-bold text-primary">{r.control_code}</span>
+            <span className="w-16 shrink-0 font-mono text-xs font-bold text-primary">{r.control_code}</span>
             <span className="flex-1 text-[12.5px] font-medium">{r.title}</span>
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
@@ -382,7 +382,7 @@ function ComplianceView() {
                   style={{ width: r.status === "pass" ? "100%" : r.status === "fail" ? "30%" : "60%" }}
                 />
               </div>
-              <span className="w-20 text-right text-[11.5px] font-semibold tabular-nums text-muted-foreground capitalize">
+              <span className="w-20 text-right text-sm font-semibold tabular-nums text-muted-foreground capitalize">
                 {r.status}
               </span>
             </div>
