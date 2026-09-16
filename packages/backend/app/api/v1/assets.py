@@ -1,49 +1,54 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
-from typing import Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from typing import Dict, Any, List
 from app.database import get_db
-from app.models.cloud import CloudAsset
-from app.models.audit_log import AuditLog, AuditAction
-from app.api.deps import require_permission
 from app.core.security import get_current_user
-
+from app.database.supabase_client import supabase
 
 router = APIRouter()
 
-@router.patch("/{asset_id}/context", dependencies=[Depends(require_permission("manage_assets"))])
-def update_asset_context(
-    asset_id: str,
-    context_data: Dict[str, Any] = Body(...),
+@router.get("")
+def list_assets(
+    provider: str = Query(None),
+    resource_type: str = Query(None),
     db = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
-    """Update context fields of an asset manually."""
-    asset = db.query(CloudAsset).filter(CloudAsset.id == asset_id).first()
-    if not asset:
-        raise HTTPException(status_code=404, detail="Asset not found")
-
+    """
+    Fetch REAL cloud assets from Supabase PostgreSQL instead of MongoDB.
+    Enforces strict organization-level tenant isolation.
+    """
     user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(asset, 'organization_id', '')) != str(user_org_id) and getattr(asset, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this asset")
+    if not user_org_id:
+        raise HTTPException(status_code=403, detail="No organization context found")
 
+    try:
+        # Supabase Query
+        query = supabase.table("cloud_assets").select("*").eq("organization_id", user_org_id)
         
-    allowed_fields = ["environment", "owner", "data_classification", "business_criticality", "department", "application", "internet_exposed", "importance_score"]
-    
-    updated_fields = {}
-    for key, value in context_data.items():
-        if key in allowed_fields:
-            setattr(asset, key, value)
-            updated_fields[key] = value
+        if provider:
+            query = query.eq("provider", provider)
+        if resource_type:
+            query = query.eq("resource_type", resource_type)
             
-    if updated_fields:
-        # Create audit log
-        audit = AuditLog(
-            action="asset_context_updated", # Using string as it gets saved as string in Mongo
-            resource_type="CloudAsset",
-            resource_id=asset_id,
-            details={"updated_context": updated_fields},
-            user_id=str(current_user.get("id", "system")), organization_id=str(user_org_id) if user_org_id else None
-        )
-        db.add(audit)
-        db.commit()
+        result = query.execute()
+        return {"assets": result.data if result.data else []}
+    except Exception as e:
+        # Graceful fallback if Supabase table is not fully set up yet
+        return {"assets": [], "error": str(e), "message": "Supabase table may not exist yet"}
+
+@router.get("/{asset_id}")
+def get_asset(
+    asset_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    
+    try:
+        result = supabase.table("cloud_assets").select("*").eq("id", asset_id).eq("organization_id", user_org_id).execute()
         
-    return {"status": "success", "asset": asset.dict()}
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Asset not found")
+            
+        return result.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
