@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Zap, Workflow } from "lucide-react";
+import { Zap, Workflow, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { ResponseSimulation } from "./ResponseSimulation";
 
 export function RunbookTable({ rules, isAdmin, onToggle }: { rules: any[]; isAdmin: boolean; onToggle: (id: string) => void }) {
   if (!rules || rules.length === 0) {
@@ -52,10 +53,11 @@ export function RunbookTable({ rules, isAdmin, onToggle }: { rules: any[]; isAdm
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Action</div>
                 <div className="text-[11.5px] font-medium">{r.action}</div>
               </div>
-              <div className="text-right">
+              <div className="text-right mr-4">
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Runs</div>
                 <div className="text-[11.5px] font-medium tabular-nums">{r.runs || 0}</div>
               </div>
+              <ResponseSimulation ruleId={r.id} ruleName={r.name} />
               {isAdmin && (
                 <div className="ml-2 flex items-center border-l pl-4">
                   <Switch

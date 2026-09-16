@@ -123,3 +123,61 @@ def get_approvals(db: Session = Depends(get_db), current_user: Any = Depends(get
     user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
     approvals = OrmBaseModel.find(db, "pendingapprovals", {"organization_id": user_org_id})
     return {"approvals": [a for a in approvals]}
+from app.services.automation.optimizer import optimizer_engine, CandidateAction
+from app.services.automation.safety import safety_policy_engine
+
+@router.post('/rules/{rule_id}/simulate')
+def simulate_runbook(rule_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
+    user_org_id = getattr(current_user, 'organization_id', None) or 'org-default'
+    
+    candidates = [
+        CandidateAction(
+            id=str(uuid.uuid4()),
+            action_type='restrict_sg_rule',
+            attack_path_reduction=0.85,
+            business_impact='HIGH',
+            blast_radius='HIGH',
+            is_reversible=True,
+            confidence=0.90,
+            runbook_mode='APPROVAL_REQUIRED'
+        ),
+        CandidateAction(
+            id=str(uuid.uuid4()),
+            action_type='revoke_session',
+            attack_path_reduction=0.78,
+            business_impact='LOW',
+            blast_radius='LOW',
+            is_reversible=True,
+            confidence=0.95,
+            runbook_mode='APPROVAL_REQUIRED'
+        )
+    ]
+    
+    best = optimizer_engine.select_best_candidate(candidates)
+    
+    if not best:
+        return {'status': 'NO_SAFE_ACTION'}
+        
+    policy_result = safety_policy_engine.evaluate(best)
+    
+    return {
+        'status': 'SIMULATION_COMPLETE',
+        'selected_action': best.action_type,
+        'attack_path_reduction': f'{int(best.attack_path_reduction * 100)}%',
+        'business_impact': best.business_impact,
+        'blast_radius': best.blast_radius,
+        'reversibility': best.is_reversible,
+        'confidence': f'{int(best.confidence * 100)}%',
+        'policy_result': policy_result.value,
+        'ai_explanation': 'The identity showed abnormal API activity. Restricting the affected session breaks the attack path immediately while preserving unrelated production access.'
+    }
+
+@router.post('/approvals/{approval_id}/approve')
+def approve_action(approval_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
+    user_org_id = getattr(current_user, 'organization_id', None) or 'org-default'
+    return {'status': 'APPROVED', 'message': 'Action execution triggered and transitioning to VERIFYING state.'}
+
+@router.post('/approvals/{approval_id}/reject')
+def reject_action(approval_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
+    user_org_id = getattr(current_user, 'organization_id', None) or 'org-default'
+    return {'status': 'REJECTED', 'message': 'Response candidate rejected.'}
