@@ -1,50 +1,47 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from typing import Dict, Any, List, Optional
-from app.database import get_db
-from app.models.cloud import CloudAsset, AssetRelationship
+from fastapi import APIRouter, Depends, HTTPException
+from typing import Dict, Any, List
 from app.core.security import get_current_user
+from app.database.supabase_client import supabase
 
 router = APIRouter()
 
 @router.get("/")
-def get_topology(
-    db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_user)
-):
-    """Retrieve network topology nodes and edges with tenant isolation"""
-    user_org_id = getattr(current_user, 'organization_id', None)
+def get_topology(current_user: Any = Depends(get_current_user)):
+    """Retrieve REAL network topology nodes and edges from Supabase"""
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        raise HTTPException(status_code=403, detail="No organization context")
 
-    # 1. Query assets from DB
-    assets = db.query(CloudAsset).all()
-    if user_org_id:
-        assets = [a for a in assets if str(getattr(a, 'organization_id', '')) == str(user_org_id)]
+    try:
+        # 1. Query assets from Supabase
+        assets_res = supabase.table("cloud_assets").select("*").eq("organization_id", user_org_id).execute()
+        assets = assets_res.data or []
 
-    # 2. Query relationships from DB
-    relationships = db.query(AssetRelationship).all()
-    if user_org_id:
-        relationships = [r for r in relationships if str(getattr(r, 'organization_id', '')) == str(user_org_id)]
+        if not assets:
+            return {"nodes": [], "edges": []}
 
-    # Remove Mock Topology fallback to prevent demo data from rendering when DB is empty.
-    if not assets:
-        return {"nodes": [], "edges": []}
+        nodes = []
+        for asset in assets:
+            nodes.append({
+                "id": asset.get("provider_resource_id"),
+                "type": asset.get("resource_type", "unknown"),
+                "label": asset.get("name") or asset.get("provider_resource_id"),
+                "provider": str(asset.get("provider", "aws")).lower()
+            })
 
-    # Map DB assets/relationships to nodes/edges
-    nodes = []
-    for asset in assets:
-        nodes.append({
-            "id": asset.resource_id,
-            "type": asset.type,
-            "label": asset.name or asset.resource_id,
-            "provider": str(getattr(asset, 'provider', 'aws')).lower()
-        })
+        edges = []
+        # In a real environment, we'd also pull relationships. We assume they are stored inside 'relationships' JSONB or a separate table.
+        for asset in assets:
+            rels = asset.get("relationships", [])
+            if isinstance(rels, list):
+                for rel in rels:
+                    if isinstance(rel, dict) and "target" in rel:
+                        edges.append({
+                            "source": asset.get("provider_resource_id"),
+                            "target": rel["target"],
+                            "type": rel.get("type", "connected_to")
+                        })
 
-    edges = []
-    for rel in relationships:
-        edges.append({
-            "source": rel.source_asset_id,
-            "target": rel.target_asset_id,
-            "type": rel.relationship_type
-        })
-
-    return {"nodes": nodes, "edges": edges}
+        return {"nodes": nodes, "edges": edges}
+    except Exception as e:
+        return {"nodes": [], "edges": [], "error": str(e), "message": "Supabase table may not exist yet"}

@@ -49,8 +49,7 @@ def add_cloud_account(
         
         new_account = insert_res.data[0]
         
-        # In a real app, this should be dispatched to a background worker (e.g. Celery / Asyncio task)
-        # For this milestone vertical slice, we run it synchronously if AWS
+        # For this milestone vertical slice, we run it synchronously
         if provider == "aws":
             sync_worker = AWSCloudSync(
                 organization_id=user_org_id,
@@ -58,7 +57,27 @@ def add_cloud_account(
                 aws_access_key=access_key,
                 aws_secret_key=secret_key
             )
-            # Sync happens
+            success = sync_worker.run_sync()
+            new_account["status"] = "HEALTHY" if success else "FAILED"
+        elif provider == "azure":
+            from app.cloud.azure.sync import AzureCloudSync
+            sync_worker = AzureCloudSync(
+                organization_id=user_org_id,
+                cloud_account_id=new_account["id"],
+                tenant_id=account_data.get("tenant_id", "mock"),
+                client_id=account_data.get("client_id", "mock"),
+                client_secret=account_data.get("client_secret", "mock")
+            )
+            success = sync_worker.run_sync()
+            new_account["status"] = "HEALTHY" if success else "FAILED"
+        elif provider == "gcp":
+            from app.cloud.gcp.sync import GCPCloudSync
+            sync_worker = GCPCloudSync(
+                organization_id=user_org_id,
+                cloud_account_id=new_account["id"],
+                project_id=account_data.get("project_id", "mock"),
+                service_account_json=account_data.get("service_account_json", "{}")
+            )
             success = sync_worker.run_sync()
             new_account["status"] = "HEALTHY" if success else "FAILED"
             

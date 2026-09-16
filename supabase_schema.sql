@@ -53,3 +53,44 @@ ALTER TABLE cloud_assets ENABLE ROW LEVEL SECURITY;
 CREATE POLICY isolate_org_assets ON cloud_assets
     FOR ALL
     USING (organization_id = current_setting('request.jwt.claims')::json->>'org_id');
+
+CREATE TABLE IF NOT EXISTS security_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id VARCHAR NOT NULL,
+    cloud_account_id UUID REFERENCES cloud_accounts(id) ON DELETE CASCADE,
+    provider VARCHAR NOT NULL,
+    event_type VARCHAR NOT NULL,
+    event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    ingestion_timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    identity_info JSONB,
+    resource_id VARCHAR,
+    raw_event JSONB,
+    normalized_info JSONB
+);
+
+ALTER TABLE security_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY isolate_org_events ON security_events
+    FOR ALL
+    USING (organization_id = current_setting('request.jwt.claims')::json->>'org_id');
+
+CREATE TABLE IF NOT EXISTS findings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id VARCHAR NOT NULL,
+    title VARCHAR NOT NULL,
+    description TEXT,
+    severity VARCHAR NOT NULL,
+    status VARCHAR NOT NULL,
+    resource_id VARCHAR,
+    resource_name VARCHAR,
+    cloud_provider VARCHAR,
+    resource_type VARCHAR,
+    rule_id VARCHAR,
+    evidence JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE findings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY isolate_org_findings ON findings
+    FOR ALL
+    USING (organization_id = current_setting('request.jwt.claims')::json->>'org_id');

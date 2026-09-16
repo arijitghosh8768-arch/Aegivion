@@ -79,20 +79,19 @@ export default function CloudAccountsPage() {
 
   const connectMutation = useMutation({
     mutationFn: async () => {
-      if (selectedProvider === "aws") {
-        return fetchApi("/v1/cloud-accounts", {
-          method: "POST",
-          body: JSON.stringify({
-            account_name: "My AWS",
-            provider: "aws",
-            account_id: "auto",
-            default_region: "us-east-1",
+      return fetchApi("/v1/cloud-accounts", {
+        method: "POST",
+        body: JSON.stringify({
+          account_name: `My ${selectedProvider.toUpperCase()}`,
+          provider: selectedProvider,
+          account_id: "auto",
+          default_region: selectedProvider === "aws" ? "us-east-1" : selectedProvider === "azure" ? "eastus" : "us-central1",
+          ...(selectedProvider === "aws" ? {
             aws_access_key_id: accessKey,
             aws_secret_access_key: secretKey,
-          }),
-        });
-      }
-      throw new Error("Only AWS is supported in this demo.");
+          } : {}),
+        }),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cloud_accounts"] });

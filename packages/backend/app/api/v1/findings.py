@@ -34,14 +34,17 @@ class NoteCreate(BaseModel):
     content: str
 
 @router.get("/")
-def get_all_findings(db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
-    findings = db.query(Finding).all()
-    user_org_id = getattr(current_user, "organization_id", None) if isinstance(current_user, dict) else current_user.get("organization_id", None) if current_user else None
-    
-    if user_org_id:
-        findings = [f for f in findings if str(getattr(f, 'organization_id', '')) == str(user_org_id)]
+def get_all_findings(current_user: Dict[str, Any] = Depends(get_current_user)):
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        raise HTTPException(status_code=403, detail="No organization context")
         
-        # Enforce OrgSettings
+    try:
+        from app.database.supabase_client import supabase
+        result = supabase.table("findings").select("*").eq("organization_id", user_org_id).execute()
+        return {"findings": result.data if result.data else []}
+    except Exception as e:
+        return {"findings": [], "error": str(e), "message": "Supabase table may not exist yet"}
         from app.models.org_settings import OrgSettings
         settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
         if settings and settings.enabled_cloud_providers:
