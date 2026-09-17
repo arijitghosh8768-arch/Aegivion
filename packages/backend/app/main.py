@@ -34,11 +34,26 @@ from .middleware.logging import LoggingMiddleware
 # Setup structlog
 setup_logging()
 
+
+from contextlib import asynccontextmanager
+import asyncio
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Start the automation worker
+    from app.workers.automation_worker import automation_worker_loop
+    worker_task = asyncio.create_task(automation_worker_loop())
+    yield
+    # Shutdown: Cancel the worker
+    worker_task.cancel()
+
 app = FastAPI(
     title="Aegivion API",
     description="Backend API for Aegivion Security Platform",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan
 )
+
 
 # Mount Prometheus metrics endpoint
 metrics_app = make_asgi_app()
