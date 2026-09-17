@@ -28,80 +28,112 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
     # 1. Look for user in DB
     user = db.query(User).filter(User.email == login_data.email).first()
     
-    role_name = "viewer"
-    org_id = str(uuid.uuid4())
-    user_id = str(uuid.uuid4())
-    first_name = "Guest"
-    last_name = "User"
-
-    if user:
-        # Validate password using User model helper
-        if not user.verify_password(login_data.password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect password"
-            )
-        user_id = str(user.id)
-        org_id = str(user.organization_id)
-        first_name = user.first_name
-        last_name = user.last_name
-        # Fetch role name
-        role = db.query(Role).filter(Role.id == user.role_id).first()
-        if role:
-            role_name = role.name
-    else:
-        import os
-        # Fallback for development if not seeded: allow admin, analyst, viewer with standard password
-        fallback_password = os.getenv("DEV_FALLBACK_PASSWORD", "SuperSecret123!")
-        if fallback_password and login_data.password == fallback_password:
-            if login_data.email == "admin@aegivion.com":
-                role_name = "admin"
-                first_name = "Admin"
-                last_name = "User"
-            elif login_data.email == "superadmin@aegivion.com":
-                role_name = "superadmin"
-                first_name = "Super"
-                last_name = "Admin"
-            elif login_data.email == "analyst@aegivion.com":
-                role_name = "analyst"
-                first_name = "Security"
-                last_name = "Analyst"
-            elif login_data.email == "viewer@aegivion.com":
-                role_name = "viewer"
-                first_name = "Read-Only"
-                last_name = "Viewer"
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid credentials"
-                )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+        
+    # Validate password using User model helper
+    if not user.verify_password(login_data.password):
+        # Update failed login attempts
+        if hasattr(user, 'increment_failed_attempts'):
+            user.increment_failed_attempts()
+            db.add(user)
+            db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+        
+    # Check if locked
+    if getattr(user, 'locked_until', None):
+        import datetime
+        if isinstance(user.locked_until, str):
+            try:
+                locked_until = datetime.datetime.fromisoformat(user.locked_until)
+            except:
+                locked_until = datetime.datetime.utcnow()
         else:
+            locked_until = user.locked_until
+            
+        if locked_until > datetime.datetime.utcnow():
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials"
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Account is temporarily locked due to too many failed attempts"
             )
 
-    # 2. Create access token using SecurityService
-    token_service = SecurityService()
-    token = token_service.create_access_token(user_id=user_id, org_id=org_id, role=role_name)
-    
-    return LoginResponse(
-        success=True,
-        token=token,
-        user={
-            "id": user_id,
-            "email": login_data.email,
-            "first_name": first_name,
-            "last_name": last_name,
-            "name": f"{first_name} {last_name}",
-            "role": role_name,
-            "organization_id": org_id
-        }
-    )
+    # Check status
+    if getattr(user, 'status', None) == "suspended":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account is suspended"
+        )
+        
+    # Success - Reset failed attempts
+    if hasattr(user, 'failed_login_attempts'):
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        user.last_login_at = datetime.datetime.utcnow()
+        if hasattr(request, 'client') and request.client:
+            user.last_login_ip = request.client.host
+        db.add(user)
+        db.commit()
 
-@router.post("/logout")
-def logout():
-    return {"success": True, "message": "Logged out successfully"}
+    user_id = str(user.id)
+    org_id = str(user.organization_id) if user.organization_id else str(uuid.uuid4())
+    first_name = user.first_name or "Unknown"
+    last_name = user.last_name or ""
+    
+    # Check memberships for Org Name
+    from app.models.organization_member import OrganizationMember
+    member = db.query(OrganizationMember).filter(OrganizationMember.user_id == user.id).first()
+    if member:
+        org_id = str(member.organization_id)
+        role_name = member.role.lower() if hasattr(member.role, 'lower') else str(member.role).lower()
+    else:
+        # Fallback to direct role mapping
+        role = db.query(Role).filter(Role.id == user.role_id).first()
+        role_name = role.name if role else "viewer"
+        
+    if user.email == "superadmin@aegivion.com":
+        role_name = "superadmin"
+        
+    # Generate token
+    token = SecurityService.create_access_token(
+        subject=user_id,
+        role=role_name,
+        org_id=org_id
+    )
+    
+    # Store persistent session
+    import hashlib
+    from app.models.auth_session import AuthSession
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    ip_addr = request.client.host if hasattr(request, 'client') and request.client else None
+    user_agent = request.headers.get('user-agent', '')
+    
+    new_session = AuthSession(
+        user_id=user.id,
+        session_token_hash=token_hash,
+        expires_at=datetime.datetime.utcnow() + datetime.timedelta(hours=12),
+        user_agent=user_agent,
+        ip_address=ip_addr
+    )
+    db.add(new_session)
+    db.commit()
+
+    return {
+        "success": True,
+        "token": token,
+        "user": {
+            "id": user_id,
+            "email": user.email,
+            "name": f"{first_name} {last_name}".strip(),
+            "role": role_name,
+            "organization_id": org_id,
+        }
+    }
 
 @router.get("/me")
 def get_me(current_user: Dict[str, Any] = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -168,3 +200,23 @@ def update_me(
     return {"success": True, "message": "Mock profile updated"}
 
 
+
+@router.post("/logout")
+def logout(request: Request, db: Session = Depends(get_db)):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return {"success": True}
+        
+    token = auth_header.split(" ")[1]
+    import hashlib
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    
+    from app.models.auth_session import AuthSession
+    session_record = db.query(AuthSession).filter(AuthSession.session_token_hash == token_hash).first()
+    
+    if session_record:
+        session_record.revoked_at = datetime.datetime.utcnow()
+        db.add(session_record)
+        db.commit()
+        
+    return {"success": True, "message": "Logged out successfully"}
