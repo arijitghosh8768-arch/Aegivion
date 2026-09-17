@@ -1,8 +1,8 @@
+import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Dict, Any, Optional
-from datetime import datetime
 import uuid
 
 from app.database import get_db
@@ -48,7 +48,6 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
         
     # Check if locked
     if getattr(user, 'locked_until', None):
-        import datetime
         if isinstance(user.locked_until, str):
             try:
                 locked_until = datetime.datetime.fromisoformat(user.locked_until)
