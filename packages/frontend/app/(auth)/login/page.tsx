@@ -57,9 +57,7 @@ export default function LoginPage() {
         localStorage.setItem("aegivion_token", data.token);
         
         showAlert("success", "Allowlist check passed · Loading workspace...");
-        setTimeout(() => {
-          router.push(data.user.role === "superadmin" || data.user.role === "Super Admin" ? "/admin" : "/");
-        }, 1000);
+        router.push(data.user.role === 'superadmin' || data.user.role === 'Super Admin' ? '/admin' : '/');
       } catch (err: any) {
         showAlert("error", err.message || "Failed to authenticate with Google.");
         setLoading(false);
@@ -109,9 +107,7 @@ export default function LoginPage() {
       localStorage.setItem("aegivion_token", data.token);
       showAlert('success', `Signed in successfully · Redirecting to dashboard...`);
 
-      setTimeout(() => {
-        router.push(data.user.role === "superadmin" || data.user.role === "Super Admin" ? "/admin" : "/");
-      }, 1000);
+      router.push(data.user.role === 'superadmin' || data.user.role === 'Super Admin' ? '/admin' : '/');
     } catch (err: any) {
       showAlert('error', err.message || "Failed to log in.");
       setLoading(false);
