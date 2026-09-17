@@ -70,7 +70,7 @@ def get_collection_for_model(db_instance, model):
     mapping = {
         "user": "users",
         "role": "roles",
-        "organization": "organizations",
+        \"organization\": \"organizations\",`n        \"organizationmember\": \"organization_members\",
         "cloudaccount": "cloud_accounts",
         "cloudaccountv2": "cloud_accounts_v2",
         "cloudasset": "cloud_assets",

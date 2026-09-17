@@ -10,6 +10,7 @@ from app.models.user import User, UserStatus
 from app.models.role import Role
 from app.core.security import get_current_user
 from app.models.org_settings import OrgSettings
+from app.models.organization_member import OrganizationMember, OrgRole
 
 router = APIRouter()
 
@@ -69,6 +70,7 @@ def create_org_admin(req: CreateOrgAdminRequest, db: Session = Depends(get_db), 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     hashed_pw = pwd_context.hash(req.password)
 
+    
     new_user = User(
         email=req.email,
         first_name="Org",
@@ -76,29 +78,90 @@ def create_org_admin(req: CreateOrgAdminRequest, db: Session = Depends(get_db), 
         password_hash=hashed_pw,
         status=UserStatus.ACTIVE,
         email_verified=True,
-        organization_id=uuid.UUID(req.org_id),
         role_id=admin_role.id,
         is_platform_admin=False
     )
     db.add(new_user)
+    
+    new_member = OrganizationMember(
+        user_id=new_user.id,
+        organization_id=uuid.UUID(req.org_id),
+        role=OrgRole.ORG_ADMIN
+    )
+    db.add(new_member)
+    
     db.commit()
+
     return {"success": True, "message": "Org admin created successfully."}
 
 @router.get('/users')
 def list_org_admins(db: Session = Depends(get_db), current_user: dict = Depends(require_superadmin)):
-    users = db.query(User).all()
+    users = {str(u.id): u for u in db.query(User).all()}
     orgs = {str(o.organization_id or o.id): o.branding.get('company_name', 'Unknown') for o in db.query(OrgSettings).all()}
+    members = db.query(OrganizationMember).all()
     
     data = []
-    for u in users:
-        # filter only org admins (or just show all users, but let's show users with orgs)
-        if u.email != 'superadmin@aegivion.com':
+    
+    for m in members:
+        u = users.get(str(m.user_id))
+        if u and u.email != 'superadmin@aegivion.com':
+            org_name = orgs.get(str(m.organization_id), 'Unassigned')
+            data.append({
+                'id': str(u.id),
+                'email': u.email,
+                'org_name': org_name,
+                'role': m.role,
+                'created_at': u.created_at if isinstance(u.created_at, str) else (u.created_at.isoformat() if hasattr(u, 'created_at') and u.created_at else None)
+            })
+            
+    legacy_user_ids = {str(m.user_id) for m in members}
+    for uid, u in users.items():
+        if uid not in legacy_user_ids and u.email != 'superadmin@aegivion.com' and getattr(u, 'organization_id', None):
             org_name = orgs.get(str(u.organization_id), 'Unassigned')
             data.append({
                 'id': str(u.id),
                 'email': u.email,
                 'org_name': org_name,
+                'role': 'ORG_ADMIN',
                 'created_at': u.created_at if isinstance(u.created_at, str) else (u.created_at.isoformat() if hasattr(u, 'created_at') and u.created_at else None)
             })
+            
     return {'success': True, 'data': data}
 
+
+
+@router.delete("/orgs/{org_id}")
+def delete_org(org_id: str, db: Session = Depends(get_db), current_user: dict = Depends(require_superadmin)):
+    try:
+        oid = uuid.UUID(org_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid org ID format")
+    
+    org = db.query(OrgSettings).filter(OrgSettings.id == oid).first()
+    if not org:
+        org = db.query(OrgSettings).filter(OrgSettings.organization_id == oid).first()
+        
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+        
+    db.delete(org)
+    db.commit()
+    return {"success": True, "message": "Organization deleted"}
+
+@router.delete("/users/{user_id}")
+def delete_user(user_id: str, db: Session = Depends(get_db), current_user: dict = Depends(require_superadmin)):
+    try:
+        uid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+        
+    user = db.query(User).filter(User.id == uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if user.email == "superadmin@aegivion.com":
+        raise HTTPException(status_code=400, detail="Cannot delete superadmin")
+        
+    db.delete(user)
+    db.commit()
+    return {"success": True, "message": "User deleted"}
