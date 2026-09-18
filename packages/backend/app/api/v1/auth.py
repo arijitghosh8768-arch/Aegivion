@@ -99,8 +99,9 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
         role_name = "superadmin"
         
     # Generate token
-    token = SecurityService.create_access_token(
-        subject=user_id,
+    security_service = SecurityService()
+    token = security_service.create_access_token(
+        user_id=user_id,
         role=role_name,
         org_id=org_id
     )
