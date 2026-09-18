@@ -38,3 +38,7 @@ from app.models.reports import SecurityPostureSnapshot, GeneratedReport, ReportT
 # Import History and Dataset models
 from app.models.history import AssetSnapshot, SecurityRiskSnapshot, FindingSuppression, SecurityChange, SyncQuality, EvaluationResult
 
+
+from .organization_member import OrganizationMember, OrgRole, MemberStatus
+from .session import Session
+
