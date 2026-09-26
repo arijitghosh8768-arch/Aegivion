@@ -1,38 +1,44 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 from typing import Dict, Any, List
 from app.core.security import get_current_user
-from app.database.supabase_client import supabase
+from app.core.tenant import get_current_organization
+from app.database import get_db
+from app.repositories import AssetRepository, FindingRepository, IncidentRepository
 
 router = APIRouter()
 
 @router.get("/intelligence")
-def get_risk_intelligence(current_user: Dict[str, Any] = Depends(get_current_user)):
-    """Generate REAL risk intelligence dashboard telemetry from Supabase"""
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if not user_org_id:
-        raise HTTPException(status_code=403, detail="No organization context")
+def get_risk_intelligence(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate REAL risk intelligence dashboard telemetry"""
+    user_org_id = get_current_organization(current_user, db)
 
     try:
         # Fetch asset counts
-        assets_res = supabase.table("cloud_assets").select("id, provider, status").eq("organization_id", user_org_id).execute()
-        assets = assets_res.data or []
+        asset_repo = AssetRepository(db)
+        assets = asset_repo.get_by_organization(user_org_id)
         
         # Calculate real metrics
-        aws_count = sum(1 for a in assets if a.get("provider") == "aws")
-        azure_count = sum(1 for a in assets if a.get("provider") == "azure")
-        gcp_count = sum(1 for a in assets if a.get("provider") == "gcp")
-        active_assets = sum(1 for a in assets if a.get("status") in ["ACTIVE", "RUNNING", "AVAILABLE"])
+        aws_count = sum(1 for a in assets if str(getattr(a, 'provider', '')).lower() == "aws")
+        azure_count = sum(1 for a in assets if str(getattr(a, 'provider', '')).lower() == "azure")
+        gcp_count = sum(1 for a in assets if str(getattr(a, 'provider', '')).lower() == "gcp")
+        active_assets = sum(1 for a in assets if str(getattr(a, 'status', '')).upper() in ["ACTIVE", "RUNNING", "AVAILABLE"])
         
-        # Fetch findings (assuming findings table is created in Supabase later, fallback gracefully)
-        try:
-            findings_res = supabase.table("findings").select("id, severity, status").eq("organization_id", user_org_id).execute()
-            findings = findings_res.data or []
-        except Exception:
-            findings = []
+        # Fetch findings
+        finding_repo = FindingRepository(db)
+        findings = finding_repo.get_by_organization(user_org_id)
             
-        critical_count = sum(1 for f in findings if f.get("severity") == "CRITICAL" and f.get("status") == "OPEN")
-        high_count = sum(1 for f in findings if f.get("severity") == "HIGH" and f.get("status") == "OPEN")
-        open_findings = sum(1 for f in findings if f.get("status") == "OPEN")
+        critical_count = sum(1 for f in findings if "CRITICAL" in str(getattr(f, 'severity', '')).upper() and "OPEN" in str(getattr(f, 'status', '')).upper())
+        high_count = sum(1 for f in findings if "HIGH" in str(getattr(f, 'severity', '')).upper() and "OPEN" in str(getattr(f, 'status', '')).upper())
+        open_findings = sum(1 for f in findings if "OPEN" in str(getattr(f, 'status', '')).upper())
+        
+        # Fetch incidents
+        incident_repo = IncidentRepository(db)
+        incidents = incident_repo.get_by_organization(user_org_id)
+        active_incidents = sum(1 for i in incidents if str(getattr(i, 'status', '')).upper() in ["OPEN", "INVESTIGATING", "INCIDENTSTATUS.OPEN", "INCIDENTSTATUS.INVESTIGATING"])
         
         # In this milestone, we won't run full graph correlation on the fly here, just return the exact counts.
         # This replaces the fake dashboard metrics.
@@ -41,7 +47,7 @@ def get_risk_intelligence(current_user: Dict[str, Any] = Depends(get_current_use
             "asset_count": len(assets),
             "critical_risks": critical_count,
             "open_findings": open_findings,
-            "active_incidents": 0,  # placeholder for incidents table
+            "active_incidents": active_incidents,
             "agent_status": "ONLINE",
             "last_scan": "Just now",
             "aws_assets": aws_count,

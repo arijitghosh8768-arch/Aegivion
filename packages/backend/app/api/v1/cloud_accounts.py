@@ -1,30 +1,46 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
+from sqlalchemy.orm import Session
 from typing import Dict, Any, List
+from app.database import get_db
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
+from app.repositories import CloudAccountRepository
 from app.database.supabase_client import supabase
 from app.cloud.aws.sync import AWSCloudSync
 
 router = APIRouter()
 
 @router.get("")
-def list_cloud_accounts(current_user: Dict[str, Any] = Depends(get_current_user)):
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if not user_org_id:
-        raise HTTPException(status_code=403, detail="No organization context found")
+def list_cloud_accounts(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_org_id = get_current_organization(current_user, db)
 
     try:
-        result = supabase.table("cloud_accounts").select("*").eq("organization_id", user_org_id).execute()
-        return {"accounts": result.data if result.data else []}
+        cloud_repo = CloudAccountRepository(db)
+        accounts = cloud_repo.get_by_organization(user_org_id)
+        
+        # Serialize the objects since FastAPI needs dicts/pydantic models if return type is dict
+        # The existing code returned raw supabase dicts.
+        serialized = []
+        for acc in accounts:
+            acc_dict = acc.dict() if hasattr(acc, 'dict') else acc.__dict__
+            # Just basic cleanup for un-serializable types if any
+            serialized.append(acc_dict)
+            
+        return {"accounts": serialized}
     except Exception as e:
         return {"accounts": [], "error": str(e), "message": "Supabase table may not exist yet"}
 
 @router.post("")
 def add_cloud_account(
     account_data: Dict[str, Any] = Body(...),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """Adds a new real cloud account to Supabase and immediately triggers a sync."""
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    user_org_id = get_current_organization(current_user, db)
     
     provider = account_data.get("provider")
     name = account_data.get("name")

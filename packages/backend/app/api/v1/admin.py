@@ -11,6 +11,7 @@ from app.models.role import Role
 from app.core.security import get_current_user
 from app.models.org_settings import OrgSettings
 from app.models.organization_member import OrganizationMember, OrgRole
+from app.repositories import OrganizationRepository
 
 router = APIRouter()
 
@@ -98,7 +99,8 @@ def create_org_admin(req: CreateOrgAdminRequest, db: Session = Depends(get_db), 
 def list_org_admins(db: Session = Depends(get_db), current_user: dict = Depends(require_superadmin)):
     users = {str(u.id): u for u in db.query(User).all()}
     orgs = {str(o.organization_id or o.id): o.branding.get('company_name', 'Unknown') for o in db.query(OrgSettings).all()}
-    members = db.query(OrganizationMember).all()
+    org_repo = OrganizationRepository(db)
+    members = org_repo.get_all_memberships()
     roles = {str(r.id): r for r in db.query(Role).all()}
     
     data = []

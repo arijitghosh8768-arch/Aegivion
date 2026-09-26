@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from app.api.deps import require_permission, log_audit_action
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
 
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -12,12 +13,14 @@ from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import uuid
+from app.repositories import FindingRepository
 
 # Import security engines
 from security.engine.mitre import MitreService
 from security.engine.risk_engine_v2 import RiskEngineV2
 from app.cloud.aws.context.asset_context import AssetContextBuilder
 from app.core.rate_limit import limiter
+from app.repositories import OrganizationRepository
 
 router = APIRouter()
 
@@ -34,22 +37,26 @@ class NoteCreate(BaseModel):
     content: str
 
 @router.get("/")
-def get_all_findings(current_user: Dict[str, Any] = Depends(get_current_user)):
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if not user_org_id:
-        raise HTTPException(status_code=403, detail="No organization context")
+def get_all_findings(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_org_id = get_current_organization(current_user, db)
         
     try:
-        from app.database.supabase_client import supabase
-        result = supabase.table("findings").select("*").eq("organization_id", user_org_id).execute()
-        return {"findings": result.data if result.data else []}
+        finding_repo = FindingRepository(db)
+        findings = finding_repo.get_by_organization(user_org_id)
     except Exception as e:
         return {"findings": [], "error": str(e), "message": "Supabase table may not exist yet"}
+        
+    try:
         from app.models.org_settings import OrgSettings
         settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
         if settings and settings.enabled_cloud_providers:
             enabled_providers = [p.lower() for p in settings.enabled_cloud_providers]
             findings = [f for f in findings if getattr(f, 'cloud_provider', '').lower() in enabled_providers]
+    except Exception:
+        pass
 
     result = []
     
@@ -82,32 +89,13 @@ def get_all_findings(current_user: Dict[str, Any] = Depends(get_current_user)):
 @router.get("/{finding_id}")
 def get_finding_detail(finding_id: str, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
 
-    # Find in DB
-    uuid_id = None
-    try:
-        uuid_id = uuid.UUID(finding_id)
-    except Exception:
-        pass
-        
-    f = None
-    if uuid_id:
-        f = db.query(Finding).filter(Finding.id == uuid_id).first()
-    else:
-        # Fallback to string id filter
-        f = db.query(Finding).filter(Finding.id == finding_id).first()
-        
-    if not f:
-        # Fallback to finding list search
-        all_f = db.query(Finding).all()
-        f = next((x for x in all_f if str(x.id) == finding_id), None)
-
+    user_org_id = get_current_organization(current_user, db)
+    finding_repo = FindingRepository(db)
+    
+    f = finding_repo.get_by_organization_and_id(user_org_id, finding_id)
 
     if not f:
-        raise HTTPException(status_code=404, detail=f"Finding {finding_id} not found")
-
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
+        raise HTTPException(status_code=404, detail=f"Finding {finding_id} not found or not authorized")
 
 
     f_dict = f.dict() if hasattr(f, 'dict') else f.__dict__
@@ -209,45 +197,16 @@ def get_finding_detail(finding_id: str, db: Session = Depends(get_db), current_u
 @router.patch("/{finding_id}/status", dependencies=[Depends(require_permission("manage_findings"))])
 def update_finding_status(finding_id: str, request: StatusUpdate, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
 
-    uuid_id = None
-    try:
-        uuid_id = uuid.UUID(finding_id)
-    except Exception:
-        pass
-        
-    f = None
-    if uuid_id:
-        f = db.query(Finding).filter(Finding.id == uuid_id).first()
-    else:
-        f = db.query(Finding).filter(Finding.id == finding_id).first()
-        
-    if not f:
-        all_f = db.query(Finding).all()
-        f = next((x for x in all_f if str(x.id) == finding_id), None)
-        
-
-
+    user_org_id = get_current_organization(current_user, db)
+    finding_repo = FindingRepository(db)
+    f = finding_repo.get_by_organization_and_id(user_org_id, finding_id)
 
     if not f:
-        raise HTTPException(status_code=404, detail="Finding not found")
-
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
+        raise HTTPException(status_code=404, detail="Finding not found or not authorized")
 
     log_audit_action("add_note", "finding", finding_id, str(current_user.get("id", "system")), str(user_org_id), {})
 
-
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
-
     log_audit_action("assign_finding", "finding", finding_id, str(current_user.get("id", "system")), str(user_org_id), {"assigned_to": request.user_id})
-
-        
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
 
     log_audit_action("update_status", "finding", finding_id, str(current_user.get("id", "system")), str(user_org_id), {"status": request.status})
 
@@ -269,28 +228,13 @@ def update_finding_status(finding_id: str, request: StatusUpdate, db: Session = 
 
 @router.post("/{finding_id}/assign")
 def assign_finding(finding_id: str, request: AssignUpdate, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
-    uuid_id = None
-    try:
-        uuid_id = uuid.UUID(finding_id)
-    except Exception:
-        pass
-        
-    f = None
-    if uuid_id:
-        f = db.query(Finding).filter(Finding.id == uuid_id).first()
-    else:
-        f = db.query(Finding).filter(Finding.id == finding_id).first()
+    user_org_id = get_current_organization(current_user, db)
+    finding_repo = FindingRepository(db)
+    
+    f = finding_repo.get_by_organization_and_id(user_org_id, finding_id)
         
     if not f:
-        all_f = db.query(Finding).all()
-        f = next((x for x in all_f if str(x.id) == finding_id), None)
-        
-    if not f:
-        raise HTTPException(status_code=404, detail="Finding not found")
-        
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
+        raise HTTPException(status_code=404, detail="Finding not found or not authorized")
         
     f.assigned_to = request.user_id
     
@@ -309,28 +253,13 @@ def assign_finding(finding_id: str, request: AssignUpdate, db: Session = Depends
 @router.post("/{finding_id}/notes", dependencies=[Depends(require_permission("manage_findings"))])
 def add_finding_note(finding_id: str, request: NoteCreate, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
 
-    uuid_id = None
-    try:
-        uuid_id = uuid.UUID(finding_id)
-    except Exception:
-        pass
-        
-    f = None
-    if uuid_id:
-        f = db.query(Finding).filter(Finding.id == uuid_id).first()
-    else:
-        f = db.query(Finding).filter(Finding.id == finding_id).first()
+    user_org_id = get_current_organization(current_user, db)
+    finding_repo = FindingRepository(db)
+    
+    f = finding_repo.get_by_organization_and_id(user_org_id, finding_id)
         
     if not f:
-        all_f = db.query(Finding).all()
-        f = next((x for x in all_f if str(x.id) == finding_id), None)
-        
-    if not f:
-        raise HTTPException(status_code=404, detail="Finding not found")
-        
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
+        raise HTTPException(status_code=404, detail="Finding not found or not authorized")
         
     notes = getattr(f, 'notes', []) or []
     notes.append({
@@ -356,31 +285,16 @@ def add_finding_note(finding_id: str, request: NoteCreate, db: Session = Depends
 
 @router.post("/{finding_id}/exceptions")
 def create_finding_exception(finding_id: str, request: ExceptionCreate, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
-    import uuid
-    uuid_id = None
-    try:
-        uuid_id = uuid.UUID(finding_id)
-    except Exception:
-        pass
-        
-    f = None
-    if uuid_id:
-        f = db.query(Finding).filter(Finding.id == uuid_id).first()
-    else:
-        f = db.query(Finding).filter(Finding.id == finding_id).first()
+    user_org_id = get_current_organization(current_user, db)
+    finding_repo = FindingRepository(db)
+    
+    f = finding_repo.get_by_organization_and_id(user_org_id, finding_id)
         
     if not f:
-        all_f = db.query(Finding).all()
-        f = next((x for x in all_f if str(x.id) == finding_id), None)
+        raise HTTPException(status_code=404, detail="Finding not found or not authorized")
         
-    if not f:
-        raise HTTPException(status_code=404, detail="Finding not found")
-        
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
-        
-    org = db.query(Organization).first()
+    org_repo = OrganizationRepository(db)
+    org = org_repo.get_first_organization()
     require_approval = False
     if org and hasattr(org, 'security_policy') and org.security_policy:
         require_approval = org.security_policy.get("require_exception_approval", False)
@@ -403,29 +317,13 @@ def create_finding_exception(finding_id: str, request: ExceptionCreate, db: Sess
 
 @router.post("/{finding_id}/exceptions/{ext_id}/approve")
 def approve_finding_exception(finding_id: str, ext_id: str, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
-    import uuid
-    uuid_id = None
-    try:
-        uuid_id = uuid.UUID(finding_id)
-    except Exception:
-        pass
-        
-    f = None
-    if uuid_id:
-        f = db.query(Finding).filter(Finding.id == uuid_id).first()
-    else:
-        f = db.query(Finding).filter(Finding.id == finding_id).first()
+    user_org_id = get_current_organization(current_user, db)
+    finding_repo = FindingRepository(db)
+    
+    f = finding_repo.get_by_organization_and_id(user_org_id, finding_id)
         
     if not f:
-        all_f = db.query(Finding).all()
-        f = next((x for x in all_f if str(x.id) == finding_id), None)
-        
-    if not f:
-        raise HTTPException(status_code=404, detail="Finding not found")
-        
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
+        raise HTTPException(status_code=404, detail="Finding not found or not authorized")
         
     if getattr(f, 'status', '') != "pending_approval":
         raise HTTPException(status_code=400, detail="Finding is not pending approval")
@@ -533,24 +431,13 @@ def update_asset_context(
 @router.get("/{finding_id}/history")
 def get_finding_history_occurrences(finding_id: str, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
     """Retrieve occurrence deduplication tracking updates and lifecycle timelines (M2/M4 timelines)"""
-    uuid_id = None
-    try:
-        uuid_id = uuid.UUID(finding_id)
-    except Exception:
-        pass
-        
-    f = None
-    if uuid_id:
-        f = db.query(Finding).filter(Finding.id == uuid_id).first()
-    else:
-        f = db.query(Finding).filter(Finding.id == finding_id).first()
+    user_org_id = get_current_organization(current_user, db)
+    finding_repo = FindingRepository(db)
+    
+    f = finding_repo.get_by_organization_and_id(user_org_id, finding_id)
         
     if not f:
-        raise HTTPException(status_code=404, detail="Finding not found")
-        
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id and str(getattr(f, 'organization_id', '')) != str(user_org_id) and getattr(f, 'organization_id', None) is not None:
-        raise HTTPException(status_code=403, detail="Not authorized to access this finding")
+        raise HTTPException(status_code=404, detail="Finding not found or not authorized")
         
     # Generate structural timeline history based on first/last seen occurrences
     events = [

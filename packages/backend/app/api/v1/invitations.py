@@ -10,6 +10,8 @@ from app.models.organization import Organization
 from app.models.audit_log import AuditLog
 from app.core.security import get_current_user
 from app.api.deps import require_permission
+from app.core.tenant import get_current_organization
+from app.repositories import OrganizationRepository, InvitationRepository
 
 router = APIRouter()
 
@@ -23,13 +25,14 @@ def list_invitations(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    user_org_id = get_current_organization(current_user, db)
     user_role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
     
     if str(user_org_id) != str(org_id) and user_role not in ["superadmin", "super admin"]:
         raise HTTPException(status_code=403, detail="Not authorized to view this organization's invitations")
         
-    invites = db.query(Invitation).filter(Invitation.org_id == org_id).all()
+    invitation_repo = InvitationRepository(db)
+    invites = invitation_repo.get_by_organization(org_id)
     
     return {
         "success": True,
@@ -50,7 +53,7 @@ def create_invitation(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    user_org_id = get_current_organization(current_user, db)
     user_role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
     
     if str(user_org_id) != str(org_id) and user_role not in ["superadmin", "super admin"]:
@@ -58,7 +61,8 @@ def create_invitation(
     if not (user_role and ("admin" in user_role.lower() or "super" in user_role.lower())):
         raise HTTPException(status_code=403, detail="Only org admins can send invites")
         
-    org = db.query(Organization).filter(Organization.id == org_id).first()
+    org_repo = OrganizationRepository(db)
+    org = org_repo.get_organization_by_id(org_id)
     
     # 1. Normalize Email
     normalized_email = request.email.strip().lower()
@@ -70,7 +74,8 @@ def create_invitation(
         raise HTTPException(status_code=400, detail="Invalid role specified")
         
     # 3. Duplicate Prevention
-    existing = db.query(Invitation).filter(Invitation.org_id == org_id).all()
+    invitation_repo = InvitationRepository(db)
+    existing = invitation_repo.get_by_organization(org_id)
     for inv in existing:
         if inv.email.strip().lower() == normalized_email and inv.status in ["PENDING", "ACCEPTED", "ACTIVE"]:
             raise HTTPException(status_code=400, detail="This employee is already on the allowlist or has a pending invitation.")
@@ -108,7 +113,8 @@ def create_invitation(
 
 @router.get("/invitations/{token}")
 def get_invitation_details(token: str, db: Session = Depends(get_db)):
-    invite = db.query(Invitation).filter(Invitation.token == token).first()
+    invitation_repo = InvitationRepository(db)
+    invite = invitation_repo.get_by_token(token)
     if not invite:
         raise HTTPException(status_code=404, detail="Invalid invitation token")
         
@@ -120,7 +126,8 @@ def get_invitation_details(token: str, db: Session = Depends(get_db)):
         db.commit()
         raise HTTPException(status_code=400, detail="Invitation has expired")
         
-    org = db.query(Organization).filter(Organization.id == invite.org_id).first()
+    org_repo = OrganizationRepository(db)
+    org = org_repo.get_organization_by_id(invite.org_id)
     
     return {
         "success": True,
@@ -138,11 +145,12 @@ def revoke_invitation(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
-    invite = db.query(Invitation).filter(Invitation.id == id).first()
+    invitation_repo = InvitationRepository(db)
+    invite = invitation_repo.get_by_id(id)
     if not invite:
         raise HTTPException(status_code=404, detail="Invitation not found")
         
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    user_org_id = get_current_organization(current_user, db)
     user_role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
     
     if str(user_org_id) != str(invite.org_id) and user_role not in ["superadmin", "super admin"]:

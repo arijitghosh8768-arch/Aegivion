@@ -1,15 +1,14 @@
 import datetime
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
-from typing import Dict, Any, Optional
 import uuid
 
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from pydantic import BaseModel, EmailStr
+from typing import Dict, Any, Optional
+
 from app.database import get_db
-from app.models.user import User
-from app.models.role import Role
 from app.core.security import SecurityService, get_current_user
 from app.core.rate_limit import limiter
+from app.repositories import AuthRepository
 
 router = APIRouter()
 
@@ -24,9 +23,15 @@ class LoginResponse(BaseModel):
 
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("5/minute")
-def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_db)):
+def login(
+    request: Request,
+    login_data: LoginRequest,
+    db=Depends(get_db),
+):
+    auth_repo = AuthRepository(db)
+
     # 1. Look for user in DB
-    user = db.query(User).filter(User.email == login_data.email).first()
+    user = auth_repo.get_user_by_email(login_data.email)
     
     if not user:
         raise HTTPException(
@@ -85,14 +90,21 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
     last_name = user.last_name or ""
     
     # Check memberships for Org Name
-    from app.models.organization_member import OrganizationMember
-    member = db.query(OrganizationMember).filter(OrganizationMember.user_id == user.id).first()
+    member = auth_repo.get_membership_by_user_id(
+        str(user.id)
+    )
     if member:
         org_id = str(member.organization_id)
-        role_name = member.role.lower() if hasattr(member.role, 'lower') else str(member.role).lower()
+        role_name = (
+            member.role.lower()
+            if hasattr(member.role, "lower")
+            else str(member.role).lower()
+        )
     else:
         # Fallback to direct role mapping
-        role = db.query(Role).filter(Role.id == user.role_id).first()
+        role = auth_repo.get_role_by_id(
+            str(user.role_id)
+        )
         role_name = role.name if role else "viewer"
         
     if user.email == "superadmin@aegivion.com":
@@ -136,13 +148,15 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
     }
 
 @router.get("/me")
-def get_me(current_user: Dict[str, Any] = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_me(current_user: Dict[str, Any] = Depends(get_current_user), db=Depends(get_db)):
+    auth_repo = AuthRepository(db)
+    
     # Look up user if possible, else return mock details from token payload
     user_id = current_user.get("user_id")
-    user = db.query(User).filter(User.id == user_id).first()
+    user = auth_repo.get_user_by_id(user_id)
     
     if user:
-        role = db.query(Role).filter(Role.id == user.role_id).first()
+        role = auth_repo.get_role_by_id(str(user.role_id))
         role_name = role.name if role else "viewer"
         return {
             "success": True,
@@ -182,10 +196,11 @@ class UserProfileUpdate(BaseModel):
 def update_me(
     profile_update: UserProfileUpdate,
     current_user: Dict[str, Any] = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db=Depends(get_db)
 ):
+    auth_repo = AuthRepository(db)
     user_id = current_user.get("user_id")
-    user = db.query(User).filter(User.id == user_id).first()
+    user = auth_repo.get_user_by_id(user_id)
     
     if user:
         if profile_update.first_name:
@@ -202,7 +217,7 @@ def update_me(
 
 
 @router.post("/logout")
-def logout(request: Request, db: Session = Depends(get_db)):
+def logout(request: Request, db=Depends(get_db)):
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return {"success": True}
@@ -211,8 +226,8 @@ def logout(request: Request, db: Session = Depends(get_db)):
     import hashlib
     token_hash = hashlib.sha256(token.encode()).hexdigest()
     
-    from app.models.auth_session import AuthSession
-    session_record = db.query(AuthSession).filter(AuthSession.session_token_hash == token_hash).first()
+    auth_repo = AuthRepository(db)
+    session_record = auth_repo.get_session_by_token_hash(token_hash)
     
     if session_record:
         session_record.revoked_at = datetime.datetime.utcnow()

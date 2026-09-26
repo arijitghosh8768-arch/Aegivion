@@ -13,15 +13,15 @@ Flow:
 import os
 import uuid
 import httpx
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Dict, Any
 
 from app.database import get_db
 from app.models.user import User, UserStatus
-from app.models.role import Role
 from app.core.security import SecurityService
+from app.repositories import AuthRepository
 
 router = APIRouter()
 
@@ -93,7 +93,11 @@ async def _verify_google_token(token: str, is_access_token: bool = False) -> Dic
 # ---------------------------------------------------------------------------
 
 @router.post("/google", response_model=LoginResponse)
-async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db)):
+async def google_login(
+    request: GoogleLoginRequest,
+    db=Depends(get_db),
+):
+    auth_repo = AuthRepository(db)
     """
     Authenticate via Google OAuth id_token.
     Creates the user on first login (viewer role), then returns an Aegivion JWT.
@@ -119,10 +123,19 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
         )
 
     # 2. Look up existing user by email or sub
-    user = db.query(User).filter(User.email == email).first()
+    user = auth_repo.get_user_by_email(email)
+
     if not user and google_sub:
-        all_users = db.query(User).all()
-        user = next((u for u in all_users if getattr(u, 'google_sub', None) == google_sub), None)
+        all_users = auth_repo.get_users()
+
+        user = next(
+            (
+                u
+                for u in all_users
+                if getattr(u, "google_sub", None) == google_sub
+            ),
+            None,
+        )
         
     org_id = str(uuid.uuid4())
     role_name = "viewer"
@@ -130,11 +143,23 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
     if user:
         # Existing user — fetch their role
         org_id = str(user.organization_id)
-        role = db.query(Role).filter(Role.id == user.role_id).first() if user.role_id else None
+        role = (
+            auth_repo.get_role_by_id(str(user.role_id))
+            if user.role_id
+            else None
+        )
         if not role:
             # check string role
-            all_roles = db.query(Role).all()
-            role = next((r for r in all_roles if str(r.id) == str(user.role_id) or r.name.lower() == str(user.role_id).lower()), None)
+            all_roles = auth_repo.get_roles()
+            role = next(
+                (
+                    r
+                    for r in all_roles
+                    if str(r.id) == str(user.role_id)
+                    or r.name.lower() == str(user.role_id).lower()
+                ),
+                None,
+            )
             
         if role:
             role_name = role.name
@@ -161,10 +186,7 @@ async def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db
 
     else:
         # 3. Check for Invitation
-        from app.models.invitation import Invitation
-        from datetime import datetime
-        all_invites = db.query(Invitation).all()
-        invite = next((i for i in all_invites if i.email.lower() == email.lower() and i.status == "PENDING" and (isinstance(i.expires_at, datetime) and i.expires_at > datetime.utcnow() or isinstance(i.expires_at, str) and datetime.fromisoformat(i.expires_at) > datetime.utcnow())), None)
+        invite = auth_repo.get_pending_invitation_by_email(email)
         
         if not invite:
             raise HTTPException(403, "Access blocked. Your email is not on any organization's userlist. Please contact your administrator.")

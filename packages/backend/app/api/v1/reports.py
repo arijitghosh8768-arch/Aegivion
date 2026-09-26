@@ -3,6 +3,12 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 from app.database import get_db
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
+from app.repositories import (
+    AssetRepository,
+    FindingRepository,
+    IncidentRepository
+)
 from app.models.reports import SecurityPostureSnapshot, GeneratedReport, ReportType, ReportStatus
 from security.models.finding import Finding
 from app.models.cloud import CloudAsset, AssetRelationship
@@ -20,20 +26,17 @@ async def generate_security_report(
     current_user: Any = Depends(get_current_user)
 ):
     """Generate professional executive, technical, or compliance report from a current posture snapshot"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     # 1. Fetch current findings, incidents, assets to dynamically calculate snapshot
-    findings = db.query(Finding).all()
-    if user_org_id:
-        findings = [f for f in findings if str(getattr(f, 'organization_id', '')) == str(user_org_id)]
+    finding_repo = FindingRepository(db)
+    findings = finding_repo.get_by_organization(user_org_id)
         
-    incidents = db.query(Incident).all()
-    if user_org_id:
-        incidents = [i for i in incidents if str(getattr(i, 'organization_id', '')) == str(user_org_id)]
+    incident_repo = IncidentRepository(db)
+    incidents = incident_repo.get_by_organization(user_org_id)
         
-    assets = db.query(CloudAsset).all()
-    if user_org_id:
-        assets = [a for a in assets if str(getattr(a, 'organization_id', '')) == str(user_org_id)]
+    asset_repo = AssetRepository(db)
+    assets = asset_repo.get_by_organization(user_org_id)
         
     compliance = db.query(ComplianceControlResult).filter(ComplianceControlResult.organization_id == user_org_id).all()
 
@@ -98,7 +101,7 @@ def get_reports_library(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve historical assessment reports with tenant isolation"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     reports = db.query(GeneratedReport).filter(GeneratedReport.organization_id == user_org_id).all()
     
     if not reports:

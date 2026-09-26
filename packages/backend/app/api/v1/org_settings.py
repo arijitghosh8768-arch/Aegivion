@@ -8,6 +8,7 @@ from app.models.org_settings import OrgSettings
 from app.models.audit_log import AuditLog
 from app.core.security import get_current_user
 from app.api.deps import require_permission
+from app.core.tenant import get_current_organization
 import uuid
 
 router = APIRouter()
@@ -26,7 +27,7 @@ def get_org_settings(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    user_org_id = get_current_organization(current_user, db)
     if str(user_org_id) != str(org_id):
         raise HTTPException(status_code=403, detail="Not authorized to access these settings")
         
@@ -58,7 +59,7 @@ def update_org_settings(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    user_org_id = get_current_organization(current_user, db)
     if str(user_org_id) != str(org_id):
         raise HTTPException(status_code=403, detail="Not authorized to access these settings")
         

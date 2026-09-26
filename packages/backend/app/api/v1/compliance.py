@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 from app.database import get_db
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
+from app.repositories import ComplianceRepository
 from app.models.compliance import ComplianceControlResult, ComplianceStatus
 from security.models.finding import Finding
 from app.models.cloud import CloudAsset, AssetRelationship
@@ -17,10 +19,11 @@ def get_compliance_summary(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve framework summaries, pass rate, and coverage metrics"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     # 1. Fetch compliance results from database
-    results = db.query(ComplianceControlResult).filter(ComplianceControlResult.organization_id == user_org_id).all()
+    compliance_repo = ComplianceRepository(db)
+    results = compliance_repo.get_by_organization(user_org_id)
 
     # Calculate metrics
     total = len(results)
@@ -74,15 +77,13 @@ def get_control_detail(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve detailed compliance control status and evidence references"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     # Try fetching control summary first to ensure mock initialization
     get_compliance_summary(db, current_user)
     
-    control = db.query(ComplianceControlResult).filter(
-        ComplianceControlResult.control_code == control_code,
-        ComplianceControlResult.organization_id == user_org_id
-    ).first()
+    compliance_repo = ComplianceRepository(db)
+    control = compliance_repo.get_by_control_code(user_org_id, control_code)
     
     if not control:
         raise HTTPException(status_code=404, detail="Compliance control not found")
@@ -96,12 +97,10 @@ async def explain_compliance_control(
     current_user: Any = Depends(get_current_user)
 ):
     """Generate grounded AI explanation of the compliance status and limitation context"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
-    control = db.query(ComplianceControlResult).filter(
-        ComplianceControlResult.control_code == control_code,
-        ComplianceControlResult.organization_id == user_org_id
-    ).first()
+    compliance_repo = ComplianceRepository(db)
+    control = compliance_repo.get_by_control_code(user_org_id, control_code)
     
     if not control:
         raise HTTPException(status_code=404, detail="Compliance control not found")

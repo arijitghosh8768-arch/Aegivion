@@ -1,21 +1,29 @@
+import logging
 import os
-from supabase import create_client, Client
-from dotenv import load_dotenv
 
-# Load env variables (assuming loaded at app startup as well)
+from dotenv import load_dotenv
+from supabase import Client, create_client
+
 load_dotenv()
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://mock.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "mock-key")
+logger = logging.getLogger(__name__)
 
-# Create a singleton client
-def get_supabase():
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+
+def get_supabase() -> Client:
+    if not SUPABASE_URL:
+        raise RuntimeError("SUPABASE_URL is not configured")
+
+    if not SUPABASE_KEY:
+        raise RuntimeError("SUPABASE_KEY is not configured")
+
     try:
         return create_client(SUPABASE_URL, SUPABASE_KEY)
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning(f"Failed to initialize Supabase client (using mock): {e}")
-        from unittest.mock import MagicMock
-        return MagicMock()
+    except Exception as exc:
+        logger.exception("Failed to initialize Supabase client")
+        raise RuntimeError("Supabase initialization failed") from exc
+
 
 supabase = get_supabase()

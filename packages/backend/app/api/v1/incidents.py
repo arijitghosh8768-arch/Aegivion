@@ -7,9 +7,11 @@ from app.models.cloud import CloudAsset, AssetRelationship
 from app.models.incident import Incident, IncidentStatus
 from security.correlation.engine_v2 import CorrelationEngineV2
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
 from pydantic import BaseModel
 from datetime import datetime
 import uuid
+from app.repositories import IncidentRepository
 
 router = APIRouter()
 
@@ -28,21 +30,20 @@ def get_incidents(
     account_id: Optional[str] = None,
     region: Optional[str] = None,
     sort: Optional[str] = "risk_desc",
-    current_user: Any = Depends(get_current_user)
+    current_user: Any = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    user_org_id = getattr(current_user, 'organization_id', None)
-    if not user_org_id:
-        raise HTTPException(status_code=403, detail="No organization context")
+    user_org_id = get_current_organization(current_user, db)
         
     try:
-        from app.database.supabase_client import supabase
-        result = supabase.table("incidents").select("*").eq("organization_id", user_org_id).execute()
-        incidents = result.data or []
+        incident_repo = IncidentRepository(db)
+        incident_models = incident_repo.get_by_organization(user_org_id)
+        incidents = [i.dict() if hasattr(i, 'dict') else i.__dict__ for i in incident_models]
         
         if severity:
-            incidents = [i for i in incidents if i.get("severity") == severity.upper()]
+            incidents = [i for i in incidents if i.get("severity", "").upper() == severity.upper()]
         if status:
-            incidents = [i for i in incidents if i.get("status") == status.upper()]
+            incidents = [i for i in incidents if i.get("status", "").upper() == status.upper()]
             
         return {
             "incidents": incidents,
@@ -55,25 +56,13 @@ def get_incidents(
 
 @router.get("/{incident_id}")
 def get_incident_detail(incident_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None)
+    user_org_id = get_current_organization(current_user, db)
     
-    # Try finding in DB
-    inc = db.query(Incident).filter(Incident.id == incident_id).first()
-    if not inc:
-        # Check by correlation fingerprint
-        inc = db.query(Incident).filter(Incident.correlation_fingerprint == incident_id).first()
+    incident_repo = IncidentRepository(db)
+    inc = incident_repo.get_by_organization_and_id(user_org_id, incident_id)
         
     if not inc:
-        # Fallback query all
-        all_inc = db.query(Incident).all()
-        inc = next((x for x in all_inc if str(x.id) == incident_id or x.correlation_fingerprint == incident_id), None)
-        
-    if not inc:
-        raise HTTPException(status_code=404, detail="Incident not found")
-
-    # Tenant check
-    if user_org_id and str(inc.organization_id) != str(user_org_id):
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=404, detail="Incident not found or not authorized")
 
     return inc.dict()
 
@@ -84,21 +73,13 @@ def update_incident_status(
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):
-    user_org_id = getattr(current_user, 'organization_id', None)
+    user_org_id = get_current_organization(current_user, db)
     
-    inc = db.query(Incident).filter(Incident.id == incident_id).first()
-    if not inc:
-        inc = db.query(Incident).filter(Incident.correlation_fingerprint == incident_id).first()
+    incident_repo = IncidentRepository(db)
+    inc = incident_repo.get_by_organization_and_id(user_org_id, incident_id)
         
     if not inc:
-        all_inc = db.query(Incident).all()
-        inc = next((x for x in all_inc if str(x.id) == incident_id or x.correlation_fingerprint == incident_id), None)
-        
-    if not inc:
-        raise HTTPException(status_code=404, detail="Incident not found")
-
-    if user_org_id and str(inc.organization_id) != str(user_org_id):
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=404, detail="Incident not found or not authorized")
 
     # Enforce lifecycle status transition checks
     # OPEN -> INVESTIGATING -> MITIGATED -> RESOLVED -> CLOSED
@@ -143,21 +124,13 @@ def assign_incident(
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):
-    user_org_id = getattr(current_user, 'organization_id', None)
+    user_org_id = get_current_organization(current_user, db)
     
-    inc = db.query(Incident).filter(Incident.id == incident_id).first()
-    if not inc:
-        inc = db.query(Incident).filter(Incident.correlation_fingerprint == incident_id).first()
+    incident_repo = IncidentRepository(db)
+    inc = incident_repo.get_by_organization_and_id(user_org_id, incident_id)
         
     if not inc:
-        all_inc = db.query(Incident).all()
-        inc = next((x for x in all_inc if str(x.id) == incident_id or x.correlation_fingerprint == incident_id), None)
-        
-    if not inc:
-        raise HTTPException(status_code=404, detail="Incident not found")
-
-    if user_org_id and str(inc.organization_id) != str(user_org_id):
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=404, detail="Incident not found or not authorized")
         
     inc.assigned_to = request.user_id
     
@@ -178,21 +151,13 @@ async def analyze_incident_ai(
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):
-    user_org_id = getattr(current_user, 'organization_id', None)
+    user_org_id = get_current_organization(current_user, db)
     
-    inc = db.query(Incident).filter(Incident.id == incident_id).first()
-    if not inc:
-        inc = db.query(Incident).filter(Incident.correlation_fingerprint == incident_id).first()
+    incident_repo = IncidentRepository(db)
+    inc = incident_repo.get_by_organization_and_id(user_org_id, incident_id)
         
     if not inc:
-        all_inc = db.query(Incident).all()
-        inc = next((x for x in all_inc if str(x.id) == incident_id or x.correlation_fingerprint == incident_id), None)
-        
-    if not inc:
-        raise HTTPException(status_code=404, detail="Incident not found")
-
-    if user_org_id and str(inc.organization_id) != str(user_org_id):
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=404, detail="Incident not found or not authorized")
 
     # Fetch matching assets and findings
     assets_db = db.query(CloudAsset).all()
