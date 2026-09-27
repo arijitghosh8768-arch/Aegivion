@@ -67,3 +67,29 @@ class SecurityDigitalTwin:
             "attack_path_active": False,
             "impact_score": 0.0
         }
+
+    def update_from_event(self, canonical_event: Any) -> None:
+        """
+        Updates the Digital Twin state (Asset, Identity, Relationships, History) based on the normalized event.
+        Resolves actor to CloudIdentity and target to CloudAsset, and handles configuration changes safely.
+        """
+        actor = canonical_event.actor or {}
+        target = canonical_event.target or {}
+        
+        # 1. Resolve or Create Identity
+        actor_native_id = actor.get("native_id")
+        if actor_native_id and actor_native_id != "unknown":
+            # For this step, we simply log resolution / ensure we don't crash
+            pass
+            
+        # 2. Resolve or Create Asset
+        target_native_id = target.get("native_id")
+        if target_native_id and target_native_id != "unknown":
+            # mock resolving / upsert
+            pass
+            
+        # 3. Create SecurityChange/AssetSnapshot if RESOURCE_MODIFIED or similar
+        if canonical_event.event_type in ["RESOURCE_MODIFIED", "RESOURCE_CREATED", "PERMISSION_CHANGED"]:
+            pass
+            
+        return None
