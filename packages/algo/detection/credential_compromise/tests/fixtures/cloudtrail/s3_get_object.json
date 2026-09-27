@@ -1,0 +1,32 @@
+{
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "AssumedRole",
+    "principalId": "AROAEXAMPLEDATA:alice",
+    "arn": "arn:aws:sts::123456789012:assumed-role/DataAnalyst/alice",
+    "accountId": "123456789012",
+    "accessKeyId": "ASIAEXAMPLEDATA",
+    "sessionContext": {
+      "sessionIssuer": {
+        "type": "Role",
+        "principalId": "AROAEXAMPLEDATA",
+        "arn": "arn:aws:iam::123456789012:role/DataAnalyst",
+        "accountId": "123456789012",
+        "userName": "DataAnalyst"
+      },
+      "attributes": {
+        "creationDate": "2026-09-20T09:40:00Z",
+        "mfaAuthenticated": "false"
+      }
+    }
+  },
+  "eventTime": "2026-09-20T09:45:12Z",
+  "eventSource": "s3.amazonaws.com",
+  "eventName": "GetObject",
+  "awsRegion": "ap-south-1",
+  "sourceIPAddress": "49.36.12.44",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0",
+  "eventID": "44444444-4444-4444-4444-444444444444",
+  "eventType": "AwsApiCall",
+  "recipientAccountId": "123456789012"
+}

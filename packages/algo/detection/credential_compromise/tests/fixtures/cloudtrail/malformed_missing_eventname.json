@@ -1,0 +1,15 @@
+{
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "IAMUser",
+    "arn": "arn:aws:iam::123456789012:user/aniruddha",
+    "accountId": "123456789012",
+    "userName": "aniruddha"
+  },
+  "eventTime": "2026-09-20T04:12:33Z",
+  "eventSource": "iam.amazonaws.com",
+  "awsRegion": "ap-south-1",
+  "sourceIPAddress": "49.36.12.44",
+  "eventID": "66666666-6666-6666-6666-666666666666",
+  "recipientAccountId": "123456789012"
+}

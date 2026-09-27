@@ -1,0 +1,32 @@
+{
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "IAMUser",
+    "principalId": "AIDAEXAMPLEANIRU",
+    "arn": "arn:aws:iam::123456789012:user/aniruddha",
+    "accountId": "123456789012",
+    "accessKeyId": "",
+    "userName": "aniruddha",
+    "sessionContext": {
+      "attributes": {
+        "mfaAuthenticated": "true",
+        "creationDate": "2026-09-20T04:05:00Z"
+      }
+    }
+  },
+  "eventTime": "2026-09-20T04:12:33Z",
+  "eventSource": "signin.amazonaws.com",
+  "eventName": "ConsoleLogin",
+  "awsRegion": "ap-south-1",
+  "sourceIPAddress": "49.36.12.44",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0",
+  "additionalEventData": {
+    "MFAUsed": "Yes"
+  },
+  "responseElements": {
+    "ConsoleLogin": "Success"
+  },
+  "eventID": "11111111-1111-1111-1111-111111111111",
+  "eventType": "AwsConsoleSignIn",
+  "recipientAccountId": "123456789012"
+}

@@ -1,0 +1,25 @@
+{
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "IAMUser",
+    "principalId": "AIDAEXAMPLEANIRU",
+    "arn": "arn:aws:iam::123456789012:user/aniruddha",
+    "accountId": "123456789012",
+    "accessKeyId": "AKIAEXAMPLEDEVKEY",
+    "userName": "aniruddha"
+  },
+  "eventTime": "2026-09-20T03:15:41Z",
+  "eventSource": "iam.amazonaws.com",
+  "eventName": "PutUserPolicy",
+  "awsRegion": "eu-central-1",
+  "sourceIPAddress": "203.0.113.77",
+  "userAgent": "aws-cli/2.15.0 Python/3.11 Linux/6.1 exec-env/EC2",
+  "requestParameters": {
+    "userName": "svc-backup",
+    "policyName": "inline-admin",
+    "policyDocument": "{\"Version\":\"2012-10-17\"}"
+  },
+  "eventID": "33333333-3333-3333-3333-333333333333",
+  "eventType": "AwsApiCall",
+  "recipientAccountId": "123456789012"
+}

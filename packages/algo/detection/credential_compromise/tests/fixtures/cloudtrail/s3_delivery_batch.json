@@ -1,0 +1,51 @@
+{
+  "Records": [
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEANIRU",
+        "arn": "arn:aws:iam::123456789012:user/aniruddha",
+        "accountId": "123456789012",
+        "accessKeyId": "",
+        "userName": "aniruddha",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "true",
+            "creationDate": "2026-09-20T04:05:00Z"
+          }
+        }
+      },
+      "eventTime": "2026-09-20T04:12:33Z",
+      "eventSource": "signin.amazonaws.com",
+      "eventName": "ConsoleLogin",
+      "awsRegion": "ap-south-1",
+      "sourceIPAddress": "49.36.12.44",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0",
+      "additionalEventData": { "MFAUsed": "Yes" },
+      "eventID": "77777777-7777-7777-7777-777777777777",
+      "eventType": "AwsConsoleSignIn",
+      "recipientAccountId": "123456789012"
+    },
+    {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "IAMUser",
+        "principalId": "AIDAEXAMPLEANIRU",
+        "arn": "arn:aws:iam::123456789012:user/aniruddha",
+        "accountId": "123456789012",
+        "accessKeyId": "AKIAEXAMPLEDEVKEY",
+        "userName": "aniruddha"
+      },
+      "eventTime": "2026-09-20T04:13:10Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "CreateAccessKey",
+      "awsRegion": "ap-south-1",
+      "sourceIPAddress": "49.36.12.44",
+      "userAgent": "aws-cli/2.15.0 Python/3.11 Linux/6.1",
+      "eventID": "88888888-8888-8888-8888-888888888888",
+      "eventType": "AwsApiCall",
+      "recipientAccountId": "123456789012"
+    }
+  ]
+}
