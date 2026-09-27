@@ -74,6 +74,19 @@ services:
       REDIS_URL: redis://redis:6379/0
       VECTOR_DB_URL: http://qdrant:6333
 
+  algo:
+    build: ./packages/algo
+    container_name: aegivion_algo
+    restart: always
+    ports:
+      - "8013:8003"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://aegivion:aegivion123@postgres/aegivion
+      REDIS_URL: redis://redis:6379/0
+
   frontend:
     build: ./packages/frontend
     container_name: aegivion_frontend
