@@ -262,3 +262,36 @@ class AssetRelationship(BaseModel):
         })
         return res
 
+class CloudIdentity(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.identity_id = kwargs.get("identity_id")
+        self.organization_id = kwargs.get("organization_id")
+        self.account_id = kwargs.get("account_id")
+        self.provider = kwargs.get("provider") or CloudProvider.AWS
+        self.native_id = kwargs.get("native_id")
+        self.identity_type = kwargs.get("identity_type")
+        self.name = kwargs.get("name")
+        self.status = kwargs.get("status") or "ACTIVE"
+        self.criticality = kwargs.get("criticality") or "UNKNOWN"
+        self.metadata = kwargs.get("metadata") or {}
+        self.first_seen = kwargs.get("first_seen") or datetime.utcnow()
+        self.last_seen = kwargs.get("last_seen") or datetime.utcnow()
+
+    def dict(self):
+        res = super().dict()
+        res.update({
+            "identity_id": self.identity_id,
+            "organization_id": str(self.organization_id) if self.organization_id else None,
+            "account_id": str(self.account_id) if self.account_id else None,
+            "provider": self.provider,
+            "native_id": self.native_id,
+            "identity_type": self.identity_type,
+            "name": self.name,
+            "status": self.status,
+            "criticality": self.criticality,
+            "metadata": self.metadata,
+            "first_seen": self.first_seen.isoformat() if isinstance(self.first_seen, datetime) else self.first_seen,
+            "last_seen": self.last_seen.isoformat() if isinstance(self.last_seen, datetime) else self.last_seen,
+        })
+        return res
