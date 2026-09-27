@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from security.models.security_event_schema import SecurityEventSchema
 from security.models.security_correlation_schema import SecurityCorrelationSchema
 from datetime import datetime
