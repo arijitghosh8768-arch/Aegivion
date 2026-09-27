@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 from security.models.security_event_schema import SecurityEventSchema
-from packages.security.engine.attack_algorithms import (
+from security.engine.attack_algorithms import (
     detect_credential_compromise,
     detect_data_exfiltration,
     detect_ransomware

@@ -4,7 +4,7 @@ import uuid
 
 from security.models.response_candidate_schema import ResponseCandidateSchema
 from security.models.response_policy_schema import GateDecision
-from packages.security.engine.risk_engine_v2 import RiskEngineV2
+from security.engine.risk_engine_v2 import RiskEngineV2
 
 class CloudActionAdapterMock:
     """Mock cloud adapter for Step 1I testing purposes."""

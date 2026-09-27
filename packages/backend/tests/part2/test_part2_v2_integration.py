@@ -20,7 +20,7 @@ from security.models.response_policy_schema import GateDecision
 from security.engine.response_action_gate import ResponseActionGate
 
 # Mocking Detectors to simulate actual signal findings from the events
-import packages.security.engine.attack_algorithms as algs
+import security.engine.attack_algorithms as algs
 
 def mock_cred_detect(events):
     # If PutUserPolicy or ConsoleLogin, trigger

@@ -22,7 +22,7 @@ from security.engine.safe_response_executor import SafeResponseExecutor
 from security.models.security_replay_schema import SecurityReplaySchema
 from security.engine.security_replay_engine import SecurityReplayEngine
 
-import packages.security.engine.attack_algorithms as algs
+import security.engine.attack_algorithms as algs
 
 def mock_cred_detect(events):
     results = []

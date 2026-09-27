@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 from security.models.security_correlation_schema import SecurityCorrelationSchema
 from security.models.attack_activation_schema import AttackActivationSchema
-from packages.security.engine.risk_engine_v2 import RiskEngineV2
+from security.engine.risk_engine_v2 import RiskEngineV2
 from app.cloud.aws.relationships.engine import RelationshipEngine
 
 class AttackActivationEngine:

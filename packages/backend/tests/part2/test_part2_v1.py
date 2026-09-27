@@ -31,7 +31,7 @@ from security.engine.safe_response_executor import SafeResponseExecutor
 from security.engine.security_replay_engine import SecurityReplayEngine
 
 # Mocking the attack algorithms which might try to hit the DB or other things
-import packages.security.engine.attack_algorithms as algs
+import security.engine.attack_algorithms as algs
 algs.detect_credential_compromise = lambda x: [{"risk": "high"}]
 algs.detect_data_exfiltration = lambda x, y: []
 algs.detect_ransomware = lambda x, y: []
