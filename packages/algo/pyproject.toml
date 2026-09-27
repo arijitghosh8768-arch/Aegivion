@@ -1,0 +1,19 @@
+[project]
+name = "aegivion"
+version = "0.1.0"
+description = "Aegivion - Autonomous Explainable Cloud Security Copilot"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.6",
+    "SQLAlchemy>=2.0",
+]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110", "uvicorn>=0.29"]
+postgres = ["psycopg[binary]>=3.1"]
+dev = ["pytest>=7.4"]
+
+[tool.pytest.ini_options]
+testpaths = ["detection", "ingestion", "storage"]
+pythonpath = ["."]
+addopts = "-q"
