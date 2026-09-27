@@ -26,8 +26,9 @@ export default function SuperAdminPage() {
   const [selectedOrgId, setSelectedOrgId] = useState("");
 
   useEffect(() => {
+    const isSuperAdmin = user?.role?.toLowerCase().replace(/\s/g, "") === "superadmin";
     // Basic protection - if not superadmin, bounce them
-    if (user && user.role !== "superadmin" && user.role !== "Super Admin") {
+    if (user && !isSuperAdmin) {
       router.push("/");
     } else if (user) {
       fetchOrgs();
