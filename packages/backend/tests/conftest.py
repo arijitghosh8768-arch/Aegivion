@@ -1,7 +1,11 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath("packages/backend"))
-sys.path.insert(0, os.path.abspath("."))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.abspath(os.path.join(current_dir, ".."))
+packages_dir = os.path.abspath(os.path.join(backend_dir, ".."))
+
+sys.path.insert(0, backend_dir)
+sys.path.insert(0, packages_dir)
 import pytest
 from fastapi.testclient import TestClient
 import mongomock
