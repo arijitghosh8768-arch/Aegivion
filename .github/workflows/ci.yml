@@ -48,6 +48,9 @@ jobs:
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi
+          if [ "${{ matrix.service }}" == "backend" ] && [ -f ../security/requirements.txt ]; then
+            pip install -r ../security/requirements.txt
+          fi
           pip install pytest
-          PYTHONPATH=. python -m pytest
+          PYTHONPATH=".:.." python -m pytest
         fi
