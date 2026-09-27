@@ -42,7 +42,7 @@ jobs:
         elif [ "${{ matrix.service }}" == "security" ]; then
           pip install -r packages/security/requirements.txt
           pip install pytest
-          PYTHONPATH=$(pwd) python -m pytest packages/security/tests -v
+          PYTHONPATH=$(pwd)/packages python -m pytest packages/security/tests -v
         else
           cd packages/${{ matrix.service }}
           if [ -f requirements.txt ]; then
