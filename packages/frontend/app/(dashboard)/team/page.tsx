@@ -29,17 +29,23 @@ export default function TeamPage() {
     // Only admins can view this page
     if (user && user.role !== "admin" && user.role !== "superadmin" && user.role !== "super admin") {
       router.push("/");
-    } else if (user && user.company) {
+    } else if (user) {
       if (isSuperAdmin) {
         fetchOrgs();
       }
       // If super admin hasn't selected an org yet, use their company as default
-      if (!targetOrg) {
+      if (!targetOrg && user.company) {
         setTargetOrg(user.company);
       }
-      fetchInvites(targetOrg || user.company);
+      
+      const orgToFetch = targetOrg || user.company;
+      if (orgToFetch) {
+        fetchInvites(orgToFetch);
+      } else {
+        setLoading(false);
+      }
     }
-  }, [user, targetOrg]);
+  }, [user, targetOrg, isSuperAdmin, router]);
 
   const fetchOrgs = async () => {
     try {
@@ -146,8 +152,11 @@ export default function TeamPage() {
                   {orgs.map(org => (
                     <option key={org.id} value={org.id}>{org.name}</option>
                   ))}
-                  {!orgs.find(o => o.id === user.company) && (
+                  {user.company && !orgs.find(o => o.id === user.company) && (
                     <option value={user.company}>My Organization</option>
+                  )}
+                  {!targetOrg && !user.company && (
+                    <option value="" disabled>Select an Organization</option>
                   )}
                 </select>
               </div>
