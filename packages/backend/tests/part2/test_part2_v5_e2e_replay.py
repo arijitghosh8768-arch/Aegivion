@@ -42,8 +42,7 @@ class TestPart2V5E2EReplay(unittest.TestCase):
     def setUp(self):
         self.org_id = "org-test-001"
         self.fixture_path = os.path.join(
-            os.path.abspath("packages/backend"), 
-            "tests", "part2", "fixtures", "credential_compromise_story.json"
+            os.path.dirname(__file__), "fixtures", "credential_compromise_story.json"
         )
         with open(self.fixture_path, "r") as f:
             self.raw_events = json.load(f)
