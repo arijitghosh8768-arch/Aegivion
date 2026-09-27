@@ -212,7 +212,7 @@ class S3Collector(BaseCollector):
                     if statement.get('Effect') == 'Allow':
                         return True
             return False
-        except:
+        except Exception:
             return False
     
     def _has_public_principal(self, policy_doc: Dict) -> bool:
@@ -223,7 +223,7 @@ class S3Collector(BaseCollector):
                 if principal == '*' or principal.get('AWS') == '*':
                     return True
             return False
-        except:
+        except Exception:
             return False
     
     async def _get_acl_status(self, bucket_name: str) -> Dict[str, Any]:
@@ -273,7 +273,7 @@ class S3Collector(BaseCollector):
         try:
             response = self.s3_client.get_bucket_location(Bucket=bucket_name)
             return response.get('LocationConstraint') or 'us-east-1'
-        except:
+        except Exception:
             return 'unknown'
     
     async def _normalize_bucket(self, bucket_name: str, region: str, config: Dict) -> Dict[str, Any]:

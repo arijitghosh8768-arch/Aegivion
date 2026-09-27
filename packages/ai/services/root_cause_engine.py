@@ -140,7 +140,7 @@ class RootCauseEngine:
                 is_grounded=True,
                 reasoning_chain=data.get('reasoning_chain', [])
             )
-        except:
+        except Exception:
             return self._get_fallback_analysis(finding)
     
     def _get_fallback_analysis(self, finding: Dict) -> RootCauseAnalysis:

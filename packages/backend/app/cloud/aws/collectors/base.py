@@ -64,7 +64,7 @@ class BaseCollector:
             try:
                 dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
                 return dt.isoformat()
-            except:
+            except Exception:
                 return None
         return None
     

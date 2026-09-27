@@ -1,14 +1,21 @@
-
+import os
 from pymongo import MongoClient
 from passlib.context import CryptContext
 import uuid
 import datetime
 
-client = MongoClient("mongodb+srv://arijitghosh8768_db_user:***REMOVED***@cluster0.vym1z8g.mongodb.net/")
+mongo_uri = os.environ.get("MONGODB_URI")
+if not mongo_uri:
+    raise ValueError("MONGODB_URI environment variable must be set")
+client = MongoClient(mongo_uri)
 db = client["aegivion"]
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-hashed_pw = pwd_context.hash("SuperSecret123!")
+
+admin_pass = os.environ.get("DEFAULT_ADMIN_PASSWORD")
+if not admin_pass:
+    raise ValueError("DEFAULT_ADMIN_PASSWORD environment variable must be set")
+hashed_pw = pwd_context.hash(admin_pass)
 
 admin_role = db["roles"].find_one({"name": "superadmin"})
 if not admin_role:

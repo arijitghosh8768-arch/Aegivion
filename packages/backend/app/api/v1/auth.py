@@ -56,7 +56,7 @@ def login(
         if isinstance(user.locked_until, str):
             try:
                 locked_until = datetime.datetime.fromisoformat(user.locked_until)
-            except:
+            except Exception:
                 locked_until = datetime.datetime.utcnow()
         else:
             locked_until = user.locked_until

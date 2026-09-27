@@ -213,7 +213,7 @@ class ImpactEngine:
                 ),
                 confidence=float(data.get('confidence', 0.82))
             )
-        except:
+        except Exception:
             return None
     
     def _validate_impact(self, analysis: ImpactAnalysis, context: Dict) -> ImpactAnalysis:

@@ -69,7 +69,7 @@ class FindingSchema(BaseModel):
         try:
             datetime.fromisoformat(v.replace('Z', '+00:00'))
             return v
-        except:
+        except Exception:
             raise ValueError('Timestamp must be ISO-8601 format')
     
     class Config:

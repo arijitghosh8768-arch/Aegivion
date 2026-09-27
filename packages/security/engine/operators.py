@@ -52,13 +52,13 @@ def op_not_contains(field: Any, value: Any) -> bool:
 def op_greater_than(field: Any, value: Any) -> bool:
     try:
         return float(field) > float(value)
-    except:
+    except Exception:
         return False
 
 def op_less_than(field: Any, value: Any) -> bool:
     try:
         return float(field) < float(value)
-    except:
+    except Exception:
         return False
 
 def op_in(field: Any, value: List) -> bool:
@@ -70,7 +70,7 @@ def op_not_in(field: Any, value: List) -> bool:
 def op_regex(field: Any, value: str) -> bool:
     try:
         return bool(re.match(value, str(field)))
-    except:
+    except Exception:
         return False
 
 def op_network_exposure(field: Any, value: Any) -> bool:
