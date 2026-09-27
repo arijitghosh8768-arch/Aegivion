@@ -1,0 +1,16 @@
+{
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "AWSService",
+    "invokedBy": "autoscaling.amazonaws.com"
+  },
+  "eventTime": "2026-09-19T22:00:03Z",
+  "eventSource": "ec2.amazonaws.com",
+  "eventName": "RunInstances",
+  "awsRegion": "ap-south-1",
+  "sourceIPAddress": "autoscaling.amazonaws.com",
+  "userAgent": "autoscaling.amazonaws.com",
+  "eventID": "55555555-5555-5555-5555-555555555555",
+  "eventType": "AwsApiCall",
+  "recipientAccountId": "123456789012"
+}

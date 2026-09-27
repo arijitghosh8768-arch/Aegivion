@@ -1,0 +1,38 @@
+{
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "AssumedRole",
+    "principalId": "AROAEXAMPLEADMIN:aniruddha@corp.example.com",
+    "arn": "arn:aws:sts::123456789012:assumed-role/CorpAdmin/aniruddha@corp.example.com",
+    "accountId": "123456789012",
+    "accessKeyId": "ASIAEXAMPLESESSION",
+    "sessionContext": {
+      "sessionIssuer": {
+        "type": "Role",
+        "principalId": "AROAEXAMPLEADMIN",
+        "arn": "arn:aws:iam::123456789012:role/CorpAdmin",
+        "accountId": "123456789012",
+        "userName": "CorpAdmin"
+      },
+      "webIdFederationData": {
+        "federatedProvider": "accounts.google.com",
+        "attributes": {
+          "aud": "aegivion-eval.apps.googleusercontent.com"
+        }
+      },
+      "attributes": {
+        "creationDate": "2026-09-20T03:10:00Z",
+        "mfaAuthenticated": "true"
+      }
+    }
+  },
+  "eventTime": "2026-09-20T03:14:02Z",
+  "eventSource": "sts.amazonaws.com",
+  "eventName": "AssumeRoleWithWebIdentity",
+  "awsRegion": "eu-central-1",
+  "sourceIPAddress": "203.0.113.77",
+  "userAgent": "aws-sdk-go/1.44.0 (go1.21; linux; amd64)",
+  "eventID": "22222222-2222-2222-2222-222222222222",
+  "eventType": "AwsApiCall",
+  "recipientAccountId": "123456789012"
+}
