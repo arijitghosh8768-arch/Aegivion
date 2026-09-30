@@ -6,17 +6,17 @@ from datetime import timedelta
 
 import pytest
 
-from detection.credential_compromise.config import DetectorConfig
-from detection.credential_compromise.detector import (
+from algo.detection.credential_compromise.config import DetectorConfig
+from algo.detection.credential_compromise.detector import (
     CredentialCompromiseDetector,
     DetectionMode,
 )
-from detection.credential_compromise.model_registry import (
+from algo.detection.credential_compromise.model_registry import (
     ComponentVersions,
     model_card_for,
     rule_fingerprint,
 )
-from detection.credential_compromise.replay import (
+from algo.detection.credential_compromise.replay import (
     Metrics,
     compare_configurations,
     format_comparison_report,
@@ -51,7 +51,7 @@ def test_temporal_split_is_chronological_and_disjoint(dataset):
 
 def _persona_event(seq, *, identity, at, **overrides):
     """Local copy of the persona event factory (avoids cross-test imports)."""
-    from detection.credential_compromise.schemas import (
+    from algo.detection.credential_compromise.schemas import (
         BaselineCategory,
         EventCategory,
         IdentityActivityEvent,

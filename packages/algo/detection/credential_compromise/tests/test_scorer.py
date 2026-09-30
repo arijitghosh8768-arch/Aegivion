@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from detection.credential_compromise.config import ScoringConfig
-from detection.credential_compromise.features import BehavioralFeatures, FeatureValue
-from detection.credential_compromise.rules import RuleSignal
-from detection.credential_compromise.schemas import Severity
-from detection.credential_compromise.scorer import (
+from algo.detection.credential_compromise.config import ScoringConfig
+from algo.detection.credential_compromise.features import BehavioralFeatures, FeatureValue
+from algo.detection.credential_compromise.rules import RuleSignal
+from algo.detection.credential_compromise.schemas import Severity
+from algo.detection.credential_compromise.scorer import (
     ComponentScores,
     calculate_risk,
     rule_signal_score,
@@ -170,13 +170,13 @@ class FusionConfigForTest:
 
     @staticmethod
     def default():
-        from detection.credential_compromise.config import FusionConfig
+        from algo.detection.credential_compromise.config import FusionConfig
 
         return FusionConfig()
 
     @staticmethod
     def all_on_behavior():
-        from detection.credential_compromise.config import FusionConfig
+        from algo.detection.credential_compromise.config import FusionConfig
 
         return FusionConfig(
             w_behavior=1.0, w_rule=0.0, w_anomaly=0.0, w_temporal=0.0, w_privilege=0.0

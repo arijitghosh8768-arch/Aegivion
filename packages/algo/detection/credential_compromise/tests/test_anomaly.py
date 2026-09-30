@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.credential_compromise.anomaly import (
+from algo.detection.credential_compromise.anomaly import (
     FEATURE_NAMES,
     FEATURE_VERSION,
     FeatureVector,
@@ -18,13 +18,13 @@ from detection.credential_compromise.anomaly import (
     mfa_anomaly_value,
     session_length_deviation_value,
 )
-from detection.credential_compromise.config import (
+from algo.detection.credential_compromise.config import (
     AnomalyConfig,
     DetectorConfig,
     FusionConfig,
     ScoringConfig,
 )
-from detection.credential_compromise.confidence import (
+from algo.detection.credential_compromise.confidence import (
     EvidenceContext,
     brier_score,
     evidence_confidence,
@@ -32,9 +32,9 @@ from detection.credential_compromise.confidence import (
     isotonic_calibrator,
     platt_scale,
 )
-from detection.credential_compromise.exceptions import DetectionError
-from detection.credential_compromise.features import extract_features
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.exceptions import DetectionError
+from algo.detection.credential_compromise.features import extract_features
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,
@@ -45,13 +45,13 @@ from detection.credential_compromise.schemas import (
     IdentitySession,
     PrincipalType,
 )
-from detection.credential_compromise.scorer import (
+from algo.detection.credential_compromise.scorer import (
     ComponentScores,
     rule_signal_score,
     score_event,
     severity_for,
 )
-from detection.credential_compromise.temporal import (
+from algo.detection.credential_compromise.temporal import (
     TemporalTracker,
     WindowStats,
     burst_score,
@@ -96,7 +96,7 @@ def make_event(seq: int, *, at: datetime | None = None, **overrides) -> Identity
 def test_feature_vector_is_stable_and_ordered():
     config = ScoringConfig()
     event = make_event(1)
-    from detection.credential_compromise.features import BehavioralFeatures, FeatureValue
+    from algo.detection.credential_compromise.features import BehavioralFeatures, FeatureValue
 
     def fv(name: str) -> FeatureValue:
         return FeatureValue(name=name, value=0.1, confidence=0.9)
@@ -281,7 +281,7 @@ def test_anomaly_is_discounted_by_configuration():
 
 
 def test_rule_signal_score_saturates():
-    from detection.credential_compromise.rules import RuleSignal
+    from algo.detection.credential_compromise.rules import RuleSignal
 
     ten_lows = [
         RuleSignal(rule_id=f"R{i:03d}", signal="s", severity="LOW", value=1.0)

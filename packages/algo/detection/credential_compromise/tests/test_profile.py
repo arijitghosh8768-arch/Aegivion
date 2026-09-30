@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Sequence
 
-from detection.credential_compromise.config import BaselineConfig
-from detection.credential_compromise.profile import (
+from algo.detection.credential_compromise.config import BaselineConfig
+from algo.detection.credential_compromise.profile import (
     PeerCriteria,
     ProfileService,
     apply_observation_stats,
@@ -14,7 +14,7 @@ from detection.credential_compromise.profile import (
     initial_profile,
     observation_stats,
 )
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     BaselineCategory,
     BaselineQuality,
     CloudProvider,

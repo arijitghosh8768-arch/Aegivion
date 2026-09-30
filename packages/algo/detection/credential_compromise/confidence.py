@@ -23,8 +23,8 @@ from typing import Callable, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.config import ConfidenceConfig
-from detection.credential_compromise.schemas import BaselineQuality
+from algo.detection.credential_compromise.config import ConfidenceConfig
+from algo.detection.credential_compromise.schemas import BaselineQuality
 
 _EVIDENCE_BASELINE = {
     BaselineQuality.EXCELLENT: 1.0,

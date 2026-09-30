@@ -23,36 +23,36 @@ import enum
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Optional, Sequence
 
-from detection.credential_compromise import (
+from algo.detection.credential_compromise import (
     baseline as baseline_engine,
 )
-from detection.credential_compromise.anomaly import (
+from algo.detection.credential_compromise.anomaly import (
     FEATURE_VERSION,
     IsolationForest,
     build_feature_vector,
 )
-from detection.credential_compromise.arde import ArdeInput, validate_finding
-from detection.credential_compromise.audit import AuditLog
-from detection.credential_compromise.config import DetectorConfig, load_config
-from detection.credential_compromise.confidence import EvidenceContext, evidence_confidence
-from detection.credential_compromise.explainability import build_explanation
-from detection.credential_compromise.features import extract_features
-from detection.credential_compromise.finding import build_finding, finalize_finding
-from detection.credential_compromise.model_registry import ComponentVersions
-from detection.credential_compromise.rules import evaluate_rules
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.arde import ArdeInput, validate_finding
+from algo.detection.credential_compromise.audit import AuditLog
+from algo.detection.credential_compromise.config import DetectorConfig, load_config
+from algo.detection.credential_compromise.confidence import EvidenceContext, evidence_confidence
+from algo.detection.credential_compromise.explainability import build_explanation
+from algo.detection.credential_compromise.features import extract_features
+from algo.detection.credential_compromise.finding import build_finding, finalize_finding
+from algo.detection.credential_compromise.model_registry import ComponentVersions
+from algo.detection.credential_compromise.rules import evaluate_rules
+from algo.detection.credential_compromise.schemas import (
     IdentityActivityEvent,
     IdentityProfile,
     Severity,
 )
-from detection.credential_compromise.scorer import (
+from algo.detection.credential_compromise.scorer import (
     ComponentScores,
     rule_signal_score,
     score_event,
     severity_for,
 )
-from detection.credential_compromise.suppression import SuppressionEngine
-from detection.credential_compromise.temporal import (
+from algo.detection.credential_compromise.suppression import SuppressionEngine
+from algo.detection.credential_compromise.temporal import (
     TemporalTracker,
     burst_score,
     temporal_anomaly_score,
@@ -133,7 +133,7 @@ class CredentialCompromiseDetector:
             return None
         first = events[0]
         identity_key = first.identity_key or first.principal_id
-        from detection.credential_compromise.profile import initial_profile
+        from algo.detection.credential_compromise.profile import initial_profile
 
         profile = initial_profile(
             identity_key=identity_key,

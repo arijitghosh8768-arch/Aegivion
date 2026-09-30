@@ -26,13 +26,13 @@ from typing import Any, Mapping, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.baseline import (
+from algo.detection.credential_compromise.baseline import (
     hour_key,
     ip_range_key,
     weekday_key,
 )
-from detection.credential_compromise.config import BaselineConfig, FeatureConfig
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.config import BaselineConfig, FeatureConfig
+from algo.detection.credential_compromise.schemas import (
     ApiFamilies,
     BaselineQuality,
     IdentityActivityEvent,

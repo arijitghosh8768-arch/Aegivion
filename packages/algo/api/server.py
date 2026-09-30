@@ -22,13 +22,13 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
-from detection.credential_compromise.config import DetectorConfig
-from detection.credential_compromise.detector import (
+from algo.detection.credential_compromise.config import DetectorConfig
+from algo.detection.credential_compromise.detector import (
     CredentialCompromiseDetector,
     DetectionMode,
 )
-from detection.credential_compromise.exceptions import DetectionError
-from detection.credential_compromise.schemas import IdentityActivityEvent
+from algo.detection.credential_compromise.exceptions import DetectionError
+from algo.detection.credential_compromise.schemas import IdentityActivityEvent
 
 # --------------------------------------------------------------------------- #
 # Minimal HTTP primitives (framework-free)
@@ -247,7 +247,7 @@ class DetectionApp:
         """Canonical event body, or a raw CloudTrail record."""
         if {"event_id", "timestamp", "principal_id", "event_source", "event_name"} <= set(body):
             return IdentityActivityEvent(**body)
-        from ingestion.aws.cloudtrail import CloudTrailNormalizer
+        from algo.ingestion.aws.cloudtrail import CloudTrailNormalizer
 
         return CloudTrailNormalizer().normalize(body)
 

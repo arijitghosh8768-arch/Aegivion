@@ -1,0 +1,133 @@
+{
+  "false_negatives": [
+    {
+      "arde_result": null,
+      "confidence": 0.583735,
+      "missing_signal": "destination_score (value=-1.00)",
+      "potential_new_feature": "cumulative 24h/7d egress per destination across sessions (cross-session aggregation; current features are per-session)",
+      "risk_score": 0.37,
+      "scenario": "slow_exfiltration",
+      "session_id": "eval-slow_exfiltration-4-00",
+      "why_model_failed": "fused risk 0.37 below threshold 0.50"
+    },
+    {
+      "arde_result": null,
+      "confidence": 0.583735,
+      "missing_signal": "destination_score (value=-1.00)",
+      "potential_new_feature": "cumulative 24h/7d egress per destination across sessions (cross-session aggregation; current features are per-session)",
+      "risk_score": 0.37,
+      "scenario": "slow_exfiltration",
+      "session_id": "eval-slow_exfiltration-4-01",
+      "why_model_failed": "fused risk 0.37 below threshold 0.50"
+    },
+    {
+      "arde_result": null,
+      "confidence": 0.583735,
+      "missing_signal": "destination_score (value=-1.00)",
+      "potential_new_feature": "cumulative 24h/7d egress per destination across sessions (cross-session aggregation; current features are per-session)",
+      "risk_score": 0.37,
+      "scenario": "slow_exfiltration",
+      "session_id": "eval-slow_exfiltration-4-02",
+      "why_model_failed": "fused risk 0.37 below threshold 0.50"
+    },
+    {
+      "arde_result": null,
+      "confidence": null,
+      "missing_signal": "volume_score (value=-1.00)",
+      "potential_new_feature": "ordered action n-grams weighted by destination novelty",
+      "risk_score": 0.45,
+      "scenario": "unusual_sequence",
+      "session_id": "eval-unusual_sequence-5-00",
+      "why_model_failed": "fused risk 0.45 below threshold 0.50"
+    },
+    {
+      "arde_result": null,
+      "confidence": null,
+      "missing_signal": "volume_score (value=-1.00)",
+      "potential_new_feature": "none identified in this run; needs manual review",
+      "risk_score": 0.4778,
+      "scenario": "new_destination",
+      "session_id": "eval-new_destination-5-00",
+      "why_model_failed": "fused risk 0.48 below threshold 0.50"
+    },
+    {
+      "arde_result": null,
+      "confidence": 0.583735,
+      "missing_signal": "destination_score (value=-1.00)",
+      "potential_new_feature": "cumulative 24h/7d egress per destination across sessions (cross-session aggregation; current features are per-session)",
+      "risk_score": 0.37,
+      "scenario": "slow_exfiltration",
+      "session_id": "eval-slow_exfiltration-5-00",
+      "why_model_failed": "fused risk 0.37 below threshold 0.50"
+    },
+    {
+      "arde_result": null,
+      "confidence": 0.583735,
+      "missing_signal": "destination_score (value=-1.00)",
+      "potential_new_feature": "cumulative 24h/7d egress per destination across sessions (cross-session aggregation; current features are per-session)",
+      "risk_score": 0.37,
+      "scenario": "slow_exfiltration",
+      "session_id": "eval-slow_exfiltration-5-01",
+      "why_model_failed": "fused risk 0.37 below threshold 0.50"
+    },
+    {
+      "arde_result": null,
+      "confidence": 0.583735,
+      "missing_signal": "destination_score (value=-1.00)",
+      "potential_new_feature": "cumulative 24h/7d egress per destination across sessions (cross-session aggregation; current features are per-session)",
+      "risk_score": 0.37,
+      "scenario": "slow_exfiltration",
+      "session_id": "eval-slow_exfiltration-5-02",
+      "why_model_failed": "fused risk 0.37 below threshold 0.50"
+    }
+  ],
+  "false_positives": [
+    {
+      "arde_result": "REVIEW_REQUIRED",
+      "baseline_condition": "scope=personal quality=1.00 cold_start=False",
+      "confidence": 0.57073,
+      "destination_type": "unclassified",
+      "reason": "large volume with zero sensitivity evidence; arde=REVIEW_REQUIRED",
+      "risk_score": 0.57,
+      "robustness_score": 0.0167,
+      "scenario": "large_public_transfer",
+      "sensitivity": null,
+      "session_id": "eval-large_public_transfer-4-00",
+      "severity": "medium",
+      "top_features": [
+        "volume_score=1.00",
+        "object_count_score=0.00",
+        "request_rate_score=0.00",
+        "access_pattern_score=0.00"
+      ]
+    },
+    {
+      "arde_result": "REVIEW_REQUIRED",
+      "baseline_condition": "scope=personal quality=1.00 cold_start=False",
+      "confidence": 0.57073,
+      "destination_type": "unclassified",
+      "reason": "large volume with zero sensitivity evidence; arde=REVIEW_REQUIRED",
+      "risk_score": 0.57,
+      "robustness_score": 0.0167,
+      "scenario": "large_public_transfer",
+      "sensitivity": null,
+      "session_id": "eval-large_public_transfer-5-00",
+      "severity": "medium",
+      "top_features": [
+        "volume_score=1.00",
+        "object_count_score=0.00",
+        "request_rate_score=0.00",
+        "access_pattern_score=0.00"
+      ]
+    }
+  ],
+  "fn_by_scenario": {
+    "new_destination": 1,
+    "slow_exfiltration": 6,
+    "unusual_sequence": 1
+  },
+  "fp_by_scenario": {
+    "large_public_transfer": 2
+  },
+  "synthetic": true
+}

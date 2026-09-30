@@ -6,9 +6,9 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from api.server import DetectionApp, Request, Router
-from detection.credential_compromise.config import DetectorConfig
-from detection.credential_compromise.schemas import (
+from algo.api.server import DetectionApp, Request, Router
+from algo.detection.credential_compromise.config import DetectorConfig
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,

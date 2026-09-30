@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from detection.credential_compromise import (
+from algo.detection.credential_compromise import (
     anomaly,
     baseline,
     confidence,
@@ -23,12 +23,12 @@ from detection.credential_compromise import (
     rules,
     scorer,
 )
-from detection.credential_compromise.anomaly import (
+from algo.detection.credential_compromise.anomaly import (
     FEATURE_NAMES,
     IsolationForest,
 )
-from detection.credential_compromise.exceptions import DetectionError
-from detection.credential_compromise.model_registry import (
+from algo.detection.credential_compromise.exceptions import DetectionError
+from algo.detection.credential_compromise.model_registry import (
     ComponentVersions,
     MODEL_NAME,
     RULE_VERSION,

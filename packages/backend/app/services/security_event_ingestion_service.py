@@ -7,11 +7,12 @@ from security.engine.security_digital_twin import SecurityDigitalTwin
 from app.models.security_event import SecurityEvent
 
 class SecurityEventIngestionService:
-    def __init__(self, db_client, db_session):
+    def __init__(self, db_client, db_session, agent_controller=None):
         self.event_repo = SecurityEventRepository(db_client)
         self.db_session = db_session
+        self.agent_controller = agent_controller
 
-    def ingest(self, raw_event: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def ingest(self, raw_event: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         organization_id = context.get("organization_id")
         provider = context.get("provider", "").lower()
 
@@ -54,6 +55,22 @@ class SecurityEventIngestionService:
             twin.update_from_event(canonical_event)
         except Exception as e:
             return {"status": "failed", "reason": f"Digital Twin update failed: {str(e)}"}
+
+        # Submit to AgentController
+        if self.agent_controller:
+            from security.engine.agent_controller import AgentEvent, EventSource
+            agent_event = AgentEvent(
+                event_id=canonical_event.event_id,
+                organization_id=organization_id,
+                event_type="CLOUD_EVENT",
+                occurred_at=canonical_event.timestamp,
+                source=EventSource.CLOUD,
+                correlation_id="",
+                payload=canonical_event.dict(),
+            )
+            submission_status = await self.agent_controller.submit_event(agent_event)
+            if submission_status not in ("ACCEPTED", "DUPLICATE_EVENT"):
+                return {"status": "failed", "reason": f"AgentController rejected: {submission_status}"}
 
         return {
             "status": "stored",

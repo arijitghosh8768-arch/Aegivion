@@ -12,10 +12,10 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.credential_compromise.arde import ArdeInput, validate_finding
-from detection.credential_compromise.config import ArdeConfig
-from detection.credential_compromise.features import BehavioralFeatures, FeatureValue
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.arde import ArdeInput, validate_finding
+from algo.detection.credential_compromise.config import ArdeConfig
+from algo.detection.credential_compromise.features import BehavioralFeatures, FeatureValue
+from algo.detection.credential_compromise.schemas import (
     BaselineCategory,
     EventCategory,
     IdentityActivityEvent,
@@ -172,8 +172,8 @@ class TestAdversarialScenarios:
 
     def test_suspicious_baseline_contamination(self):
         # Novel country yet already dominating the baseline: backwards learning.
-        from detection.credential_compromise.profile import initial_profile
-        from detection.credential_compromise.schemas import BaselineQuality
+        from algo.detection.credential_compromise.profile import initial_profile
+        from algo.detection.credential_compromise.schemas import BaselineQuality
 
         poisoned = initial_profile(
             identity_key=IDENTITY,

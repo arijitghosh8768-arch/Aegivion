@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session as OrmSession
 
-from detection.credential_compromise.schemas import CloudProvider, Severity, ensure_utc
+from algo.detection.credential_compromise.schemas import CloudProvider, Severity, ensure_utc
 
 from .models import SecurityFindingRow
 

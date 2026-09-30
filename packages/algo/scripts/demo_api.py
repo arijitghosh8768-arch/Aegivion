@@ -20,14 +20,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from api.server import DetectionApp, Request, Router  # noqa: E402
-from detection.credential_compromise.config import DetectorConfig  # noqa: E402
+from algo.api.server import DetectionApp, Request, Router  # noqa: E402
+from algo.detection.credential_compromise.config import DetectorConfig  # noqa: E402
 from tests.test_acceptance_final import (  # noqa: E402
     _attack_records,
     _normal_records,
     T0,
 )
-from ingestion.aws.cloudtrail import CloudTrailNormalizer  # noqa: E402
+from algo.ingestion.aws.cloudtrail import CloudTrailNormalizer  # noqa: E402
 
 
 def banner(title: str) -> None:

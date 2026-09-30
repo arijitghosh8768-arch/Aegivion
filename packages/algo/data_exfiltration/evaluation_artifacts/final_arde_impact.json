@@ -1,0 +1,6 @@
+{
+  "rejected_alerts": 0,
+  "review_required_alerts": 10,
+  "synthetic": true,
+  "variant_E_definition": "full detector: behavior+volume+destination+sensitivity+access+temporal+network+ML+risk fusion+ARDE"
+}

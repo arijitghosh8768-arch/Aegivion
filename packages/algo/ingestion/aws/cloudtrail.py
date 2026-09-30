@@ -20,10 +20,10 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.config import DetectorConfig, IngestConfig
-from detection.credential_compromise.exceptions import MalformedEventError
-from detection.credential_compromise.identity import IdentityResolver
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.config import DetectorConfig, IngestConfig
+from algo.detection.credential_compromise.exceptions import MalformedEventError
+from algo.detection.credential_compromise.identity import IdentityResolver
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     CloudProvider,

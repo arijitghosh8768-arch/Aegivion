@@ -31,12 +31,12 @@ from collections import Counter
 from datetime import datetime, timezone
 from typing import Mapping, Optional, Sequence
 
-from detection.credential_compromise.config import BaselineConfig
-from detection.credential_compromise.profile import (
+from algo.detection.credential_compromise.config import BaselineConfig
+from algo.detection.credential_compromise.profile import (
     BaselineSelection,
     apply_observation_stats,
 )
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     BaselineQuality,
     IdentityActivityEvent,
@@ -422,7 +422,7 @@ def _regrade_preserving_floor(profile: IdentityProfile, config: BaselineConfig) 
     profile that was COLD_START cannot leapfrog to GOOD/EXCELLENT on the
     strength of one event.
     """
-    from detection.credential_compromise.profile import assess_baseline_quality
+    from algo.detection.credential_compromise.profile import assess_baseline_quality
 
     assessed = assess_baseline_quality(
         event_count=profile.event_count,

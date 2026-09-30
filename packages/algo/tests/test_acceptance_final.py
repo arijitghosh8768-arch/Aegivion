@@ -14,16 +14,16 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from api.server import Request, Router
-from detection.credential_compromise.anomaly import IsolationForest
-from detection.credential_compromise.arde import VALIDATION_STATUSES
-from detection.credential_compromise.config import AnomalyConfig, DetectorConfig
-from detection.credential_compromise.detector import (
+from algo.api.server import Request, Router
+from algo.detection.credential_compromise.anomaly import IsolationForest
+from algo.detection.credential_compromise.arde import VALIDATION_STATUSES
+from algo.detection.credential_compromise.config import AnomalyConfig, DetectorConfig
+from algo.detection.credential_compromise.detector import (
     CredentialCompromiseDetector,
     DetectionMode,
 )
-from detection.credential_compromise.session import SessionTracker
-from ingestion.aws.cloudtrail import CloudTrailNormalizer
+from algo.detection.credential_compromise.session import SessionTracker
+from algo.ingestion.aws.cloudtrail import CloudTrailNormalizer
 
 UTC = timezone.utc
 T0 = datetime(2026, 6, 1, 0, 0, tzinfo=UTC)
@@ -119,7 +119,7 @@ class TestAcceptanceScenario:
             cloudtrail_record(7000 + j, at=T0 + timedelta(hours=10, minutes=2 * j))
             for j in range(10)
         ]
-        from ingestion.aws.cloudtrail import CloudTrailNormalizer as _C
+        from algo.ingestion.aws.cloudtrail import CloudTrailNormalizer as _C
         burst_events = _C().normalize_batch(burst, strict=True).events
         for burst_event in burst_events:
             decision = tracker.add_event(burst_event)
@@ -139,9 +139,9 @@ class TestAcceptanceScenario:
         detector.learn(benign)
 
         # Train the forest on benign rows (unsupervised; synthetic stream).
-        from detection.credential_compromise.anomaly import build_feature_vector
-        from detection.credential_compromise.features import extract_features
-        from detection.credential_compromise.temporal import TemporalTracker, burst_score
+        from algo.detection.credential_compromise.anomaly import build_feature_vector
+        from algo.detection.credential_compromise.features import extract_features
+        from algo.detection.credential_compromise.temporal import TemporalTracker, burst_score
 
         config = detector.config
         profile = detector._profiles[(benign[0].identity_key, 30)]

@@ -6,17 +6,17 @@ from datetime import timedelta
 
 import pytest
 
-from detection.credential_compromise.attack_mapping import (
+from algo.detection.credential_compromise.attack_mapping import (
     RULE_ATTACK_MAPPING,
     map_signals_to_attack,
 )
-from detection.credential_compromise.audit import AuditLog
-from detection.credential_compromise.explainability import (
+from algo.detection.credential_compromise.audit import AuditLog
+from algo.detection.credential_compromise.explainability import (
     build_explanation,
     model_agreement,
 )
-from detection.credential_compromise.schemas import Severity, utcnow
-from detection.credential_compromise.suppression import SuppressionEngine
+from algo.detection.credential_compromise.schemas import Severity, utcnow
+from algo.detection.credential_compromise.suppression import SuppressionEngine
 
 
 # --------------------------------------------------------------------------- #
@@ -161,7 +161,7 @@ class TestAttackMapping:
 
     def test_detector_works_without_mapping(self):
         # The mapping is metadata: removing it must not break the function.
-        import detection.credential_compromise.attack_mapping as am
+        import algo.detection.credential_compromise.attack_mapping as am
 
         saved = dict(am.RULE_ATTACK_MAPPING)
         am.RULE_ATTACK_MAPPING.clear()
@@ -171,7 +171,7 @@ class TestAttackMapping:
             am.RULE_ATTACK_MAPPING.update(saved)
 
     def test_every_catalogued_rule_has_mapping_or_is_intentional(self):
-        from detection.credential_compromise.rules import RULE_CATALOGUE
+        from algo.detection.credential_compromise.rules import RULE_CATALOGUE
 
         mapped = {rule_id for rule_id, _ in RULE_ATTACK_MAPPING.items()}
         catalogue_ids = {rule.rule_id for rule in RULE_CATALOGUE}
@@ -185,7 +185,7 @@ class TestAttackMapping:
 
 class TestExplainability:
     def _features(self):
-        from detection.credential_compromise.features import BehavioralFeatures, FeatureValue
+        from algo.detection.credential_compromise.features import BehavioralFeatures, FeatureValue
 
         def fv(name, value, conf=0.9):
             return FeatureValue(name=name, value=value, confidence=conf)

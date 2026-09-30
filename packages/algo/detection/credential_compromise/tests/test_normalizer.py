@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import pytest
 
-from detection.credential_compromise.exceptions import MalformedEventError
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.exceptions import MalformedEventError
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,
     EventCategory,
     IpIntelligence,
 )
-from ingestion.aws.cloudtrail import CloudTrailNormalizer
-from ingestion.aws.enrichment import StaticIpEnricher
+from algo.ingestion.aws.cloudtrail import CloudTrailNormalizer
+from algo.ingestion.aws.enrichment import StaticIpEnricher
 
 
 @pytest.fixture
@@ -161,7 +161,7 @@ def test_batch_happy_path_normalizes_every_record(cloudtrail, normalizer):
 
 
 def test_batch_size_limit_is_enforced(cloudtrail):
-    from detection.credential_compromise.config import DetectorConfig, IngestConfig
+    from algo.detection.credential_compromise.config import DetectorConfig, IngestConfig
 
     config = DetectorConfig(ingest=IngestConfig(max_records_per_batch=1))
     normalizer = CloudTrailNormalizer(config)

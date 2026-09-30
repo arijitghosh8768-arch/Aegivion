@@ -1,0 +1,63 @@
+{
+  "data_source": "synthetic_scenarios_v2_ambiguous",
+  "split_boundaries": {
+    "test_end_epoch_ms": 1707698600000.0,
+    "train_end_epoch_ms": 1705271400000.0,
+    "validation_end_epoch_ms": 1706485000000.0
+  },
+  "synthetic": true,
+  "variants": {
+    "A": {
+      "f1": 1.0,
+      "false_positive_rate": 0.0,
+      "fn": 0,
+      "fp": 0,
+      "pr_auc": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "roc_auc": 1.0,
+      "threshold": 0.5,
+      "tn": 114,
+      "tp": 58
+    },
+    "B": {
+      "f1": 0.884615,
+      "false_positive_rate": 0.0,
+      "fn": 12,
+      "fp": 0,
+      "pr_auc": 1.0,
+      "precision": 1.0,
+      "recall": 0.793103,
+      "roc_auc": 1.0,
+      "threshold": 0.5,
+      "tn": 114,
+      "tp": 46
+    },
+    "C": {
+      "f1": 0.954955,
+      "false_positive_rate": 0.0,
+      "fn": 5,
+      "fp": 0,
+      "pr_auc": 1.0,
+      "precision": 1.0,
+      "recall": 0.913793,
+      "roc_auc": 1.0,
+      "threshold": 0.5,
+      "tn": 114,
+      "tp": 53
+    },
+    "D": {
+      "f1": 0.954955,
+      "false_positive_rate": 0.0,
+      "fn": 5,
+      "fp": 0,
+      "pr_auc": 1.0,
+      "precision": 1.0,
+      "recall": 0.913793,
+      "roc_auc": 1.0,
+      "threshold": 0.5,
+      "tn": 114,
+      "tp": 53
+    }
+  }
+}

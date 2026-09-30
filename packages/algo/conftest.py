@@ -1,7 +1,7 @@
 """Root pytest bootstrap.
 
 Makes the repository root importable so tests can use absolute imports such as
-``from detection.credential_compromise.schemas import IdentityActivityEvent``.
+``from algo.detection.credential_compromise.schemas import IdentityActivityEvent``.
 """
 
 from __future__ import annotations

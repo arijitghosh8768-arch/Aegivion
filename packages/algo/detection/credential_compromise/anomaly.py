@@ -26,14 +26,14 @@ from typing import Callable, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.config import AnomalyConfig, ScoringConfig
-from detection.credential_compromise.features import BehavioralFeatures
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.config import AnomalyConfig, ScoringConfig
+from algo.detection.credential_compromise.features import BehavioralFeatures
+from algo.detection.credential_compromise.schemas import (
     IdentityActivityEvent,
     IdentityProfile,
     IdentitySession,
 )
-from detection.credential_compromise.temporal import WindowStats
+from algo.detection.credential_compromise.temporal import WindowStats
 
 #: Stable feature ordering - the ML contract. Never reorder, only append.
 FEATURE_NAMES: tuple[str, ...] = (
@@ -251,7 +251,7 @@ class IsolationForest:
 
     def fit(self, rows: Sequence[Sequence[float]]) -> "IsolationForest":
         if len(rows) < self.config.min_training_rows:
-            from detection.credential_compromise.exceptions import DetectionError
+            from algo.detection.credential_compromise.exceptions import DetectionError
 
             raise DetectionError(
                 "insufficient rows to fit the isolation forest",
@@ -259,7 +259,7 @@ class IsolationForest:
             )
         dim = len(rows[0])
         if any(len(row) != dim for row in rows):
-            from detection.credential_compromise.exceptions import DetectionError
+            from algo.detection.credential_compromise.exceptions import DetectionError
 
             raise DetectionError("feature rows must all have the same width")
         rng = random.Random(self.config.seed)
@@ -310,7 +310,7 @@ class IsolationForest:
 
     def raw_score(self, row: Sequence[float]) -> float:
         if not self._trees:
-            from detection.credential_compromise.exceptions import DetectionError
+            from algo.detection.credential_compromise.exceptions import DetectionError
 
             raise DetectionError("isolation forest is not fitted")
         expected = sum(self._path_length(row, tree, 0) for tree in self._trees) / len(self._trees)
@@ -360,7 +360,7 @@ class SupervisedAnomalyModel:
         label_source: str = "supplied",
     ) -> "SupervisedAnomalyModel":
         if len(rows) != len(labels) or not rows:
-            from detection.credential_compromise.exceptions import DetectionError
+            from algo.detection.credential_compromise.exceptions import DetectionError
 
             raise DetectionError(
                 "supervised model needs equal-length rows and labels",
@@ -400,7 +400,7 @@ class SupervisedAnomalyModel:
 
     def score_proba(self, row: Sequence[float]) -> float:
         if not self.fitted:
-            from detection.credential_compromise.exceptions import DetectionError
+            from algo.detection.credential_compromise.exceptions import DetectionError
 
             raise DetectionError("supervised model is not fitted")
         return round(self._sigmoid(self._dot(row) + self.bias), 6)

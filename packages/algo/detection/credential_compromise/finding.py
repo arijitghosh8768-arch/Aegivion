@@ -13,11 +13,11 @@ from __future__ import annotations
 
 from typing import Any, Optional, Sequence
 
-from detection.credential_compromise.arde import ArdeResult
-from detection.credential_compromise.attack_mapping import map_signals_to_attack
-from detection.credential_compromise.explainability import Explanation
-from detection.credential_compromise.model_registry import ComponentVersions
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.arde import ArdeResult
+from algo.detection.credential_compromise.attack_mapping import map_signals_to_attack
+from algo.detection.credential_compromise.explainability import Explanation
+from algo.detection.credential_compromise.model_registry import ComponentVersions
+from algo.detection.credential_compromise.schemas import (
     IdentityActivityEvent,
     IdentitySession,
     Severity,

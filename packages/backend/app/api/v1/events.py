@@ -30,7 +30,7 @@ def list_events(
         return {"events": [], "error": str(e)}
 
 @router.post("")
-def ingest_event(
+async def ingest_event(
     event_data: dict, 
     current_user: Dict[str, Any] = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -38,38 +38,30 @@ def ingest_event(
     user_org_id = get_current_organization(current_user, db)
     
     try:
-        # 1. Normalize and Validate (Pydantic validates inherently)
-        provider = event_data.get("provider", "aws").lower()
-        canonical_event = SecurityEventNormalizer.normalize(provider, event_data, user_org_id)
+        from app.services.security_event_ingestion_service import SecurityEventIngestionService
+        from security.engine.agent_controller import AegivionAgentController
         
-        # 2. Deduplicate
-        dedup = SecurityEventDeduplicator(supabase)
-        if dedup.is_duplicate(canonical_event):
-            return {"status": "ignored", "reason": "duplicate"}
-            
-        # 3. Persist Canonical Event (preserving original table compatibility)
-        insert_data = canonical_event.dict()
-        insert_data['timestamp'] = canonical_event.timestamp.isoformat()
+        # Instantiate controller 
+        agent_controller = AegivionAgentController(organization_id=user_org_id)
+        # Note: in a real environment this controller might be a singleton or retrieved from app state.
         
-        res = supabase.table("security_events").insert(insert_data).execute()
+        service = SecurityEventIngestionService(
+            db_client=supabase, 
+            db_session=db, 
+            agent_controller=agent_controller
+        )
         
-        # 4. Security Digital Twin Update
-        twin = SecurityDigitalTwin(db, user_org_id)
-        impact = twin.evaluate_event_impact(canonical_event)
-        
-        # 5. Detector Adapter
-        detector_results = SecurityEventDetectorAdapter.run_detectors(canonical_event, impact)
-        
-        # 6. Correlation Engine
-        storyline = SecurityEventCorrelator.correlate_signals(canonical_event, detector_results)
-        
-        # We stop here before Attack Activation Score
-        return {
-            "status": "accepted", 
-            "event_id": canonical_event.event_id, 
-            "impact": impact,
-            "detectors": detector_results,
-            "storyline": storyline.dict() if storyline else None
+        context = {
+            "organization_id": user_org_id,
+            "provider": event_data.get("provider", "aws")
         }
+        
+        result = await service.ingest(event_data, context)
+        
+        if result["status"] == "failed":
+            raise HTTPException(status_code=400, detail=result.get("reason"))
+            
+        return result
+        
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

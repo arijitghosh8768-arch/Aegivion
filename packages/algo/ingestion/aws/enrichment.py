@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Optional, Protocol, runtime_checkable
 
-from detection.credential_compromise.schemas import IpIntelligence
+from algo.detection.credential_compromise.schemas import IpIntelligence
 
 
 @runtime_checkable

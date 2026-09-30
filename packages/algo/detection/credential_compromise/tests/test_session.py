@@ -6,9 +6,9 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.credential_compromise.config import SessionConfig
-from detection.credential_compromise.exceptions import SessionBuildError
-from detection.credential_compromise.session import SessionBuilder, SessionTracker
+from algo.detection.credential_compromise.config import SessionConfig
+from algo.detection.credential_compromise.exceptions import SessionBuildError
+from algo.detection.credential_compromise.session import SessionBuilder, SessionTracker
 
 BASE = datetime(2026, 9, 20, 9, 0, 0, tzinfo=timezone.utc)
 
@@ -136,7 +136,7 @@ def test_tracker_exposes_and_closes_open_sessions():
 
 
 def _event(tracker: SessionTracker, *, event_id: str, offset_minutes: int, **overrides):
-    from detection.credential_compromise.schemas import (
+    from algo.detection.credential_compromise.schemas import (
         BaselineCategory,
         EventCategory,
         IdentityActivityEvent,

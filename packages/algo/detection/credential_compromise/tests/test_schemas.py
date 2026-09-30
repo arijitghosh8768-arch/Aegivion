@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     IdentityActivityEvent,
     fingerprint_secret,
     mask_secret,

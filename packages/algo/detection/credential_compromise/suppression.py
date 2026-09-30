@@ -21,9 +21,9 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.audit import AuditLog
-from detection.credential_compromise.config import SuppressionConfig
-from detection.credential_compromise.schemas import Severity, utcnow
+from algo.detection.credential_compromise.audit import AuditLog
+from algo.detection.credential_compromise.config import SuppressionConfig
+from algo.detection.credential_compromise.schemas import Severity, utcnow
 
 
 class SuppressionRule(BaseModel):

@@ -23,8 +23,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
-from detection.credential_compromise.config import FusionConfig, ScoringConfig
-from detection.credential_compromise.schemas import Severity
+from algo.detection.credential_compromise.config import FusionConfig, ScoringConfig
+from algo.detection.credential_compromise.schemas import Severity
 
 SEVERITY_NAMES = ("LOW", "MEDIUM", "HIGH", "CRITICAL")
 

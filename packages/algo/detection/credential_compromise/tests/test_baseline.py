@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.credential_compromise.baseline import (
+from algo.detection.credential_compromise.baseline import (
     build_profile,
     hour_key,
     ip_range_key,
@@ -16,9 +16,9 @@ from detection.credential_compromise.baseline import (
     update_profile,
     weekday_key,
 )
-from detection.credential_compromise.config import BaselineConfig
-from detection.credential_compromise.profile import BaselineSelection, initial_profile
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.config import BaselineConfig
+from algo.detection.credential_compromise.profile import BaselineSelection, initial_profile
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,

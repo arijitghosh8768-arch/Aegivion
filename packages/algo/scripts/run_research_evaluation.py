@@ -21,7 +21,7 @@ from research.evaluation import (
     evaluate_system,
     temporal_three_way_split,
 )
-from detection.credential_compromise.detector import CredentialCompromiseDetector
+from algo.detection.credential_compromise.detector import CredentialCompromiseDetector
 from research.performance import run_performance_benchmark
 from research.reporting import write_research_artifacts
 
@@ -90,8 +90,8 @@ def main() -> int:
     # Ablation: full pipeline minus one layer at a time.
     print("Running ablation study ...")
     ablation: dict = {}
-    from detection.credential_compromise.config import DetectorConfig, RuleEngineConfig
-    from detection.credential_compromise.rules import RULE_CATALOGUE
+    from algo.detection.credential_compromise.config import DetectorConfig, RuleEngineConfig
+    from algo.detection.credential_compromise.rules import RULE_CATALOGUE
 
     base_config = DetectorConfig()
 
@@ -113,7 +113,7 @@ def main() -> int:
     )
 
     # without privilege features: zero their weight in scoring
-    from detection.credential_compromise.config import DEFAULT_WEIGHTS, ScoringConfig
+    from algo.detection.credential_compromise.config import DEFAULT_WEIGHTS, ScoringConfig
 
     weights_no_priv = dict(DEFAULT_WEIGHTS)
     weights_no_priv["privilege"] = 0.0
@@ -129,7 +129,7 @@ def main() -> int:
     )
 
     # without temporal: zero the temporal weight in fusion
-    from detection.credential_compromise.config import FusionConfig
+    from algo.detection.credential_compromise.config import FusionConfig
 
     config_no_temporal = base_config.model_copy(
         deep=True,
@@ -154,7 +154,7 @@ def main() -> int:
     # then a late attack. The detector must adapt without learning the attack.
     print("Running drift simulation ...")
     from research.evaluation import drift_stream
-    from detection.credential_compromise.detector import DetectionMode
+    from algo.detection.credential_compromise.detector import DetectionMode
 
     compromise_scenarios = [s for s in scenarios if s.scenario == SCENARIO_COMPROMISE]
     drift_results = {}

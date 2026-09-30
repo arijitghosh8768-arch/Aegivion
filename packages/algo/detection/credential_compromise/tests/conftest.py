@@ -9,14 +9,14 @@ from typing import Any, Callable
 
 import pytest
 
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     BaselineCategory,
     EventCategory,
     IdentityActivityEvent,
     IdentityKind,
     PrincipalType,
 )
-from storage.database import (
+from algo.storage.database import (
     create_db_engine,
     create_session_factory,
     init_db,

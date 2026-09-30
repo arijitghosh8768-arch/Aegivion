@@ -12,8 +12,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.anomaly import FEATURE_VERSION
-from detection.credential_compromise.rules import RULE_CATALOGUE
+from algo.detection.credential_compromise.anomaly import FEATURE_VERSION
+from algo.detection.credential_compromise.rules import RULE_CATALOGUE
 
 #: Version of the rule catalogue semantics (ids + severity defaults).
 RULE_VERSION = "rules-r001-r014-v1"

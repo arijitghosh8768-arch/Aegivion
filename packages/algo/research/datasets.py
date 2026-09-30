@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,

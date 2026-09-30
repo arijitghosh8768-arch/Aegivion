@@ -6,16 +6,16 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.credential_compromise.baseline import build_profile
-from detection.credential_compromise.config import BaselineConfig, FeatureConfig, RuleEngineConfig
-from detection.credential_compromise.features import extract_features
-from detection.credential_compromise.profile import initial_profile
-from detection.credential_compromise.rules import (
+from algo.detection.credential_compromise.baseline import build_profile
+from algo.detection.credential_compromise.config import BaselineConfig, FeatureConfig, RuleEngineConfig
+from algo.detection.credential_compromise.features import extract_features
+from algo.detection.credential_compromise.profile import initial_profile
+from algo.detection.credential_compromise.rules import (
     RULE_CATALOGUE,
     RuleSignal,
     evaluate_rules,
 )
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,

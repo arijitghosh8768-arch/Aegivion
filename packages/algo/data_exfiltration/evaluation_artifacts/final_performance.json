@@ -1,0 +1,43 @@
+{
+  "batch": {
+    "avg_cpu_percent": null,
+    "avg_inference_ms": 0.089404,
+    "events": 750,
+    "events_per_second": 11185.16519,
+    "mode": "batch",
+    "note": "measured on the machine that produced this artifact; not a service-level guarantee",
+    "p95_inference_ms": 0.125166,
+    "peak_memory_mb": null,
+    "platform": {
+      "machine": "AMD64",
+      "processors": 8,
+      "psutil": false,
+      "python": "3.14.7",
+      "system": "Windows"
+    },
+    "sessions_out": 108,
+    "wall_seconds": 0.067053
+  },
+  "data_source": "final_stage_scenarios_15_families",
+  "note": "Wall-clock throughput measured on the machine that produced this artifact; not a service-level guarantee.",
+  "streaming": {
+    "avg_cpu_percent": null,
+    "avg_inference_ms": 0.063316,
+    "events": 624,
+    "events_per_second": 15793.869751,
+    "mode": "streaming",
+    "note": "measured on the machine that produced this artifact; not a service-level guarantee",
+    "p95_inference_ms": 0.088642,
+    "peak_memory_mb": null,
+    "platform": {
+      "machine": "AMD64",
+      "processors": 8,
+      "psutil": false,
+      "python": "3.14.7",
+      "system": "Windows"
+    },
+    "sessions_out": 111,
+    "wall_seconds": 0.039509
+  },
+  "synthetic": true
+}

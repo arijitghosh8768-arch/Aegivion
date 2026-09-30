@@ -20,12 +20,12 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Sequence
 
-from detection.credential_compromise.config import DetectorConfig
-from detection.credential_compromise.detector import (
+from algo.detection.credential_compromise.config import DetectorConfig
+from algo.detection.credential_compromise.detector import (
     CredentialCompromiseDetector,
     DetectionMode,
 )
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,
@@ -164,8 +164,8 @@ def run_performance_benchmark(
 def benchmark_database_latency(session_factory, *, n_events: int = 500) -> dict:
     """Optional: measure event-repository insert latency if storage is wired."""
     try:
-        from storage.event_repository import SqlEventRepository
-        from storage.database import init_db
+        from algo.storage.event_repository import SqlEventRepository
+        from algo.storage.database import init_db
     except ImportError:
         return {"available": False, "note": "storage layer not importable in this environment"}
 

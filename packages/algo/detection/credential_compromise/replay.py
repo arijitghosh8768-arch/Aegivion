@@ -21,16 +21,16 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional, Sequence
 
-from detection.credential_compromise.anomaly import (
+from algo.detection.credential_compromise.anomaly import (
     IsolationForest,
     build_feature_vector,
 )
-from detection.credential_compromise.config import DetectorConfig
-from detection.credential_compromise.detector import (
+from algo.detection.credential_compromise.config import DetectorConfig
+from algo.detection.credential_compromise.detector import (
     CredentialCompromiseDetector,
     DetectionMode,
 )
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,
@@ -337,8 +337,8 @@ def compare_configurations(
     # Train the forest on benign training rows (unsupervised: labels unused).
     forest = IsolationForest(config=config.anomaly)
     benign_rows: list[tuple[float, ...]] = []
-    from detection.credential_compromise.features import extract_features
-    from detection.credential_compromise.temporal import (
+    from algo.detection.credential_compromise.features import extract_features
+    from algo.detection.credential_compromise.temporal import (
         TemporalTracker,
         burst_score,
     )

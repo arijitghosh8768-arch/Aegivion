@@ -6,19 +6,19 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.credential_compromise.anomaly import IsolationForest
-from detection.credential_compromise.config import AnomalyConfig, DetectorConfig
-from detection.credential_compromise.detector import (
+from algo.detection.credential_compromise.anomaly import IsolationForest
+from algo.detection.credential_compromise.config import AnomalyConfig, DetectorConfig
+from algo.detection.credential_compromise.detector import (
     CredentialCompromiseDetector,
     DetectionMode,
 )
-from detection.credential_compromise.schemas import Severity
+from algo.detection.credential_compromise.schemas import Severity
 
 MONDAY = datetime(2026, 6, 1, 0, 0, tzinfo=timezone.utc)
 
 
 def persona_event(seq, *, identity, at, **overrides):
-    from detection.credential_compromise.schemas import (
+    from algo.detection.credential_compromise.schemas import (
         BaselineCategory,
         EventCategory,
         IdentityActivityEvent,
@@ -154,9 +154,9 @@ class TestEndToEndFinding:
         # Train the forest on the benign history rows (synthetic but unsupervised).
         import random
 
-        from detection.credential_compromise.anomaly import build_feature_vector
-        from detection.credential_compromise.features import extract_features
-        from detection.credential_compromise.temporal import TemporalTracker, burst_score
+        from algo.detection.credential_compromise.anomaly import build_feature_vector
+        from algo.detection.credential_compromise.features import extract_features
+        from algo.detection.credential_compromise.temporal import TemporalTracker, burst_score
 
         config = detector.config
         profile = detector._profiles[(identity, 30)]

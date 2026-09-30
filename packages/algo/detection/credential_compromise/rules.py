@@ -24,9 +24,9 @@ from typing import Any, Callable, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.config import BaselineConfig, FeatureConfig, RuleEngineConfig
-from detection.credential_compromise.features import BehavioralFeatures, FeatureValue
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.config import BaselineConfig, FeatureConfig, RuleEngineConfig
+from algo.detection.credential_compromise.features import BehavioralFeatures, FeatureValue
+from algo.detection.credential_compromise.schemas import (
     ApiFamilies,
     IdentityActivityEvent,
     Severity,

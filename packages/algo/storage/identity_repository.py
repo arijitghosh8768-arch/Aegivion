@@ -12,8 +12,8 @@ from typing import Any, Optional, Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import Session as OrmSession
 
-from detection.credential_compromise.profile import PeerCriteria
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.profile import PeerCriteria
+from algo.detection.credential_compromise.schemas import (
     BaselineCategory,
     BaselineQuality,
     CloudProvider,

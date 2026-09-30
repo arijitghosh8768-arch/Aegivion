@@ -14,9 +14,9 @@ from typing import Any, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.arde import ArdeResult
-from detection.credential_compromise.features import BehavioralFeatures
-from detection.credential_compromise.schemas import BaselineQuality
+from algo.detection.credential_compromise.arde import ArdeResult
+from algo.detection.credential_compromise.features import BehavioralFeatures
+from algo.detection.credential_compromise.schemas import BaselineQuality
 
 #: Human-readable labels for feature names (used in top_contributors).
 FEATURE_LABELS: dict[str, str] = {

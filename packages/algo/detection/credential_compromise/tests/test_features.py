@@ -6,14 +6,14 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.credential_compromise.baseline import build_profile
-from detection.credential_compromise.config import BaselineConfig, FeatureConfig, MaintenanceWindow
-from detection.credential_compromise.features import (
+from algo.detection.credential_compromise.baseline import build_profile
+from algo.detection.credential_compromise.config import BaselineConfig, FeatureConfig, MaintenanceWindow
+from algo.detection.credential_compromise.features import (
     distribution_probability,
     extract_features,
     novelty,
 )
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,
@@ -90,7 +90,7 @@ def good_profile(config):
         )
         for i in range(400)
     ]
-    from detection.credential_compromise.profile import initial_profile
+    from algo.detection.credential_compromise.profile import initial_profile
 
     profile = initial_profile(
         identity_key=IDENTITY,
@@ -161,7 +161,7 @@ def test_unusual_hour_raises_time_dimension(good_profile, config):
 def test_maintenance_window_dampens_time_anomaly(config):
     window = MaintenanceWindow(name="backup", start_hour=2, end_hour=5)
     night_config = BaselineConfig(maintenance_windows=(window,))
-    from detection.credential_compromise.profile import initial_profile
+    from algo.detection.credential_compromise.profile import initial_profile
 
     profile = build_profile(
         initial_profile(
@@ -218,7 +218,7 @@ def test_privilege_mutation_produces_privilege_signal(good_profile, config):
 
 
 def test_admin_baseline_dampens_privilege_signal(good_profile, config):
-    from detection.credential_compromise.profile import initial_profile
+    from algo.detection.credential_compromise.profile import initial_profile
 
     admin_profile = good_profile.model_copy(update={"normal_privilege_level": "ELEVATED"})
     analyst_profile = good_profile.model_copy(update={"normal_privilege_level": "NONE"})
@@ -251,7 +251,7 @@ def test_no_baseline_abstains_instead_of_inventing(config):
 
 
 def test_cold_start_profile_has_low_confidence(config):
-    from detection.credential_compromise.profile import initial_profile
+    from algo.detection.credential_compromise.profile import initial_profile
 
     thin = initial_profile(
         identity_key=IDENTITY,

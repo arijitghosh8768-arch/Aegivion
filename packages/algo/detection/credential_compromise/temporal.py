@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.schemas import (
     IdentityActivityEvent,
     ensure_utc,
 )

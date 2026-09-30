@@ -27,18 +27,18 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Callable, Optional, Sequence
 
-from detection.credential_compromise.anomaly import (
+from algo.detection.credential_compromise.anomaly import (
     IsolationForest,
     build_feature_vector,
 )
-from detection.credential_compromise.config import DetectorConfig
-from detection.credential_compromise.detector import (
+from algo.detection.credential_compromise.config import DetectorConfig
+from algo.detection.credential_compromise.detector import (
     CredentialCompromiseDetector,
     DetectionMode,
 )
-from detection.credential_compromise.features import extract_features
-from detection.credential_compromise.rules import evaluate_rules
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.features import extract_features
+from algo.detection.credential_compromise.rules import evaluate_rules
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,
@@ -47,7 +47,7 @@ from detection.credential_compromise.schemas import (
     IdentityKind,
     PrincipalType,
 )
-from detection.credential_compromise.temporal import TemporalTracker, burst_score
+from algo.detection.credential_compromise.temporal import TemporalTracker, burst_score
 
 from .datasets import Scenario
 from .metrics import (
@@ -110,7 +110,7 @@ class SystemScores:
 
 def _compile_intrinsic_rules(event: IdentityActivityEvent) -> tuple[float, list[dict]]:
     """System A scoring: only event-intrinsic rules can fire."""
-    from detection.credential_compromise.config import BaselineConfig
+    from algo.detection.credential_compromise.config import BaselineConfig
 
     # Event-intrinsic features do not need a baseline; pass None.
     features = extract_features(event, None, config=BaselineConfig())
@@ -155,7 +155,7 @@ class SystemRunner:
             features = extract_features(
                 event, profile, config=self.config.baseline, feature_config=self.config.features
             )
-            from detection.credential_compromise.scorer import calculate_risk
+            from algo.detection.credential_compromise.scorer import calculate_risk
 
             signals = evaluate_rules(
                 event, features, config=self.config.baseline,
@@ -255,7 +255,7 @@ class SystemRunner:
         self, detector: CredentialCompromiseDetector, train: Sequence[tuple[IdentityActivityEvent, int]]
     ) -> Optional[IsolationForest]:
         """Unsupervised fit on benign training rows (labels intentionally unused)."""
-        from detection.credential_compromise.temporal import TemporalTracker
+        from algo.detection.credential_compromise.temporal import TemporalTracker
 
         window = self.config.baseline.primary_window_days
         tracker = TemporalTracker()

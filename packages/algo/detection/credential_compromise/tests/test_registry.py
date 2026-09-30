@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from detection.credential_compromise.exceptions import UnsupportedEventSourceError
-from detection.credential_compromise.normalizer import (
+from algo.detection.credential_compromise.exceptions import UnsupportedEventSourceError
+from algo.detection.credential_compromise.normalizer import (
     NormalizerRegistry,
     default_registry,
 )
-from detection.credential_compromise.schemas import CloudProvider
+from algo.detection.credential_compromise.schemas import CloudProvider
 
 
 class FakeNormalizer:

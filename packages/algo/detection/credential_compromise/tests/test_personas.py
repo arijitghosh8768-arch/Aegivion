@@ -16,16 +16,16 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.credential_compromise.baseline import (
+from algo.detection.credential_compromise.baseline import (
     build_profile,
     select_effective_baseline,
     update_profile,
 )
-from detection.credential_compromise.config import BaselineConfig, FeatureConfig, RuleEngineConfig
-from detection.credential_compromise.features import extract_features
-from detection.credential_compromise.profile import BaselineSelection, initial_profile
-from detection.credential_compromise.rules import evaluate_rules
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.config import BaselineConfig, FeatureConfig, RuleEngineConfig
+from algo.detection.credential_compromise.features import extract_features
+from algo.detection.credential_compromise.profile import BaselineSelection, initial_profile
+from algo.detection.credential_compromise.rules import evaluate_rules
+from algo.detection.credential_compromise.schemas import (
     AccessType,
     ApiFamilies,
     BaselineCategory,
@@ -35,7 +35,7 @@ from detection.credential_compromise.schemas import (
     PrincipalType,
     Severity,
 )
-from detection.credential_compromise.scorer import calculate_risk, severity_for
+from algo.detection.credential_compromise.scorer import calculate_risk, severity_for
 
 MONDAY = datetime(2026, 6, 1, 0, 0, tzinfo=timezone.utc)
 

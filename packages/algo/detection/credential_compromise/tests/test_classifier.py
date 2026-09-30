@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from detection.credential_compromise.schemas import AccessType, ApiFamilies, EventCategory
-from ingestion.aws.cloudtrail import AwsApiClassifier
+from algo.detection.credential_compromise.schemas import AccessType, ApiFamilies, EventCategory
+from algo.ingestion.aws.cloudtrail import AwsApiClassifier
 
 
 @pytest.fixture

@@ -7,7 +7,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from detection.credential_compromise.config import (
+from algo.detection.credential_compromise.config import (
     DEFAULT_WEIGHTS,
     BaselineConfig,
     DetectorConfig,
@@ -15,7 +15,7 @@ from detection.credential_compromise.config import (
     SessionConfig,
     load_config,
 )
-from detection.credential_compromise.exceptions import ConfigurationError
+from algo.detection.credential_compromise.exceptions import ConfigurationError
 
 
 def test_default_weights_sum_to_one():

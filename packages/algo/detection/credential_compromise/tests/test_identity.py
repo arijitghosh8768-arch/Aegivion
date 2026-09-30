@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from detection.credential_compromise.exceptions import IdentityResolutionError
-from detection.credential_compromise.identity import IdentityResolver
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.exceptions import IdentityResolutionError
+from algo.detection.credential_compromise.identity import IdentityResolver
+from algo.detection.credential_compromise.schemas import (
     BaselineCategory,
     IdentityKind,
     PrincipalType,

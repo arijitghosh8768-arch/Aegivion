@@ -19,27 +19,42 @@ from security.engine.minimum_impact_response_engine import MinimumImpactResponse
 from security.models.response_policy_schema import GateDecision
 from security.engine.response_action_gate import ResponseActionGate
 
-# Mocking Detectors to simulate actual signal findings from the events
-import security.engine.attack_algorithms as algs
+from security.engine.detectors.credential_compromise_adapter import CredentialCompromiseAdapter
+from security.engine.detectors.data_exfiltration_adapter import DataExfiltrationAdapter
+from algo.detection.credential_compromise.detector import CredentialCompromiseDetector, DetectionResult
+from algo.detection.credential_compromise.schemas import Severity
+from algo.data_exfiltration.data_exfiltration.detector import DataExfiltrationDetector
 
-def mock_cred_detect(events):
-    # If PutUserPolicy or ConsoleLogin, trigger
-    results = []
-    for e in events:
-        if e.get("event_name") in ["ConsoleLogin", "PutUserPolicy"]:
-            results.append({"risk": "high", "rule": "credential_compromise_or_privesc"})
-    return results
+from security.engine.detectors.base import DetectionResult, DetectionEvidence
 
-def mock_exfil_detect(events, assets):
-    results = []
-    for e in events:
-        if e.get("event_name") == "GetObject":
-            results.append({"risk": "critical", "rule": "data_exfiltration"})
-    return results
+def mock_cred_adapter_evaluate(self, event, twin_context):
+    if event.action in ["ConsoleLogin", "PutUserPolicy"]:
+        return DetectionResult(
+            detector_name="CredentialCompromiseAdapter",
+            attack_type="CREDENTIAL_COMPROMISE",
+            is_suspicious=True,
+            confidence_score=0.9,
+            actor_id="test",
+            affected_resources=[],
+            evidence=[DetectionEvidence(event_id="1", description="credential_compromise_or_privesc", severity="HIGH", timestamp=event.timestamp)]
+        )
+    return DetectionResult(detector_name="CredentialCompromiseAdapter", attack_type="CREDENTIAL_COMPROMISE", is_suspicious=False, confidence_score=0, actor_id="test", affected_resources=[], evidence=[])
 
-algs.detect_credential_compromise = mock_cred_detect
-algs.detect_data_exfiltration = mock_exfil_detect
-algs.detect_ransomware = lambda x, y: []
+def mock_exfil_adapter_evaluate(self, event, twin_context):
+    if event.action == "GetObject":
+        return DetectionResult(
+            detector_name="DataExfiltrationAdapter",
+            attack_type="DATA_EXFILTRATION",
+            is_suspicious=True,
+            confidence_score=0.9,
+            actor_id="test",
+            affected_resources=[],
+            evidence=[DetectionEvidence(event_id="1", description="data_exfiltration", severity="HIGH", timestamp=event.timestamp)]
+        )
+    return DetectionResult(detector_name="DataExfiltrationAdapter", attack_type="DATA_EXFILTRATION", is_suspicious=False, confidence_score=0, actor_id="test", affected_resources=[], evidence=[])
+
+CredentialCompromiseAdapter.evaluate = mock_cred_adapter_evaluate
+DataExfiltrationAdapter.evaluate = mock_exfil_adapter_evaluate
 
 
 class TestPart2V2Integration(unittest.TestCase):
@@ -53,10 +68,7 @@ class TestPart2V2Integration(unittest.TestCase):
 
     @patch('security.engine.security_event_deduplicator.supabase')
     @patch('app.database.supabase_client.supabase')
-    @patch('security.engine.security_event_detector_adapter.detect_credential_compromise', side_effect=mock_cred_detect)
-    @patch('security.engine.security_event_detector_adapter.detect_data_exfiltration', side_effect=mock_exfil_detect)
-    @patch('security.engine.security_event_detector_adapter.detect_ransomware', return_value=[])
-    def test_full_pipeline_integration(self, mock_rw, mock_exfil, mock_cred, mock_db1, mock_db2):
+    def test_full_pipeline_integration(self, mock_db1, mock_db2):
         # Setup mocks to act like new events and no DB state needed
         mock_db1.table().select().eq().eq().execute.return_value.data = []
         dedup = SecurityEventDeduplicator(db_client=mock_db1)
@@ -81,10 +93,34 @@ class TestPart2V2Integration(unittest.TestCase):
             # In a real integration this evaluates impact, we'll mock it simply
             twin_context["target_context"] = {"arn": canonical_event.target, "sensitivity": "high"}
             
+            # Convert canonical_event (SecurityEventSchema) to SecurityEvent for the new adapters
+            from app.models.security_event import SecurityEvent as AppSecurityEvent
+            import uuid
+            app_event = AppSecurityEvent(
+                event_id=canonical_event.event_id or str(uuid.uuid4()),
+                organization_id=canonical_event.organization_id,
+                event_type="CLOUD_EVENT",
+                timestamp=canonical_event.timestamp,
+                source={"ip_address": canonical_event.source},
+                action=canonical_event.action,
+                actor={"native_id": canonical_event.actor},
+                target={"native_id": canonical_event.target},
+                provider=canonical_event.provider,
+                account_id=canonical_event.cloud_account_id,
+                metadata=canonical_event.metadata or {}
+            )
+            
             # Step D: Detectors
-            detector_results = SecurityEventDetectorAdapter.run_detectors(canonical_event, twin_context)
-            for k in accumulated_signals.keys():
-                accumulated_signals[k].extend(detector_results.get(k, []))
+            from security.engine.detectors.credential_compromise_adapter import CredentialCompromiseAdapter
+            from security.engine.detectors.data_exfiltration_adapter import DataExfiltrationAdapter
+            adapters = [CredentialCompromiseAdapter(), DataExfiltrationAdapter()]
+            for adapter in adapters:
+                res = adapter.evaluate(app_event, twin_context)
+                if res.is_suspicious:
+                    # In v1 correlator expects a dict with signals
+                    accumulated_signals[res.attack_type.lower()].extend(
+                        [{"rule": ev.description} for ev in res.evidence]
+                    )
 
         self.assertEqual(len(canonical_events), 4)
 

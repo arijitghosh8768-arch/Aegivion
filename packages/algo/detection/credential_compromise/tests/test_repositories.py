@@ -7,8 +7,8 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy import select
 
-from detection.credential_compromise.profile import PeerCriteria
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.profile import PeerCriteria
+from algo.detection.credential_compromise.schemas import (
     BaselineCategory,
     BaselineQuality,
     CloudProvider,
@@ -17,10 +17,10 @@ from detection.credential_compromise.schemas import (
     PrincipalType,
     Severity,
 )
-from storage.finding_repository import FindingRecord, SqlFindingRepository
-from storage.event_repository import SqlEventRepository
-from storage.identity_repository import SqlIdentityProfileRepository
-from storage.models import BaselineVersionRow
+from algo.storage.finding_repository import FindingRecord, SqlFindingRepository
+from algo.storage.event_repository import SqlEventRepository
+from algo.storage.identity_repository import SqlIdentityProfileRepository
+from algo.storage.models import BaselineVersionRow
 
 NOW = datetime(2026, 9, 20, 9, 0, tzinfo=timezone.utc)
 
@@ -37,7 +37,7 @@ def _profile(
     principal_type: PrincipalType = PrincipalType.IAM_USER,
     identity_kind: IdentityKind = IdentityKind.HUMAN,
 ):
-    from detection.credential_compromise.schemas import IdentityProfile
+    from algo.detection.credential_compromise.schemas import IdentityProfile
 
     return IdentityProfile(
         identity_key=identity_key,

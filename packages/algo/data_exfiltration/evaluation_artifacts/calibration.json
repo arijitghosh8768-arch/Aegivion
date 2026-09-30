@@ -1,0 +1,89 @@
+{
+  "bins": [
+    {
+      "bin": 0,
+      "count": 42,
+      "fraction_positive": 0.0,
+      "lower": 0.0,
+      "mean_predicted": 0.0567,
+      "upper": 0.1
+    },
+    {
+      "bin": 1,
+      "count": 7,
+      "fraction_positive": 0.0,
+      "lower": 0.1,
+      "mean_predicted": 0.150143,
+      "upper": 0.2
+    },
+    {
+      "bin": 2,
+      "count": 7,
+      "fraction_positive": 0.0,
+      "lower": 0.2,
+      "mean_predicted": 0.228186,
+      "upper": 0.3
+    },
+    {
+      "bin": 3,
+      "count": 0,
+      "fraction_positive": null,
+      "lower": 0.3,
+      "mean_predicted": null,
+      "upper": 0.4
+    },
+    {
+      "bin": 4,
+      "count": 0,
+      "fraction_positive": null,
+      "lower": 0.4,
+      "mean_predicted": null,
+      "upper": 0.5
+    },
+    {
+      "bin": 5,
+      "count": 12,
+      "fraction_positive": 1.0,
+      "lower": 0.5,
+      "mean_predicted": 0.558867,
+      "upper": 0.6
+    },
+    {
+      "bin": 6,
+      "count": 3,
+      "fraction_positive": 1.0,
+      "lower": 0.6,
+      "mean_predicted": 0.613267,
+      "upper": 0.7
+    },
+    {
+      "bin": 7,
+      "count": 2,
+      "fraction_positive": 1.0,
+      "lower": 0.7,
+      "mean_predicted": 0.78675,
+      "upper": 0.8
+    },
+    {
+      "bin": 8,
+      "count": 11,
+      "fraction_positive": 1.0,
+      "lower": 0.8,
+      "mean_predicted": 0.846009,
+      "upper": 0.9
+    },
+    {
+      "bin": 9,
+      "count": 2,
+      "fraction_positive": 1.0,
+      "lower": 0.9,
+      "mean_predicted": 0.9052,
+      "upper": 1.0
+    }
+  ],
+  "brier_score": 0.044524,
+  "expected_calibration_error": 0.16039,
+  "note": "risk_score treated as probability ONLY for measurement; findings keep risk and confidence separate",
+  "synthetic": true,
+  "variant": "B"
+}

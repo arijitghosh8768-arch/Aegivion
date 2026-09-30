@@ -29,9 +29,9 @@ from typing import Any, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.credential_compromise.config import ArdeConfig
-from detection.credential_compromise.features import BehavioralFeatures
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.config import ArdeConfig
+from algo.detection.credential_compromise.features import BehavioralFeatures
+from algo.detection.credential_compromise.schemas import (
     IdentityActivityEvent,
     IdentityProfile,
     IdentitySession,

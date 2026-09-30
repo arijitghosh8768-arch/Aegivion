@@ -1,8 +1,9 @@
 import pytest
 from app.services.security_event_ingestion_service import SecurityEventIngestionService
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
-def test_aws_real_event_ingestion_idempotency():
+@pytest.mark.asyncio
+async def test_aws_real_event_ingestion_idempotency():
     mock_db_client = MagicMock()
     mock_db_session = MagicMock()
     
@@ -30,7 +31,7 @@ def test_aws_real_event_ingestion_idempotency():
     }
     
     # First ingestion (should store and trigger twin update)
-    result = service.ingest(raw_cloudtrail_event, trusted_context)
+    result = await service.ingest(raw_cloudtrail_event, trusted_context)
     assert result["status"] == "stored"
     assert result["organization_id"] == "ORG-VALID"
     mock_table.insert.assert_called_once()
@@ -39,19 +40,20 @@ def test_aws_real_event_ingestion_idempotency():
     mock_table.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = [{"event_id": result["event_id"]}]
     
     # Second ingestion (should deduplicate and skip DB / Twin update)
-    result2 = service.ingest(raw_cloudtrail_event, trusted_context)
+    result2 = await service.ingest(raw_cloudtrail_event, trusted_context)
     assert result2["status"] == "duplicate"
     # insert should still only have been called once
     mock_table.insert.assert_called_once()
-    
-def test_tenant_isolation_enforcement():
+
+@pytest.mark.asyncio
+async def test_tenant_isolation_enforcement():
     mock_db_client = MagicMock()
     mock_db_session = MagicMock()
     service = SecurityEventIngestionService(mock_db_client, mock_db_session)
     
     # Attempt to ingest without trusted organization context
     bad_context = {"provider": "aws"}
-    result = service.ingest({"eventName": "AssumeRole"}, bad_context)
+    result = await service.ingest({"eventName": "AssumeRole"}, bad_context)
     
     assert result["status"] == "rejected"
     assert "Missing trusted organization context" in result["reason"]

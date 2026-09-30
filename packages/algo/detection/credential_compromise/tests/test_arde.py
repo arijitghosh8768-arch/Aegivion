@@ -7,11 +7,11 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from pydantic import ValidationError
 
-from detection.credential_compromise.arde import ArdeInput, validate_finding
-from detection.credential_compromise.config import ArdeConfig
-from detection.credential_compromise.exceptions import ConfigurationError
-from detection.credential_compromise.features import BehavioralFeatures, FeatureValue
-from detection.credential_compromise.schemas import (
+from algo.detection.credential_compromise.arde import ArdeInput, validate_finding
+from algo.detection.credential_compromise.config import ArdeConfig
+from algo.detection.credential_compromise.exceptions import ConfigurationError
+from algo.detection.credential_compromise.features import BehavioralFeatures, FeatureValue
+from algo.detection.credential_compromise.schemas import (
     BaselineCategory,
     EventCategory,
     IdentityActivityEvent,

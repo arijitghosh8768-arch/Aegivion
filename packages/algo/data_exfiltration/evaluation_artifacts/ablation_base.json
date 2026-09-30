@@ -1,0 +1,51 @@
+{
+  "ablation": {
+    "A": {
+      "components": [
+        "rules"
+      ],
+      "delta_f1_vs_A": 0.0,
+      "delta_fpr_vs_A": 0,
+      "delta_pr_auc_vs_A": 0.0,
+      "delta_precision_vs_A": 0.0,
+      "delta_recall_vs_A": 0.0
+    },
+    "B": {
+      "components": [
+        "rules",
+        "baseline_fusion"
+      ],
+      "delta_f1_vs_A": -0.115385,
+      "delta_fpr_vs_A": 0,
+      "delta_pr_auc_vs_A": 0.0,
+      "delta_precision_vs_A": 0.0,
+      "delta_recall_vs_A": -0.206897
+    },
+    "C": {
+      "components": [
+        "rules",
+        "baseline_fusion",
+        "isolation_forest"
+      ],
+      "delta_f1_vs_A": -0.045045,
+      "delta_fpr_vs_A": 0,
+      "delta_pr_auc_vs_A": 0.0,
+      "delta_precision_vs_A": 0.0,
+      "delta_recall_vs_A": -0.086207
+    },
+    "D": {
+      "components": [
+        "rules",
+        "baseline_fusion",
+        "isolation_forest",
+        "supervised"
+      ],
+      "delta_f1_vs_A": -0.045045,
+      "delta_fpr_vs_A": 0,
+      "delta_pr_auc_vs_A": 0.0,
+      "delta_precision_vs_A": 0.0,
+      "delta_recall_vs_A": -0.086207
+    }
+  },
+  "baseline_variant": "A"
+}

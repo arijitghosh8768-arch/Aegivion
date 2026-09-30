@@ -1,0 +1,530 @@
+{
+  "A": {
+    "note": "threshold sweep over test-period risk scores",
+    "pr_auc": 1.0,
+    "sweep": [
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.0
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.05
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.1
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.15
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.2
+      },
+      {
+        "fpr": 0.122807,
+        "precision": 0.805556,
+        "recall": 1.0,
+        "threshold": 0.25
+      },
+      {
+        "fpr": 0.122807,
+        "precision": 0.805556,
+        "recall": 1.0,
+        "threshold": 0.3
+      },
+      {
+        "fpr": 0.122807,
+        "precision": 0.805556,
+        "recall": 1.0,
+        "threshold": 0.35
+      },
+      {
+        "fpr": 0.122807,
+        "precision": 0.805556,
+        "recall": 1.0,
+        "threshold": 0.4
+      },
+      {
+        "fpr": 0.122807,
+        "precision": 0.805556,
+        "recall": 1.0,
+        "threshold": 0.45
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.5
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.965517,
+        "threshold": 0.55
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.87931,
+        "threshold": 0.6
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.775862,
+        "threshold": 0.65
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.672414,
+        "threshold": 0.7
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.586207,
+        "threshold": 0.75
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.396552,
+        "threshold": 0.8
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.293103,
+        "threshold": 0.85
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.206897,
+        "threshold": 0.9
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.068966,
+        "threshold": 0.95
+      },
+      {
+        "fpr": 0.0,
+        "precision": null,
+        "recall": 0.0,
+        "threshold": 1.0
+      }
+    ]
+  },
+  "B": {
+    "note": "threshold sweep over test-period risk scores",
+    "pr_auc": 1.0,
+    "sweep": [
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.0
+      },
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.05
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.1
+      },
+      {
+        "fpr": 0.184211,
+        "precision": 0.734177,
+        "recall": 1.0,
+        "threshold": 0.15
+      },
+      {
+        "fpr": 0.122807,
+        "precision": 0.805556,
+        "recall": 1.0,
+        "threshold": 0.2
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.25
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.3
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.35
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.4
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.913793,
+        "threshold": 0.45
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.793103,
+        "threshold": 0.5
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.672414,
+        "threshold": 0.55
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.551724,
+        "threshold": 0.6
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.5,
+        "threshold": 0.65
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.413793,
+        "threshold": 0.7
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.310345,
+        "threshold": 0.75
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.224138,
+        "threshold": 0.8
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.12069,
+        "threshold": 0.85
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.034483,
+        "threshold": 0.9
+      },
+      {
+        "fpr": 0.0,
+        "precision": null,
+        "recall": 0.0,
+        "threshold": 0.95
+      },
+      {
+        "fpr": 0.0,
+        "precision": null,
+        "recall": 0.0,
+        "threshold": 1.0
+      }
+    ]
+  },
+  "C": {
+    "note": "threshold sweep over test-period risk scores",
+    "pr_auc": 1.0,
+    "sweep": [
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.0
+      },
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.05
+      },
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.1
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.15
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.2
+      },
+      {
+        "fpr": 0.122807,
+        "precision": 0.805556,
+        "recall": 1.0,
+        "threshold": 0.25
+      },
+      {
+        "fpr": 0.061404,
+        "precision": 0.892308,
+        "recall": 1.0,
+        "threshold": 0.3
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.35
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.4
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.45
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.913793,
+        "threshold": 0.5
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.775862,
+        "threshold": 0.55
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.655172,
+        "threshold": 0.6
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.534483,
+        "threshold": 0.65
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.465517,
+        "threshold": 0.7
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.362069,
+        "threshold": 0.75
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.258621,
+        "threshold": 0.8
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.155172,
+        "threshold": 0.85
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.051724,
+        "threshold": 0.9
+      },
+      {
+        "fpr": 0.0,
+        "precision": null,
+        "recall": 0.0,
+        "threshold": 0.95
+      },
+      {
+        "fpr": 0.0,
+        "precision": null,
+        "recall": 0.0,
+        "threshold": 1.0
+      }
+    ]
+  },
+  "D": {
+    "note": "threshold sweep over test-period risk scores",
+    "pr_auc": 1.0,
+    "sweep": [
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.0
+      },
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.05
+      },
+      {
+        "fpr": 1.0,
+        "precision": 0.337209,
+        "recall": 1.0,
+        "threshold": 0.1
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.15
+      },
+      {
+        "fpr": 0.254386,
+        "precision": 0.666667,
+        "recall": 1.0,
+        "threshold": 0.2
+      },
+      {
+        "fpr": 0.122807,
+        "precision": 0.805556,
+        "recall": 1.0,
+        "threshold": 0.25
+      },
+      {
+        "fpr": 0.061404,
+        "precision": 0.892308,
+        "recall": 1.0,
+        "threshold": 0.3
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.35
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.4
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "threshold": 0.45
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.913793,
+        "threshold": 0.5
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.775862,
+        "threshold": 0.55
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.655172,
+        "threshold": 0.6
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.534483,
+        "threshold": 0.65
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.465517,
+        "threshold": 0.7
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.362069,
+        "threshold": 0.75
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.258621,
+        "threshold": 0.8
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.155172,
+        "threshold": 0.85
+      },
+      {
+        "fpr": 0.0,
+        "precision": 1.0,
+        "recall": 0.051724,
+        "threshold": 0.9
+      },
+      {
+        "fpr": 0.0,
+        "precision": null,
+        "recall": 0.0,
+        "threshold": 0.95
+      },
+      {
+        "fpr": 0.0,
+        "precision": null,
+        "recall": 0.0,
+        "threshold": 1.0
+      }
+    ]
+  }
+}

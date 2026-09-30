@@ -30,11 +30,24 @@ from security.engine.response_action_gate import ResponseActionGate
 from security.engine.safe_response_executor import SafeResponseExecutor
 from security.engine.security_replay_engine import SecurityReplayEngine
 
-# Mocking the attack algorithms which might try to hit the DB or other things
-import security.engine.attack_algorithms as algs
-algs.detect_credential_compromise = lambda x: [{"risk": "high"}]
-algs.detect_data_exfiltration = lambda x, y: []
-algs.detect_ransomware = lambda x, y: []
+# Mocking the new canonical algorithms
+from algo.detection.credential_compromise.detector import CredentialCompromiseDetector, DetectionResult
+from algo.detection.credential_compromise.schemas import Severity
+from algo.data_exfiltration.data_exfiltration.detector import DataExfiltrationDetector
+
+def mock_cred_detect(self, event, mode, session=None):
+    res = DetectionResult(event_id=event.event_id, risk=90.0, confidence=0.9, severity=Severity.HIGH, is_finding=True)
+    res.finding = {"signals": [{"description": "High risk credential compromise"}]}
+    return res
+
+CredentialCompromiseDetector.detect = mock_cred_detect
+
+def mock_exfil_detect(self, event, mode, session=None):
+    res = DetectionResult(event_id=event.event_id, risk=90.0, confidence=0.9, severity=Severity.HIGH, is_finding=True)
+    res.finding = {"signals": [{"description": "High risk data exfiltration"}]}
+    return res
+
+DataExfiltrationDetector.detect = mock_exfil_detect
 
 class TestPart2V1(unittest.TestCase):
     def setUp(self):
@@ -108,18 +121,20 @@ class TestPart2V1(unittest.TestCase):
             self.assertTrue(is_dup_again)
         
     def test_detector_adapter(self):
-        event = SecurityEventSchema(
-            event_id="e2", organization_id=self.org_id, cloud_account_id="acc1",
-            provider="aws", timestamp="2026-01-01T00:00:00Z",
-            actor="user1", source="1.1.1.1",
-            action="GetObject", target="s3-bucket", metadata={}
-        )
-        # Adapter utilizes attack algorithms which we mocked globally
-        results = SecurityEventDetectorAdapter.run_detectors(event)
-        self.assertIn("credential_compromise", results)
-        self.assertIn("data_exfiltration", results)
-        self.assertIn("ransomware", results)
+        from app.models.security_event import SecurityEvent
+        from security.engine.detectors.credential_compromise_adapter import CredentialCompromiseAdapter
         
+        event = SecurityEvent(
+            event_id="e2", organization_id=self.org_id, account_id="acc1",
+            provider="aws", timestamp="2026-01-01T00:00:00Z",
+            actor={"native_id": "user1"}, source={"ip_address": "1.1.1.1"},
+            action="ConsoleLogin", target="s3-bucket", metadata={}
+        )
+        
+        adapter = CredentialCompromiseAdapter()
+        result = adapter.evaluate(event, twin_context={})
+        self.assertEqual(result.attack_type, "CREDENTIAL_COMPROMISE")
+        self.assertTrue(result.is_suspicious)
     def test_correlator(self):
         event = SecurityEventSchema(
             event_id="e3", organization_id=self.org_id, cloud_account_id="acc1",

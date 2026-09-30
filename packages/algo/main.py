@@ -1,5 +1,5 @@
 import uvicorn
-from api.server import create_fastapi_app
+from algo.api.server import create_fastapi_app
 
 app = create_fastapi_app()
 

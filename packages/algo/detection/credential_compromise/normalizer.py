@@ -81,7 +81,7 @@ def default_registry() -> NormalizerRegistry:
     The AWS adapter is imported lazily so that importing this module never
     pulls in provider code.
     """
-    from ingestion.aws.cloudtrail import CloudTrailNormalizer
+    from algo.ingestion.aws.cloudtrail import CloudTrailNormalizer
 
     normalizer = CloudTrailNormalizer()
     # ``CloudTrailNormalizer`` implements the protocol; ``provider`` is declared
