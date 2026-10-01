@@ -34,6 +34,9 @@ from security.engine.minimum_impact_response import MinimumImpactResponseOptimiz
 from security.engine.response_safety_policy import ResponseSafetyPolicyEngine, ResponseSafetyPolicy, ResponseTarget, ResponseDecision
 from security.engine.execution_orchestrator import ExecutionOrchestrator, ExecutionRequest
 from security.engine.execution_contract import PrivilegeTarget, PrivilegeExpectedState
+from security.engine.aws_verification_engine import AWSVerificationEngine, VerificationStatus
+from security.engine.twin_reconciliation_engine import TwinReconciliationEngine
+from security.engine.twin_context_assembler import TwinContextAssembler
 
 logger = logging.getLogger(__name__)
 
@@ -320,8 +323,9 @@ class EventIngestionWorker(AsyncQueueWorker):
 
 
 class DetectionCorrelationWorker(AsyncQueueWorker):
-    def __init__(self, worker_id: str, organization_id: str, mode: AgentMode = AgentMode.OBSERVE_ONLY):
+    def __init__(self, worker_id: str, organization_id: str, mode: AgentMode = AgentMode.OBSERVE_ONLY, digital_twin = None):
         super().__init__(worker_id, WorkerType.DETECTION_CORRELATION, organization_id, mode=mode)
+        self.digital_twin = digital_twin
         self.detectors = [
             CredentialCompromiseAdapter(),
             DataExfiltrationAdapter(),
@@ -353,10 +357,17 @@ class DetectionCorrelationWorker(AsyncQueueWorker):
             timestamp=datetime.now(timezone.utc),
             source={"ip_address": "192.168.1.1"}, # Mock or parse
             action="mock_action",
-            actor={"identity": payload.get("actor_id")}
+            actor={"identity": payload.get("actor_id")},
+            target={"native_id": payload.get("target_id")}
         )
         
-        twin_context = {"known_ips": [], "recent_failed_logins": 0}
+        assembler = TwinContextAssembler()
+        twin_context = assembler.assemble(
+            organization_id=self.organization_id,
+            actor_id=payload.get("actor_id"),
+            target_id=payload.get("target_id"),
+            digital_twin=self.digital_twin
+        )
         
         detections = []
         suspicious_count = 0
@@ -508,12 +519,24 @@ class ActivationRiskWorker(AsyncQueueWorker):
 
 
 class ResponseVerificationWorker(AsyncQueueWorker):
-    def __init__(self, worker_id: str, organization_id: str, mode: AgentMode = AgentMode.OBSERVE_ONLY):
+    def __init__(
+        self,
+        worker_id: str,
+        organization_id: str,
+        mode: AgentMode = AgentMode.OBSERVE_ONLY,
+        verifier: AWSVerificationEngine = None,
+        reconciler: TwinReconciliationEngine = None,
+    ):
         super().__init__(worker_id, WorkerType.RESPONSE_VERIFICATION, organization_id, mode=mode)
         self.sim_engine = WhatIfSimulationEngine()
         self.optimizer = MinimumImpactResponseOptimizer()
         self.safety = ResponseSafetyPolicyEngine()
         self.orchestrator = ExecutionOrchestrator()
+        # Phase 5B: optional verification + reconciliation pipeline.
+        # When both are provided, post-execution verification triggers Twin reconciliation.
+        # When either is None, the worker operates without reconciliation (all existing tests pass).
+        self._verifier: AWSVerificationEngine = verifier
+        self._reconciler: TwinReconciliationEngine = reconciler
 
     async def process_event(self, event: AgentEvent):
         if event.event_type != "ACTIVATION_ANALYSIS_COMPLETED":
@@ -665,6 +688,48 @@ class ResponseVerificationWorker(AsyncQueueWorker):
             
             try:
                 exec_res = self.orchestrator.execute(exec_req, "mock_adapter")
+                exec_res_dict = exec_res.dict() if hasattr(exec_res, "dict") else exec_res.model_dump()
+
+                # Phase 5B: Verify execution then reconcile Twin state.
+                # Pathway: execute → AWSVerificationEngine.verify() → if VERIFIED
+                #          → TwinReconciliationEngine.reconcile() → ConcreteTwinAdapter
+                #          → TwinPersistenceRepository → Database
+                verification_dict = {"status": "SKIPPED", "reason": "No verifier configured"}
+                reconciliation_dict = {"reconciled": False, "reason": "No reconciler configured"}
+
+                if self._verifier is not None and exec_req is not None:
+                    try:
+                        verification_result = self._verifier.verify(exec_req)
+                        verification_dict = {
+                            "status": verification_result.status.value,
+                            "reason": verification_result.reason,
+                            "verified_at": verification_result.verified_at.isoformat(),
+                        }
+
+                        if (
+                            verification_result.status == VerificationStatus.VERIFIED
+                            and self._reconciler is not None
+                        ):
+                            try:
+                                rec_result = self._reconciler.reconcile(exec_req, verification_result)
+                                reconciliation_dict = {
+                                    "reconciled": rec_result.reconciled,
+                                    "reason": rec_result.reason,
+                                    "changes": len(rec_result.changes),
+                                }
+                            except Exception as rec_err:
+                                logger.warning(
+                                    f"[ResponseVerificationWorker] Twin reconciliation failed "
+                                    f"for execution {exec_req.execution_id}: {rec_err}"
+                                )
+                                reconciliation_dict = {"reconciled": False, "reason": str(rec_err)}
+                    except Exception as ver_err:
+                        logger.warning(
+                            f"[ResponseVerificationWorker] Post-execution verification failed "
+                            f"for execution {exec_req.execution_id}: {ver_err}"
+                        )
+                        verification_dict = {"status": "ERROR", "reason": str(ver_err)}
+
                 exec_event = AgentEvent(
                     event_id=f"EXC-{uuid.uuid4().hex[:8]}",
                     organization_id=self.organization_id,
@@ -672,8 +737,12 @@ class ResponseVerificationWorker(AsyncQueueWorker):
                     occurred_at=datetime.now(timezone.utc),
                     source=EventSource.VERIFICATION,
                     correlation_id=event.correlation_id,
-                    payload={"execution_result": exec_res.dict() if hasattr(exec_res, "dict") else exec_res.model_dump()},
-                    provenance=event.provenance + ["ExecutionOrchestrator"]
+                    payload={
+                        "execution_result": exec_res_dict,
+                        "verification": verification_dict,
+                        "reconciliation": reconciliation_dict,
+                    },
+                    provenance=event.provenance + ["ExecutionOrchestrator", "TwinReconciliationEngine"]
                 )
                 await self.emit(exec_event)
             except Exception as e:

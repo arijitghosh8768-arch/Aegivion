@@ -133,13 +133,17 @@ class AegivionAgentController:
     """
     Phase 6A: Deterministic State Machine for Agent Orchestration
     """
-    def __init__(self, max_queue_size: int = 1000, organization_id: Optional[str] = None, mode: AgentMode = AgentMode.OBSERVE_ONLY, event_store=None, detection_context_repo=None, attack_state_repo=None):
+    def __init__(self, max_queue_size: int = 1000, organization_id: Optional[str] = None, mode: AgentMode = AgentMode.OBSERVE_ONLY, event_store=None, detection_context_repo=None, attack_state_repo=None, digital_twin=None):
         self.agent_id = f"AGENT-{uuid.uuid4().hex[:8]}"
         self.organization_id = organization_id
         self.mode = mode
         self.event_store = event_store
         self.detection_context_repo = detection_context_repo
         self.attack_state_repo = attack_state_repo
+        # Phase 5A: optional SecurityDigitalTwin for pre-detection twin updates.
+        # When provided, update_from_event() is called before worker dispatch.
+        # When None, the controller operates without twin context (all tests pass).
+        self.digital_twin = digital_twin
         self.state = AgentState.STOPPED
         self.started_at: Optional[datetime] = None
         self.last_heartbeat_at: Optional[datetime] = None
@@ -429,6 +433,19 @@ class AegivionAgentController:
         if target_worker.organization_id != event.organization_id:
             self.events_failed += 1
             return
+
+        # Phase 5A: Update the Digital Twin BEFORE routing to workers.
+        # SecurityDigitalTwin decides what the event means and what state changes;
+        # TwinPersistenceRepository handles how it is persisted.
+        # Workers receive an already-current twin state.
+        if self.digital_twin is not None:
+            try:
+                self.digital_twin.update_from_event(event)
+            except Exception as twin_err:
+                # Twin update failures are non-fatal: log and continue processing.
+                logger.warning(
+                    f"[AgentController] Twin update failed for event {event.event_id}: {twin_err}"
+                )
             
         try:
             await target_worker.handle_event(event)

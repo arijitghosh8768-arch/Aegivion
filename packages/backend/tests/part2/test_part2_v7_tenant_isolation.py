@@ -34,18 +34,20 @@ class TestPart2V7TenantIsolation(unittest.TestCase):
         self.assertEqual(canonical.organization_id, self.org_a)
 
     def test_cross_tenant_asset_exposure_blocked(self):
-        mock_db = MagicMock()
-        mock_asset_repo = MagicMock()
-        mock_asset_repo.get_by_resource_id.return_value = None  # Simulating DB returning None when org doesn't match
-        
-        with patch("app.repositories.asset_repository.AssetRepository", return_value=mock_asset_repo):
-            twin_a = SecurityDigitalTwin(mock_db, self.org_a)
-            # Try to get an asset that belongs to Org B
-            asset_context = twin_a.get_asset_context("arn:aws:iam::org-b:user/hacker")
-            
-            # Asset repo should be called with org_a, ensuring tenant isolation
-            mock_asset_repo.get_by_resource_id.assert_called_with("arn:aws:iam::org-b:user/hacker", self.org_a)
-            self.assertIsNone(asset_context)
+        from app.repositories.twin_persistence_repository import TwinPersistenceRepository
+
+        # Create a mock persistence repo that returns None (simulating the asset
+        # not existing for org_a, even if org_b owns it).
+        mock_persistence = MagicMock(spec=TwinPersistenceRepository)
+        mock_persistence.get_asset.return_value = None
+
+        twin_a = SecurityDigitalTwin(mock_persistence, self.org_a)
+        # Try to get an asset that belongs to Org B
+        asset_context = twin_a.get_asset_context("arn:aws:iam::org-b:user/hacker")
+
+        # Persistence must be called with org_a — tenant isolation enforced at repo
+        mock_persistence.get_asset.assert_called_with(self.org_a, "arn:aws:iam::org-b:user/hacker")
+        self.assertIsNone(asset_context)
 
     def test_jwt_org_spoofing_prevented(self):
         # Simulate a JWT payload where the user claims to be in org_a
