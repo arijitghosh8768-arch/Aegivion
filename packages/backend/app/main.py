@@ -22,6 +22,9 @@ from pydantic import BaseModel
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from .core.rate_limit import limiter
+from fastapi.responses import JSONResponse
+from fastapi import Request
+import logging
 
 from .database import get_db
 from .core.exceptions import AegivionException, aegivion_exception_handler
@@ -72,6 +75,18 @@ class APIResponse(BaseModel):
 app.add_exception_handler(AegivionException, aegivion_exception_handler)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logging.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "error": "Internal Server Error",
+            "detail": str(exc)
+        },
+    )
 
 # Import and register Security Headers Middleware first (will execute after CORSMiddleware on responses)
 from .middleware.security import SecurityHeadersMiddleware
