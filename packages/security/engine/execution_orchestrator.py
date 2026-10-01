@@ -140,7 +140,7 @@ class ExecutionOrchestrator:
             return self._create_failed_result(request, ExecutionState.REJECTED, ExecutionErrorCode.TENANT_MISMATCH, "Tenant mismatch")
             
         # 2. Source Check
-        if request.source not in ExecutionSource:
+        if not isinstance(request.source, ExecutionSource) and request.source not in [e.value for e in ExecutionSource]:
             self._transition(request, ExecutionState.REJECTED)
             return self._create_failed_result(request, ExecutionState.REJECTED, ExecutionErrorCode.INVALID_REQUEST, "Invalid source")
             
