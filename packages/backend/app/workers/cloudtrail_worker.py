@@ -6,6 +6,9 @@ from typing import Dict, Any
 from app.database import SessionLocal
 from app.database.supabase_client import supabase
 from app.services.security_event_ingestion_service import SecurityEventIngestionService
+from app.aws.client import get_aws_session
+import json
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +18,11 @@ class CloudTrailWorker:
     Supports idempotent processing, graceful shutdown, and heartbeat reporting.
     """
     
-    def __init__(self, organization_id: str, account_id: str):
+    def __init__(self, organization_id: str, account_id: str, queue_url: str):
         self.worker_id = str(uuid.uuid4())
         self.organization_id = organization_id
         self.account_id = account_id
+        self.queue_url = queue_url
         self.status = "STOPPED"
         
         self.last_heartbeat = None
@@ -58,11 +62,28 @@ class CloudTrailWorker:
         pass
 
     def _poll_and_ingest(self):
-        # 1. Poll real AWS events
-        # In a real setup, we use boto3 CloudTrail client here
-        events = [] # mock fetch
+        # 1. Poll real AWS events via SQS
+        session = get_aws_session()
+        if not session:
+            logger.error("Failed to acquire AWS session for CloudTrail polling")
+            self.status = "DEGRADED"
+            return
+
+        sqs = session.client('sqs')
         
-        if not events:
+        try:
+            response = sqs.receive_message(
+                QueueUrl=self.queue_url,
+                MaxNumberOfMessages=10,
+                WaitTimeSeconds=10,
+                MessageAttributeNames=['All']
+            )
+        except Exception as e:
+            logger.error(f"Failed to receive messages from SQS: {str(e)}")
+            raise e
+
+        messages = response.get('Messages', [])
+        if not messages:
             return
             
         db_session = SessionLocal()
@@ -74,23 +95,40 @@ class CloudTrailWorker:
             "provider": "aws"
         }
         
-        for raw_event in events:
+        for msg in messages:
             try:
-                result = ingestion_service.ingest(raw_event, context)
+                body = json.loads(msg['Body'])
                 
-                if result["status"] == "stored":
-                    self.events_processed += 1
-                    self.last_success = datetime.utcnow()
-                    self.status = "HEALTHY"
-                elif result["status"] == "duplicate":
-                    self.events_duplicate += 1
+                # If this is an EventBridge event, the CloudTrail payload is in 'detail'
+                raw_event = body.get('detail', body)
+                
+                # In asyncio loop contexts we'd use await, but since this worker uses time.sleep, 
+                # we'll assume a sync context for the worker loop or run ingestion in a loop.
+                # SecurityEventIngestionService.ingest is async!
+                result = asyncio.run(ingestion_service.ingest(raw_event, context))
+                
+                if result["status"] in ("stored", "duplicate"):
+                    if result["status"] == "stored":
+                        self.events_processed += 1
+                        self.last_success = datetime.utcnow()
+                        self.status = "HEALTHY"
+                    else:
+                        self.events_duplicate += 1
+                        
+                    # Delete the message on success or duplicate
+                    sqs.delete_message(
+                        QueueUrl=self.queue_url,
+                        ReceiptHandle=msg['ReceiptHandle']
+                    )
                 else:
                     self.events_rejected += 1
+                    logger.warning(f"Event rejected: {result.get('reason')}")
                     
             except Exception as e:
                 self.events_rejected += 1
-                raise e
-        
+                logger.error(f"Failed to process SQS message: {str(e)}")
+                # We do not delete the message so it goes to DLQ
+                
         db_session.close()
 
     def get_health(self) -> Dict[str, Any]:
