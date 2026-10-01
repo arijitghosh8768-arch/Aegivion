@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
 from enum import Enum
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 class Provider(str, Enum):
     AWS = "aws"
@@ -54,7 +54,8 @@ class Condition(BaseModel):
     operator: Operator = Field(..., description="Operator to apply")
     value: Any = Field(None, description="Value to compare against")
     
-    @validator('field')
+    @field_validator('field')
+    @classmethod
     def validate_field(cls, v):
         if not v or not v.strip():
             raise ValueError("Field cannot be empty")
@@ -87,7 +88,8 @@ class RuleSchema(BaseModel):
     mitre_techniques: Optional[List[str]] = Field(default=None, description="MITRE ATT&CK techniques")
     tags: Optional[List[str]] = Field(default=None, description="Rule tags")
     
-    @validator('id')
+    @field_validator('id')
+    @classmethod
     def validate_id(cls, v):
         import re
         pattern = r'^[A-Z]{3,4}-[A-Z0-9]{2,4}-[0-9]{3}$'
@@ -95,14 +97,14 @@ class RuleSchema(BaseModel):
             raise ValueError('Rule ID must match pattern: AWS-SG-001')
         return v
     
-    @validator('version')
+    @field_validator('version')
+    @classmethod
     def validate_version(cls, v):
         if v < 1 or v > 10:
             raise ValueError('Version must be between 1 and 10')
         return v
     
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 # Rule Schema JSON Schema (for validation)
 RULE_SCHEMA_JSON = {
