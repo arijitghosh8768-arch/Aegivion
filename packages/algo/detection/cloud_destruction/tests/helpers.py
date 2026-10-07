@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from detection.cloud_destruction.provenance import DataProvenance
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.provenance import DataProvenance
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     ActorType,
     BusinessCriticality,

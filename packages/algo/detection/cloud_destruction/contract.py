@@ -24,10 +24,10 @@ from __future__ import annotations
 
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.arde import CheckVerdict, ValidationReport
-from detection.cloud_destruction.explainability import Explanation
-from detection.cloud_destruction.finding import DestructionFinding
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.arde import CheckVerdict, ValidationReport
+from algo.detection.cloud_destruction.explainability import Explanation
+from algo.detection.cloud_destruction.finding import DestructionFinding
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DestructiveActivitySession,
     ResourceActivityEvent,

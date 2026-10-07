@@ -34,9 +34,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Sequence
 
-from detection.cloud_destruction.baseline import BaselineContamination, classify_contamination
-from detection.cloud_destruction.registry import SEQUENCE_MODEL_VERSION
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.baseline import BaselineContamination, classify_contamination
+from algo.detection.cloud_destruction.registry import SEQUENCE_MODEL_VERSION
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DESTRUCTIVE_CATEGORIES,
     DestructiveActivitySession,

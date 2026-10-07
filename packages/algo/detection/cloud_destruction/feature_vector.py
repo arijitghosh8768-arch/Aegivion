@@ -22,10 +22,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.evidence import SessionEvidence
-from detection.cloud_destruction.features import SessionFeatureVector
-from detection.cloud_destruction.registry import FEATURE_VERSION
-from detection.cloud_destruction.schemas import BusinessCriticality
+from algo.detection.cloud_destruction.evidence import SessionEvidence
+from algo.detection.cloud_destruction.features import SessionFeatureVector
+from algo.detection.cloud_destruction.registry import FEATURE_VERSION
+from algo.detection.cloud_destruction.schemas import BusinessCriticality
 
 #: Ordered feature names — the model-facing contract (do not reorder lightly).
 FEATURE_ORDER: tuple[str, ...] = (

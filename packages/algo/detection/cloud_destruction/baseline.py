@@ -40,11 +40,11 @@ from typing import Callable, Optional, Sequence
 # typing note: selectors receive the per-session counts dict from
 # ``_event_counts`` / ``_aggregate_counts``.
 
-from detection.cloud_destruction.config import BaselineConfig
-from detection.cloud_destruction.exceptions import InsufficientHistoryError
-from detection.cloud_destruction.legitimate import ApprovedActivityProfile, match_profile
-from detection.cloud_destruction.provenance import MeasuredValue
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.config import BaselineConfig
+from algo.detection.cloud_destruction.exceptions import InsufficientHistoryError
+from algo.detection.cloud_destruction.legitimate import ApprovedActivityProfile, match_profile
+from algo.detection.cloud_destruction.provenance import MeasuredValue
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DestructiveActivitySession,
     ResourceActivityEvent,

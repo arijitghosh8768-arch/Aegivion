@@ -6,20 +6,20 @@ from datetime import timedelta
 
 import pytest
 
-from detection.cloud_destruction.config import ProfileConfig
-from detection.cloud_destruction.protection import (
+from algo.detection.cloud_destruction.config import ProfileConfig
+from algo.detection.cloud_destruction.protection import (
     RecoverabilityAssessor,
     StaticProtectionCatalog,
 )
-from detection.cloud_destruction.exceptions import NotImplementedYetError
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.exceptions import NotImplementedYetError
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     ResourceProtectionProfile,
     ResourceType,
 )
 
-from detection.cloud_destruction.tests.helpers import advance, make_event
+from algo.detection.cloud_destruction.tests.helpers import advance, make_event
 
 
 class TestResourceProfileBuilder:
@@ -107,7 +107,7 @@ class ResourceProfileBuilderUnderTest:
     """Import indirection keeps the module import at test collection time."""
 
     def __init__(self, catalog=None, config=None):
-        from detection.cloud_destruction.resource_profile import ResourceProfileBuilder
+        from algo.detection.cloud_destruction.resource_profile import ResourceProfileBuilder
 
         self._builder = ResourceProfileBuilder(catalog=catalog, config=config or ProfileConfig())
 

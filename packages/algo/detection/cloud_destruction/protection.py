@@ -23,8 +23,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field  # noqa: F401  # field: ProtectionState.details
 from typing import Any, Optional
 
-from detection.cloud_destruction.provenance import MeasuredValue, UnavailableReason
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.provenance import MeasuredValue, UnavailableReason
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     DestructiveActivitySession,
@@ -207,7 +207,7 @@ def analyze_protection_changes(
     Weakening is inferred from raw provider actions (evidence, not guesses):
     disabling versioning, weakening object lock, deleting lifecycle rules,
     removing vault lock / access policies. """
-    from detection.cloud_destruction.provenance import MeasuredValue  # local: avoid cycle
+    from algo.detection.cloud_destruction.provenance import MeasuredValue  # local: avoid cycle
 
     protection_events = [
         e

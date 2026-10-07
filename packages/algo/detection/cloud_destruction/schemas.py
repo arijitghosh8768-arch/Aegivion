@@ -24,8 +24,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from detection.cloud_destruction.exceptions import MalformedEventError
-from detection.cloud_destruction.provenance import (
+from algo.detection.cloud_destruction.exceptions import MalformedEventError
+from algo.detection.cloud_destruction.provenance import (
     DataProvenance,
     FieldAvailability,
 )

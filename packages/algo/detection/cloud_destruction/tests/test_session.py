@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from detection.cloud_destruction.config import SessionConfig
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.config import SessionConfig
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     OperationType,
     ResourceType,
 )
-from detection.cloud_destruction.session import DestructiveSessionBuilder
+from algo.detection.cloud_destruction.session import DestructiveSessionBuilder
 
-from detection.cloud_destruction.tests.helpers import advance, make_event
+from algo.detection.cloud_destruction.tests.helpers import advance, make_event
 
 
 class TestGrouping:
@@ -133,7 +133,7 @@ class TestCounters:
         assert session.modified_resources == []
 
     def test_critical_resource_flagged(self):
-        from detection.cloud_destruction.schemas import BusinessCriticality
+        from algo.detection.cloud_destruction.schemas import BusinessCriticality
 
         event = make_event(business_criticality=BusinessCriticality.CRITICAL)
         session = DestructiveSessionBuilder().build_sessions([event])[0]

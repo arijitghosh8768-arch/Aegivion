@@ -18,15 +18,15 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.cloud_destruction.finding import DestructionFinding, Severity
-from detection.cloud_destruction.response import (
+from algo.detection.cloud_destruction.finding import DestructionFinding, Severity
+from algo.detection.cloud_destruction.response import (
     APPROVAL_REQUIRED,
     ActionStatus,
     ResponseActionType,
     ResponseOrchestrator,
     ResponsePolicy,
 )
-from detection.cloud_destruction.registry import RESPONSE_VERSION
+from algo.detection.cloud_destruction.registry import RESPONSE_VERSION
 
 BASE_TIME = datetime(2026, 9, 10, 12, 0, 0, tzinfo=timezone.utc)
 

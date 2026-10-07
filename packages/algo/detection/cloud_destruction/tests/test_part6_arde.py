@@ -7,25 +7,25 @@ from datetime import timedelta
 
 import pytest
 
-from detection.cloud_destruction.arde import (
+from algo.detection.cloud_destruction.arde import (
     ArdeConfig,
     ArdeValidator,
     CheckVerdict,
     ValidationCheck,
     ValidationReport,
 )
-from detection.cloud_destruction.confidence import (
+from algo.detection.cloud_destruction.confidence import (
     ConfidenceConfig,
     compute_confidence,
 )
-from detection.cloud_destruction.features import extract_features
-from detection.cloud_destruction.finding import build_finding
-from detection.cloud_destruction.scorer import score_destruction
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.features import extract_features
+from algo.detection.cloud_destruction.finding import build_finding
+from algo.detection.cloud_destruction.scorer import score_destruction
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DestructiveActivitySession,
 )
-from detection.cloud_destruction.tests.helpers import (
+from algo.detection.cloud_destruction.tests.helpers import (
     BASE_TIME,
     advance,
     make_event,
@@ -34,10 +34,10 @@ from detection.cloud_destruction.tests.helpers import (
 
 def _full_pipeline(events, *, use_ml=True):
     """Run feature extraction + fusion + confidence for one session."""
-    from detection.cloud_destruction.session import (
+    from algo.detection.cloud_destruction.session import (
         DestructiveSessionBuilder,
     )
-    from detection.cloud_destruction.config import DestructionDetectorConfig
+    from algo.detection.cloud_destruction.config import DestructionDetectorConfig
 
     cfg = DestructionDetectorConfig()
     sessions = DestructiveSessionBuilder(cfg.session).build_sessions(

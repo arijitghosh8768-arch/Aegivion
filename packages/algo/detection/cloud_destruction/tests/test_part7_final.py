@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pytest
 
-from detection.cloud_destruction.api import (
+from algo.detection.cloud_destruction.api import (
     ANALYZE_THRESHOLD,
     analyze,
     get_destructive_session,
@@ -32,19 +32,19 @@ from detection.cloud_destruction.api import (
     get_protection_profile,
     list_findings,
 )
-from detection.cloud_destruction.ablation import run_ablation
-from detection.cloud_destruction.benchmark import run_benchmarks
-from detection.cloud_destruction.contract import (
+from algo.detection.cloud_destruction.ablation import run_ablation
+from algo.detection.cloud_destruction.benchmark import run_benchmarks
+from algo.detection.cloud_destruction.contract import (
     FINDING_TYPE,
     build_finding_contract,
 )
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.error_analysis import (
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.error_analysis import (
     FalseNegativeRecord,
     FalsePositiveRecord,
     analyze_errors,
 )
-from detection.cloud_destruction.evaluation import (
+from algo.detection.cloud_destruction.evaluation import (
     HIGH_RISK_THRESHOLD,
     LabeledCorpus,
     VARIANTS,
@@ -52,21 +52,21 @@ from detection.cloud_destruction.evaluation import (
     measure_detection_latency,
     temporal_threshold_tuning,
 )
-from detection.cloud_destruction.explainability import (
+from algo.detection.cloud_destruction.explainability import (
     FINDING_LABEL,
     DestructiveBehaviorCategory,
 )
-from detection.cloud_destruction.normalizer import ResourceActivityNormalizer
-from detection.cloud_destruction.scenarios import (
+from algo.detection.cloud_destruction.normalizer import ResourceActivityNormalizer
+from algo.detection.cloud_destruction.scenarios import (
     ATTACK_CHAIN,
     SCENARIOS,
     acceptance_attack_chain,
     mark_critical,
     scenario_by_number,
 )
-from detection.cloud_destruction.schemas import ResourceActivityEvent
-from detection.cloud_destruction.storage import DestructionRepository
-from detection.cloud_destruction.tests.helpers import BASE_TIME
+from algo.detection.cloud_destruction.schemas import ResourceActivityEvent
+from algo.detection.cloud_destruction.storage import DestructionRepository
+from algo.detection.cloud_destruction.tests.helpers import BASE_TIME
 
 #: Scenario corpus: the 18 evaluation scenarios, each starting
 #: 50h after the previous one so sessionization never bleeds

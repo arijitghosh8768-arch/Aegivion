@@ -22,8 +22,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.registry import TEMPORAL_MODEL_VERSION
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.registry import TEMPORAL_MODEL_VERSION
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DestructiveActivitySession,
     ResourceActivityEvent,

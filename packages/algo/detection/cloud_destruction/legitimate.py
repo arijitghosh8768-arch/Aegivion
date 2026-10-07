@@ -33,7 +33,7 @@ from typing import Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     CloudProvider,
     DestructiveActivitySession,

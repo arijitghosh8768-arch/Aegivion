@@ -27,7 +27,7 @@ import math
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
-from detection.cloud_destruction.registry import ModelDescriptor, content_digest
+from algo.detection.cloud_destruction.registry import ModelDescriptor, content_digest
 
 __all__ = [
     "LABEL_SOURCE_SYNTHETIC",

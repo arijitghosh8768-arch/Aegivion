@@ -15,47 +15,47 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.anomaly import IsolationForestModel
-from detection.cloud_destruction.arde import ArdeValidator, ValidationReport
-from detection.cloud_destruction.audit import AuditLogger
-from detection.cloud_destruction.baseline import (
+from algo.detection.cloud_destruction.anomaly import IsolationForestModel
+from algo.detection.cloud_destruction.arde import ArdeValidator, ValidationReport
+from algo.detection.cloud_destruction.audit import AuditLogger
+from algo.detection.cloud_destruction.baseline import (
     BaselineQuality,
     BaselineStore,
     classify_contamination,
 )
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.confidence import ConfidenceConfig, ConfidenceResult, compute_confidence
-from detection.cloud_destruction.context import (
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.confidence import ConfidenceConfig, ConfidenceResult, compute_confidence
+from algo.detection.cloud_destruction.context import (
     ContextAnnotation,
     ContextEngine,
     ExceptionRegistry,
     apply_exceptions,
 )
-from detection.cloud_destruction.evidence import collect_evidence
-from detection.cloud_destruction.explainability import (
+from algo.detection.cloud_destruction.evidence import collect_evidence
+from algo.detection.cloud_destruction.explainability import (
     Explanation,
     build_explanation,
     categorize,
 )
-from detection.cloud_destruction.feature_vector import build_ml_feature_vector
-from detection.cloud_destruction.features import SessionFeatureVector, extract_features
-from detection.cloud_destruction.finding import DestructionFinding, SeverityPolicy, build_finding
-from detection.cloud_destruction.legitimate import ApprovedActivityProfile
-from detection.cloud_destruction.registry import ModelRegistry
-from detection.cloud_destruction.resource_profile import ResourceProfileBuilder
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.feature_vector import build_ml_feature_vector
+from algo.detection.cloud_destruction.features import SessionFeatureVector, extract_features
+from algo.detection.cloud_destruction.finding import DestructionFinding, SeverityPolicy, build_finding
+from algo.detection.cloud_destruction.legitimate import ApprovedActivityProfile
+from algo.detection.cloud_destruction.registry import ModelRegistry
+from algo.detection.cloud_destruction.resource_profile import ResourceProfileBuilder
+from algo.detection.cloud_destruction.schemas import (
     DestructiveActivitySession,
     ResourceActivityEvent,
     ResourceProtectionProfile,
 )
-from detection.cloud_destruction.scorer import (
+from algo.detection.cloud_destruction.scorer import (
     ScoringConfig,
     score_destruction,
 )
-from detection.cloud_destruction.sequence_model import SequenceTransitionModel
-from detection.cloud_destruction.session import DestructiveSessionBuilder
-from detection.cloud_destruction.supervised import SupervisedDetector
-from detection.cloud_destruction.deviation import hour_span
+from algo.detection.cloud_destruction.sequence_model import SequenceTransitionModel
+from algo.detection.cloud_destruction.session import DestructiveSessionBuilder
+from algo.detection.cloud_destruction.supervised import SupervisedDetector
+from algo.detection.cloud_destruction.deviation import hour_span
 
 __all__ = ["DetectionOutcome", "DestructionDetector", "FoundationPipeline"]
 

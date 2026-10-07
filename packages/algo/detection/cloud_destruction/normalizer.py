@@ -23,18 +23,18 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from detection.cloud_destruction.config import NORMALIZER_VERSION
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.config import NORMALIZER_VERSION
+from algo.detection.cloud_destruction.exceptions import (
     MalformedEventError,
     UnsupportedEventError,
 )
-from detection.cloud_destruction.protection import ProtectionCatalog, ProtectionState
-from detection.cloud_destruction.provenance import (
+from algo.detection.cloud_destruction.protection import ProtectionCatalog, ProtectionState
+from algo.detection.cloud_destruction.provenance import (
     AvailabilityTracker,
     DataProvenance,
     UnavailableReason,
 )
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     ActorType,
     BusinessCriticality,

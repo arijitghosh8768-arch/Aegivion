@@ -31,10 +31,10 @@ from dataclasses import dataclass
 from math import floor
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.replay import ReplayEngine
-from detection.cloud_destruction.schemas import ResourceActivityEvent
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.replay import ReplayEngine
+from algo.detection.cloud_destruction.schemas import ResourceActivityEvent
 
 __all__ = [
     "BenchmarkResult",

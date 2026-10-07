@@ -12,9 +12,9 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional
 
-from detection.cloud_destruction.config import ProfileConfig
-from detection.cloud_destruction.protection import ProtectionCatalog
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.config import ProfileConfig
+from algo.detection.cloud_destruction.protection import ProtectionCatalog
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     CloudProvider,

@@ -18,16 +18,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from detection.cloud_destruction.baseline import BehaviorBaseline
-from detection.cloud_destruction.config import BehavioralConfig
-from detection.cloud_destruction.deviation import (
+from algo.detection.cloud_destruction.baseline import BehaviorBaseline
+from algo.detection.cloud_destruction.config import BehavioralConfig
+from algo.detection.cloud_destruction.deviation import (
     absolute_pace_value,
     hour_span,
     ratio_to_factor,
 )
-from detection.cloud_destruction.evidence import SessionEvidence, collect_evidence
-from detection.cloud_destruction.provenance import MeasuredValue
-from detection.cloud_destruction.schemas import DestructiveActivitySession, ResourceActivityEvent
+from algo.detection.cloud_destruction.evidence import SessionEvidence, collect_evidence
+from algo.detection.cloud_destruction.provenance import MeasuredValue
+from algo.detection.cloud_destruction.schemas import DestructiveActivitySession, ResourceActivityEvent
 
 __all__ = ["VersioningAnalysis", "analyze_versioning"]
 

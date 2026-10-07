@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.exceptions import (
     MalformedEventError,
     UnsupportedEventError,
 )
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     OperationType,
     ResourceType,

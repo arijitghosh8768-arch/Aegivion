@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.exceptions import (
     CloudDestructionError,
     ConfigurationError,
     DatabaseError,

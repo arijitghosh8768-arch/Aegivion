@@ -46,17 +46,17 @@ from typing import Any, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.confidence import ConfidenceResult
-from detection.cloud_destruction.features import SessionFeatureVector
-from detection.cloud_destruction.finding import DestructionFinding
-from detection.cloud_destruction.registry import ARDE_VERSION
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.confidence import ConfidenceResult
+from algo.detection.cloud_destruction.features import SessionFeatureVector
+from algo.detection.cloud_destruction.finding import DestructionFinding
+from algo.detection.cloud_destruction.registry import ARDE_VERSION
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     DestructiveActivitySession,
     ResourceActivityEvent,
 )
-from detection.cloud_destruction.scorer import DestructionRisk
+from algo.detection.cloud_destruction.scorer import DestructionRisk
 
 __all__ = [
     "ArdeConfig",

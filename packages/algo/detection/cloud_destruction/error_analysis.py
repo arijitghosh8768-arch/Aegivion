@@ -18,12 +18,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.arde import ValidationReport
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.detector import DetectionOutcome, DestructionDetector
-from detection.cloud_destruction.explainability import Explanation
-from detection.cloud_destruction.finding import DestructionFinding
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.arde import ValidationReport
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.detector import DetectionOutcome, DestructionDetector
+from algo.detection.cloud_destruction.explainability import Explanation
+from algo.detection.cloud_destruction.finding import DestructionFinding
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DestructiveActivitySession,
     ResourceActivityEvent,

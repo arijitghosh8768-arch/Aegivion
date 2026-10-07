@@ -23,12 +23,12 @@ from typing import Any, Optional, Sequence
 
 __all__ = ["ReplayResult", "ReplayEngine"]
 
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.finding import DestructionFinding
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.legitimate import ApprovedActivityProfile
-from detection.cloud_destruction.registry import ModelRegistry, content_digest
-from detection.cloud_destruction.schemas import DestructiveActivitySession, ResourceActivityEvent
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.finding import DestructionFinding
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.legitimate import ApprovedActivityProfile
+from algo.detection.cloud_destruction.registry import ModelRegistry, content_digest
+from algo.detection.cloud_destruction.schemas import DestructiveActivitySession, ResourceActivityEvent
 
 
 

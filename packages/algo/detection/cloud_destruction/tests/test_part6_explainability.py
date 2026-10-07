@@ -6,11 +6,11 @@ import json
 
 import pytest
 
-from detection.cloud_destruction.confidence import (
+from algo.detection.cloud_destruction.confidence import (
     ConfidenceConfig,
     compute_confidence,
 )
-from detection.cloud_destruction.explainability import (
+from algo.detection.cloud_destruction.explainability import (
     CATEGORY_THRESHOLDS,
     DestructiveBehaviorCategory,
     Explanation,
@@ -19,17 +19,17 @@ from detection.cloud_destruction.explainability import (
     categorize,
     telemetry_completeness_level,
 )
-from detection.cloud_destruction.features import extract_features
-from detection.cloud_destruction.finding import build_finding
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.features import extract_features
+from algo.detection.cloud_destruction.finding import build_finding
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DestructiveActivitySession,
 )
-from detection.cloud_destruction.scorer import score_destruction
-from detection.cloud_destruction.session import (
+from algo.detection.cloud_destruction.scorer import score_destruction
+from algo.detection.cloud_destruction.session import (
     DestructiveSessionBuilder,
 )
-from detection.cloud_destruction.tests.helpers import (
+from algo.detection.cloud_destruction.tests.helpers import (
     BASE_TIME,
     advance,
     make_event,
@@ -38,7 +38,7 @@ from detection.cloud_destruction.tests.helpers import (
 
 def _run(events, *, baseline_store=None, anomaly_score=0.9):
     """Feature extraction + fusion + confidence for one session."""
-    from detection.cloud_destruction.config import (
+    from algo.detection.cloud_destruction.config import (
         DestructionDetectorConfig,
     )
 
@@ -298,7 +298,7 @@ class TestNeverInvents:
         # GOOD quality needs >= 20 sessions spanning >= 7 days, so the
         # history is spread over ~8 days with 1-hour gaps (session
         # idle timeout is 30 minutes, so each event is its own session).
-        from detection.cloud_destruction.baseline import BaselineStore
+        from algo.detection.cloud_destruction.baseline import BaselineStore
 
         history = [
             make_event(
@@ -312,7 +312,7 @@ class TestNeverInvents:
             )
             for i in range(24 * 8)
         ]
-        from detection.cloud_destruction.config import (
+        from algo.detection.cloud_destruction.config import (
             DestructionDetectorConfig,
         )
 
@@ -396,7 +396,7 @@ class TestContradictingEvidence:
         assert "model_rule_agreement" in explanation.signals_contradicted
 
     def test_arde_failures_contradict(self):
-        from detection.cloud_destruction.arde import (
+        from algo.detection.cloud_destruction.arde import (
             ArdeValidator,
         )
 
@@ -474,7 +474,7 @@ class TestContradictingEvidence:
 
 
 def _measured(value):
-    from detection.cloud_destruction.provenance import (
+    from algo.detection.cloud_destruction.provenance import (
         MeasuredValue,
         MeasurementConfidence,
     )

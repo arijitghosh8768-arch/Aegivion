@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from detection.cloud_destruction.provenance import AvailabilityTracker
-from detection.cloud_destruction.tests.helpers import BASE_TIME, make_event
+from algo.detection.cloud_destruction.provenance import AvailabilityTracker
+from algo.detection.cloud_destruction.tests.helpers import BASE_TIME, make_event
 
 
 @pytest.fixture()

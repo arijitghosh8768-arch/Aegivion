@@ -20,7 +20,7 @@ from correlation import (
     ThreatCorrelationBroker,
     finding_digest,
 )
-from detection.cloud_destruction.finding import DestructionFinding, Severity
+from algo.detection.cloud_destruction.finding import DestructionFinding, Severity
 
 BASE_TIME = datetime(2026, 9, 10, 12, 0, 0, tzinfo=timezone.utc)
 

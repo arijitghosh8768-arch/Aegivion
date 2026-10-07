@@ -19,38 +19,38 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from detection.cloud_destruction.arde import ArdeValidator
-from detection.cloud_destruction.audit import (
+from algo.detection.cloud_destruction.arde import ArdeValidator
+from algo.detection.cloud_destruction.audit import (
     AuditAction,
     AuditLogger,
 )
-from detection.cloud_destruction.context import (
+from algo.detection.cloud_destruction.context import (
     ApprovalState,
     ContextEngine,
     ExceptionRecord,
     ExceptionRegistry,
     ExceptionScope,
 )
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.exceptions import (
     CloudDestructionError,
 )
-from detection.cloud_destruction.explainability import (
+from algo.detection.cloud_destruction.explainability import (
     FINDING_LABEL,
     DestructiveBehaviorCategory,
     build_explanation,
 )
-from detection.cloud_destruction.response import (
+from algo.detection.cloud_destruction.response import (
     APPROVAL_REQUIRED,
     ActionStatus,
     ResponseActionType,
     ResponseOrchestrator,
 )
-from detection.cloud_destruction.schemas import ActionCategory
-from detection.cloud_destruction.session import (
+from algo.detection.cloud_destruction.schemas import ActionCategory
+from algo.detection.cloud_destruction.session import (
     DestructiveSessionBuilder,
 )
-from detection.cloud_destruction.tests.helpers import (
+from algo.detection.cloud_destruction.tests.helpers import (
     BASE_TIME,
     advance,
     make_event,

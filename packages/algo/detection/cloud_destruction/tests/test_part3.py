@@ -12,45 +12,45 @@ from datetime import timedelta
 
 import pytest
 
-from detection.cloud_destruction.anomaly import IsolationForestModel
-from detection.cloud_destruction.baseline import BaselineQuality, build_baseline
-from detection.cloud_destruction.calibration import (
+from algo.detection.cloud_destruction.anomaly import IsolationForestModel
+from algo.detection.cloud_destruction.baseline import BaselineQuality, build_baseline
+from algo.detection.cloud_destruction.calibration import (
     brier_score,
     evaluate_calibration,
     expected_calibration_error,
 )
-from detection.cloud_destruction.confidence import ConfidenceConfig, compute_confidence
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.evidence import collect_evidence
-from detection.cloud_destruction.feature_vector import (
+from algo.detection.cloud_destruction.confidence import ConfidenceConfig, compute_confidence
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.evidence import collect_evidence
+from algo.detection.cloud_destruction.feature_vector import (
     FEATURE_ORDER,
     MLFeatureVector,
     build_ml_feature_vector,
 )
-from detection.cloud_destruction.features import extract_features
-from detection.cloud_destruction.finding import Severity, SeverityPolicy, build_finding
-from detection.cloud_destruction.registry import (
+from algo.detection.cloud_destruction.features import extract_features
+from algo.detection.cloud_destruction.finding import Severity, SeverityPolicy, build_finding
+from algo.detection.cloud_destruction.registry import (
     FEATURE_VERSION,
     ModelRegistry,
     SCORING_VERSION,
 )
-from detection.cloud_destruction.replay import ReplayEngine
-from detection.cloud_destruction.scorer import ScoringConfig, score_destruction
-from detection.cloud_destruction.sequence_model import SequenceTransitionModel
-from detection.cloud_destruction.session import DestructiveSessionBuilder
-from detection.cloud_destruction.supervised import (
+from algo.detection.cloud_destruction.replay import ReplayEngine
+from algo.detection.cloud_destruction.scorer import ScoringConfig, score_destruction
+from algo.detection.cloud_destruction.sequence_model import SequenceTransitionModel
+from algo.detection.cloud_destruction.session import DestructiveSessionBuilder
+from algo.detection.cloud_destruction.supervised import (
     LABEL_SOURCE_SYNTHETIC,
     SupervisedDetector,
     SupervisedTrainingData,
 )
-from detection.cloud_destruction.temporal_features import (
+from algo.detection.cloud_destruction.temporal_features import (
     METRIC_NAMES,
     WINDOW_SECONDS,
     build_temporal_features,
 )
 
-from detection.cloud_destruction.tests.helpers import BASE_TIME, make_event
-from detection.cloud_destruction.tests.test_part2_behavior import (
+from algo.detection.cloud_destruction.tests.helpers import BASE_TIME, make_event
+from algo.detection.cloud_destruction.tests.test_part2_behavior import (
     delete_event,
     hist_session,
     mass_session,
@@ -150,7 +150,7 @@ class TestMLFeatureVector:
         assert ml.values["version_delete_rate"] == 0.0
 
     def test_criticality_ordinal_encoded(self):
-        from detection.cloud_destruction.schemas import ActionCategory, BusinessCriticality
+        from algo.detection.cloud_destruction.schemas import ActionCategory, BusinessCriticality
 
         events = [
             delete_event("d1", business_criticality=BusinessCriticality.CRITICAL)
@@ -343,7 +343,7 @@ class TestRiskFusion:
         assert active  # but others did contribute
 
     def test_boosts_and_criticality(self):
-        from detection.cloud_destruction.schemas import BusinessCriticality
+        from algo.detection.cloud_destruction.schemas import BusinessCriticality
 
         events = [
             delete_event(
@@ -462,7 +462,7 @@ class TestFindingsAndReplay:
 
 class TestComparativeEvaluation:
     def test_five_variants_compare_on_synthetic_corpus(self):
-        from detection.cloud_destruction.evaluation import (
+        from algo.detection.cloud_destruction.evaluation import (
             VARIANTS,
             corpus_from_sessions,
             evaluate_variants,
@@ -513,7 +513,7 @@ class TestComparativeEvaluation:
         assert results["full"].f1 >= results["rules_only"].f1
 
     def test_degenerate_corpus_refused(self):
-        from detection.cloud_destruction.evaluation import (
+        from algo.detection.cloud_destruction.evaluation import (
             corpus_from_sessions,
             evaluate_variants,
         )

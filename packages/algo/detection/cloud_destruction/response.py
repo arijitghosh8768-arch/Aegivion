@@ -43,8 +43,8 @@ from typing import Any, Callable, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.finding import DestructionFinding, Severity
-from detection.cloud_destruction.registry import RESPONSE_VERSION, content_digest
+from algo.detection.cloud_destruction.finding import DestructionFinding, Severity
+from algo.detection.cloud_destruction.registry import RESPONSE_VERSION, content_digest
 
 __all__ = [
     "ActionStatus",

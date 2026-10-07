@@ -32,9 +32,9 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from detection.cloud_destruction.baseline import BaselineQuality
-from detection.cloud_destruction.registry import CONFIDENCE_VERSION, FEATURE_VERSION
-from detection.cloud_destruction.schemas import DestructiveActivitySession
+from algo.detection.cloud_destruction.baseline import BaselineQuality
+from algo.detection.cloud_destruction.registry import CONFIDENCE_VERSION, FEATURE_VERSION
+from algo.detection.cloud_destruction.schemas import DestructiveActivitySession
 
 __all__ = ["ConfidenceConfig", "ConfidenceResult", "compute_confidence"]
 

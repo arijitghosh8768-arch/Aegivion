@@ -24,7 +24,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     DESTRUCTIVE_CATEGORIES,

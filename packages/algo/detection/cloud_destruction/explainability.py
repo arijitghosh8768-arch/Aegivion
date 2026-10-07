@@ -44,18 +44,18 @@ from typing import Any, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.arde import (
+from algo.detection.cloud_destruction.arde import (
     ArdeConfig,
     CheckVerdict,
     ValidationReport,
 )
-from detection.cloud_destruction.confidence import ConfidenceResult
-from detection.cloud_destruction.features import SessionFeatureVector
-from detection.cloud_destruction.finding import DestructionFinding, Severity
-from detection.cloud_destruction.provenance import MeasuredValue
-from detection.cloud_destruction.registry import EXPLANATION_VERSION
-from detection.cloud_destruction.schemas import DestructiveActivitySession
-from detection.cloud_destruction.scorer import (
+from algo.detection.cloud_destruction.confidence import ConfidenceResult
+from algo.detection.cloud_destruction.features import SessionFeatureVector
+from algo.detection.cloud_destruction.finding import DestructionFinding, Severity
+from algo.detection.cloud_destruction.provenance import MeasuredValue
+from algo.detection.cloud_destruction.registry import EXPLANATION_VERSION
+from algo.detection.cloud_destruction.schemas import DestructiveActivitySession
+from algo.detection.cloud_destruction.scorer import (
     DestructionRisk,
     _criticality_strength,
 )

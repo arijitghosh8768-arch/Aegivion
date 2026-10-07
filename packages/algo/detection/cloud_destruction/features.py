@@ -33,35 +33,35 @@ from typing import Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.backup import analyze_backup
-from detection.cloud_destruction.baseline import (
+from algo.detection.cloud_destruction.backup import analyze_backup
+from algo.detection.cloud_destruction.baseline import (
     BaselineQuality,
     BaselineStore,
     measure_novelty,
 )
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.deletion import analyze_deletion
-from detection.cloud_destruction.deviation import hour_span
-from detection.cloud_destruction.evidence import collect_evidence
-from detection.cloud_destruction.legitimate import ActivityContext, ApprovedActivityProfile, match_profile
-from detection.cloud_destruction.modification import analyze_modification
-from detection.cloud_destruction.provenance import (
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.deletion import analyze_deletion
+from algo.detection.cloud_destruction.deviation import hour_span
+from algo.detection.cloud_destruction.evidence import collect_evidence
+from algo.detection.cloud_destruction.legitimate import ActivityContext, ApprovedActivityProfile, match_profile
+from algo.detection.cloud_destruction.modification import analyze_modification
+from algo.detection.cloud_destruction.provenance import (
     DataProvenance,
     FeatureProvenance,
     MeasuredValue,
 )
-from detection.cloud_destruction.protection import analyze_protection_changes
-from detection.cloud_destruction.recoverability import analyze_recoverability
-from detection.cloud_destruction.rewrite import analyze_rewrite
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.protection import analyze_protection_changes
+from algo.detection.cloud_destruction.recoverability import analyze_recoverability
+from algo.detection.cloud_destruction.rewrite import analyze_rewrite
+from algo.detection.cloud_destruction.schemas import (
     BusinessCriticality,
     DestructiveActivitySession,
     ResourceActivityEvent,
 )
-from detection.cloud_destruction.sequence import analyze_sequences
-from detection.cloud_destruction.snapshot import analyze_snapshots
-from detection.cloud_destruction.temporal import analyze_temporal
-from detection.cloud_destruction.versioning import analyze_versioning
+from algo.detection.cloud_destruction.sequence import analyze_sequences
+from algo.detection.cloud_destruction.snapshot import analyze_snapshots
+from algo.detection.cloud_destruction.temporal import analyze_temporal
+from algo.detection.cloud_destruction.versioning import analyze_versioning
 
 __all__ = [
     "MeasuredValue",

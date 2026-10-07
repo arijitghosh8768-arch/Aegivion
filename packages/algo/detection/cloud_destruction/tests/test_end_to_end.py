@@ -11,18 +11,18 @@ from pathlib import Path
 
 import pytest
 
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.detector import DestructionDetector, FoundationPipeline
-from detection.cloud_destruction.normalizer import ResourceActivityNormalizer
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.detector import DestructionDetector, FoundationPipeline
+from algo.detection.cloud_destruction.normalizer import ResourceActivityNormalizer
 from ingestion.aws.cloudtrail_resource_activity import (
     CloudTrailResourceActivityIngestor,
     IngestResult,
 )
-from detection.cloud_destruction.session import DestructiveSessionBuilder
-from detection.cloud_destruction.storage import DestructionRepository
-from detection.cloud_destruction.schemas import ActionCategory
+from algo.detection.cloud_destruction.session import DestructiveSessionBuilder
+from algo.detection.cloud_destruction.storage import DestructionRepository
+from algo.detection.cloud_destruction.schemas import ActionCategory
 
-from detection.cloud_destruction.tests.helpers import make_event
+from algo.detection.cloud_destruction.tests.helpers import make_event
 
 SYNTH = Path(__file__).resolve().parent / "fixtures" / "synthetic"
 
@@ -150,7 +150,7 @@ class TestDetectorBoundary:
     def test_part1_produces_no_findings_tables_rows(self):
         repo = DestructionRepository()
         # no API exists to write findings — the table stays reserved
-        from detection.cloud_destruction.storage import DestructionFindingRow
+        from algo.detection.cloud_destruction.storage import DestructionFindingRow
 
         assert DestructionFindingRow.__tablename__ == "destruction_findings"
 

@@ -22,12 +22,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 
-from detection.cloud_destruction.baseline import BehaviorBaseline
-from detection.cloud_destruction.config import BehavioralConfig
-from detection.cloud_destruction.deviation import clamp01
-from detection.cloud_destruction.evidence import SessionEvidence, collect_evidence
-from detection.cloud_destruction.provenance import MeasuredValue
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.baseline import BehaviorBaseline
+from algo.detection.cloud_destruction.config import BehavioralConfig
+from algo.detection.cloud_destruction.deviation import clamp01
+from algo.detection.cloud_destruction.evidence import SessionEvidence, collect_evidence
+from algo.detection.cloud_destruction.provenance import MeasuredValue
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DestructiveActivitySession,
     ResourceActivityEvent,

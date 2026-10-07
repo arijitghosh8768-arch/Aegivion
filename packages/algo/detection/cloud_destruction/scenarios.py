@@ -35,8 +35,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Callable, Optional
 
-from detection.cloud_destruction.provenance import DataProvenance
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.provenance import DataProvenance
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     ActorType,
     BusinessCriticality,

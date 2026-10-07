@@ -6,8 +6,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.cloud_destruction.exceptions import MalformedEventError
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.exceptions import MalformedEventError
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     DESTRUCTIVE_CATEGORIES,
@@ -21,7 +21,7 @@ from detection.cloud_destruction.schemas import (
     map_resource_type,
 )
 
-from detection.cloud_destruction.tests.helpers import make_event
+from algo.detection.cloud_destruction.tests.helpers import make_event
 
 
 class TestActionTaxonomy:

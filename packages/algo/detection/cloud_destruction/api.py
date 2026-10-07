@@ -25,19 +25,19 @@ from __future__ import annotations
 
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.contract import (
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.contract import (
     build_dashboard_data,
     build_finding_contract,
 )
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.explainability import Explanation
-from detection.cloud_destruction.resource_profile import ResourceProfileBuilder
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.explainability import Explanation
+from algo.detection.cloud_destruction.resource_profile import ResourceProfileBuilder
+from algo.detection.cloud_destruction.schemas import (
     DestructiveActivitySession,
     ResourceActivityEvent,
 )
-from detection.cloud_destruction.storage import DestructionRepository
+from algo.detection.cloud_destruction.storage import DestructionRepository
 
 __all__ = [
     "ANALYZE_THRESHOLD",

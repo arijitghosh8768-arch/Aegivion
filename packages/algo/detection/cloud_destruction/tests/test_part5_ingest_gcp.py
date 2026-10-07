@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.exceptions import (
     MalformedEventError,
     UnsupportedEventError,
 )
-from detection.cloud_destruction.provenance import UnavailableReason
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.provenance import UnavailableReason
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     ActorType,
     CloudProvider,
@@ -230,8 +230,8 @@ class TestGcpNormalizer:
             assert availability[field_name].reason is UnavailableReason.ENRICHMENT_MISSING
 
     def test_catalog_enrichment(self):
-        from detection.cloud_destruction.protection import StaticProtectionCatalog
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.protection import StaticProtectionCatalog
+        from algo.detection.cloud_destruction.schemas import (
             BusinessCriticality,
             ResourceProtectionProfile,
             ResourceType,
@@ -261,7 +261,7 @@ class TestGcpNormalizer:
         assert availability["versioning_enabled"].presence.value == "enriched"
 
     def test_catalog_miss_stays_unavailable(self):
-        from detection.cloud_destruction.protection import StaticProtectionCatalog
+        from algo.detection.cloud_destruction.protection import StaticProtectionCatalog
 
         event = GcpAuditLogNormalizer(
             catalog=StaticProtectionCatalog()

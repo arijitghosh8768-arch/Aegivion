@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from detection.cloud_destruction.config import (
+from algo.detection.cloud_destruction.config import (
     ENV_PREFIX,
     NORMALIZER_VERSION,
     DestructionDetectorConfig,
     load_config,
 )
-from detection.cloud_destruction.exceptions import ConfigurationError
+from algo.detection.cloud_destruction.exceptions import ConfigurationError
 
 
 class TestDefaults:

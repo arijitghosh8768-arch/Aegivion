@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from detection.cloud_destruction.provenance import MeasuredValue
+from algo.detection.cloud_destruction.provenance import MeasuredValue
 
 
 def clamp01(value: float) -> float:

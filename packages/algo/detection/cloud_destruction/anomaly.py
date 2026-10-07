@@ -27,7 +27,7 @@ import random
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
-from detection.cloud_destruction.registry import ModelDescriptor, content_digest
+from algo.detection.cloud_destruction.registry import ModelDescriptor, content_digest
 
 __all__ = ["IsolationForestModel", "IsolationForestResult"]
 
@@ -193,7 +193,7 @@ class IsolationForestResult:
     @property
     def confidence(self) -> float:
         """Evidence-coverage heuristic: share of features actually present."""
-        from detection.cloud_destruction.feature_vector import FEATURE_ORDER
+        from algo.detection.cloud_destruction.feature_vector import FEATURE_ORDER
 
         if not self.missing_features:
             return 1.0

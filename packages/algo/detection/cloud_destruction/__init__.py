@@ -7,6 +7,6 @@ telemetry. It operates fully independently of the Credential Compromise
 allowed future interaction is through Aegivion Threat Correlation.
 """
 
-from detection.cloud_destruction import config, exceptions, provenance, schemas
+from algo.detection.cloud_destruction import config, exceptions, provenance, schemas
 
 __all__ = ["config", "exceptions", "provenance", "schemas"]

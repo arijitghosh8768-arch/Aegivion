@@ -26,8 +26,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.registry import SCORING_VERSION, content_digest
-from detection.cloud_destruction.schemas import DestructiveActivitySession
+from algo.detection.cloud_destruction.registry import SCORING_VERSION, content_digest
+from algo.detection.cloud_destruction.schemas import DestructiveActivitySession
 
 __all__ = [
     "ScoringConfig",

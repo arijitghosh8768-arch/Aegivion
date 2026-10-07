@@ -38,10 +38,10 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.finding import SeverityPolicy
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.finding import SeverityPolicy
+from algo.detection.cloud_destruction.schemas import (
     DestructiveActivitySession,
     ResourceActivityEvent,
 )

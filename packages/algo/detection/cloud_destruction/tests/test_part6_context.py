@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from detection.cloud_destruction.context import (
+from algo.detection.cloud_destruction.context import (
     SPEC_TO_PROFILE_ACTIVITY,
     ApprovalState,
     ContextAnnotation,
@@ -18,17 +18,17 @@ from detection.cloud_destruction.context import (
     apply_exceptions,
     spec_activity_for,
 )
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.exceptions import (
     CloudDestructionError,
 )
-from detection.cloud_destruction.legitimate import (
+from algo.detection.cloud_destruction.legitimate import (
     ApprovedActivityProfile,
 )
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     ActorType,
 )
-from detection.cloud_destruction.tests.helpers import (
+from algo.detection.cloud_destruction.tests.helpers import (
     BASE_TIME,
     advance,
     make_event,
@@ -65,7 +65,7 @@ class TestExceptionRecords:
         assert not record.is_active()
 
     def test_scope_matching(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             DestructiveActivitySession,
         )
         session = DestructiveActivitySession(
@@ -122,7 +122,7 @@ class TestExceptionRegistry:
         assert not updated.is_active()
 
     def test_evaluate_only_approved_in_scope(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             DestructiveActivitySession,
         )
         session = DestructiveActivitySession(
@@ -142,7 +142,7 @@ class TestExceptionRegistry:
             approved.exception_id]
 
     def test_activity_scoped_evaluation(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             DestructiveActivitySession,
         )
         session = DestructiveActivitySession(
@@ -180,17 +180,17 @@ class TestContextEngine:
                        timestamp=advance(BASE_TIME, i))
             for i in range(5)
         ]
-        from detection.cloud_destruction.session import (
+        from algo.detection.cloud_destruction.session import (
             DestructiveSessionBuilder,
         )
-        from detection.cloud_destruction.config import (
+        from algo.detection.cloud_destruction.config import (
             DestructionDetectorConfig,
         )
         cfg = DestructionDetectorConfig()
         sessions = DestructiveSessionBuilder(
             cfg.session).build_sessions(events)
         engine = ContextEngine(profiles=[profile])
-        from detection.cloud_destruction.finding import (
+        from algo.detection.cloud_destruction.finding import (
             DestructionFinding,
         )
         finding = DestructionFinding(
@@ -208,10 +208,10 @@ class TestContextEngine:
         assert annotation.has_context
 
     def test_lifecycle_pattern_recognized_from_telemetry(self):
-        from detection.cloud_destruction.session import (
+        from algo.detection.cloud_destruction.session import (
             DestructiveSessionBuilder,
         )
-        from detection.cloud_destruction.config import (
+        from algo.detection.cloud_destruction.config import (
             DestructionDetectorConfig,
         )
         events = [
@@ -223,7 +223,7 @@ class TestContextEngine:
         cfg = DestructionDetectorConfig()
         sessions = DestructiveSessionBuilder(
             cfg.session).build_sessions(events)
-        from detection.cloud_destruction.finding import (
+        from algo.detection.cloud_destruction.finding import (
             DestructionFinding,
         )
         finding = DestructionFinding(
@@ -240,10 +240,10 @@ class TestContextEngine:
         assert LegitimateActivity.S3_LIFECYCLE_EXPIRATION in activities
 
     def test_scheduled_snapshot_cleanup_recognized(self):
-        from detection.cloud_destruction.session import (
+        from algo.detection.cloud_destruction.session import (
             DestructiveSessionBuilder,
         )
-        from detection.cloud_destruction.config import (
+        from algo.detection.cloud_destruction.config import (
             DestructionDetectorConfig,
         )
         events = [
@@ -258,7 +258,7 @@ class TestContextEngine:
         cfg = DestructionDetectorConfig()
         sessions = DestructiveSessionBuilder(
             cfg.session).build_sessions(events)
-        from detection.cloud_destruction.finding import (
+        from algo.detection.cloud_destruction.finding import (
             DestructionFinding,
         )
         finding = DestructionFinding(
@@ -276,17 +276,17 @@ class TestContextEngine:
             LegitimateActivity.SCHEDULED_SNAPSHOT_CLEANUP in activities)
 
     def test_no_context_when_nothing_matches(self):
-        from detection.cloud_destruction.session import (
+        from algo.detection.cloud_destruction.session import (
             DestructiveSessionBuilder,
         )
-        from detection.cloud_destruction.config import (
+        from algo.detection.cloud_destruction.config import (
             DestructionDetectorConfig,
         )
         events = [make_event(event_id="e1")]
         cfg = DestructionDetectorConfig()
         sessions = DestructiveSessionBuilder(
             cfg.session).build_sessions(events)
-        from detection.cloud_destruction.finding import (
+        from algo.detection.cloud_destruction.finding import (
             DestructionFinding,
         )
         finding = DestructionFinding(
@@ -309,7 +309,7 @@ class TestContextEngine:
 
 class TestApplyExceptions:
     def _finding(self):
-        from detection.cloud_destruction.finding import (
+        from algo.detection.cloud_destruction.finding import (
             DestructionFinding,
         )
         return DestructionFinding(
@@ -332,7 +332,7 @@ class TestApplyExceptions:
             finding_id="f", session_id="s",
             recognized_patterns=tuple())
         # force context via an exception record
-        from detection.cloud_destruction.context import (
+        from algo.detection.cloud_destruction.context import (
             _PatternHit,
         )
         annotation = ContextAnnotation(

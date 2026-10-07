@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from detection.cloud_destruction.provenance import (
+from algo.detection.cloud_destruction.provenance import (
     AvailabilityTracker,
     DataProvenance,
     FieldAvailability,

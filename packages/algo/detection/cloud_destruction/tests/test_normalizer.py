@@ -6,20 +6,20 @@ from datetime import datetime, timezone
 
 import pytest
 
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.exceptions import (
     MalformedEventError,
     UnsupportedEventError,
 )
-from detection.cloud_destruction.normalizer import (
+from algo.detection.cloud_destruction.normalizer import (
     ResourceActivityNormalizer,
     classify_action,
 )
-from detection.cloud_destruction.protection import (
+from algo.detection.cloud_destruction.protection import (
     ProtectionState,
     StaticProtectionCatalog,
 )
-from detection.cloud_destruction.provenance import UnavailableReason, ValuePresence
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.provenance import UnavailableReason, ValuePresence
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     OperationType,
@@ -281,7 +281,7 @@ class TestCatalogEnrichment:
     def test_catalog_enriches_protection_fields(self):
         catalog = StaticProtectionCatalog()
         # build through profiles to reuse mapping logic
-        from detection.cloud_destruction.schemas import ResourceProtectionProfile
+        from algo.detection.cloud_destruction.schemas import ResourceProtectionProfile
 
         catalog.add(
             ResourceProtectionProfile(
@@ -305,7 +305,7 @@ class TestCatalogEnrichment:
         assert availability["business_criticality"].presence is ValuePresence.ENRICHED
 
     def test_arn_lookup_matches_when_id_lookup_misses(self):
-        from detection.cloud_destruction.schemas import ResourceProtectionProfile
+        from algo.detection.cloud_destruction.schemas import ResourceProtectionProfile
 
         catalog = StaticProtectionCatalog()
         catalog.add(

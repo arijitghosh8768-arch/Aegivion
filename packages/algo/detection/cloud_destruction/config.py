@@ -20,7 +20,7 @@ from typing import Mapping, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.exceptions import ConfigurationError
+from algo.detection.cloud_destruction.exceptions import ConfigurationError
 
 ENV_PREFIX = "AEGIVION_DESTRUCTION_"
 

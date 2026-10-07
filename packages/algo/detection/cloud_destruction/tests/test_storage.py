@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 
-from detection.cloud_destruction.storage import (
+from algo.detection.cloud_destruction.storage import (
     DestructionRepository,
     ResourceActivityEventRow,
 )
 
-from detection.cloud_destruction.tests.helpers import make_event
+from algo.detection.cloud_destruction.tests.helpers import make_event
 
 
 class TestEventStorage:
@@ -54,7 +54,7 @@ class TestEventStorage:
 class TestSessionStorage:
     def test_session_round_trip(self):
         repo = DestructionRepository()
-        from detection.cloud_destruction.session import DestructiveSessionBuilder
+        from algo.detection.cloud_destruction.session import DestructiveSessionBuilder
 
         events = [make_event(event_id=f"s{i}") for i in range(3)]
         sessions = DestructiveSessionBuilder().build_sessions(events)
@@ -71,7 +71,7 @@ class TestSessionStorage:
 class TestProfileStorage:
     def test_profile_round_trip(self):
         repo = DestructionRepository()
-        from detection.cloud_destruction.resource_profile import ResourceProfileBuilder
+        from algo.detection.cloud_destruction.resource_profile import ResourceProfileBuilder
 
         profiles = ResourceProfileBuilder().build_profiles(
             [make_event(event_id="p1", resource_id="fin-prod-archive")]

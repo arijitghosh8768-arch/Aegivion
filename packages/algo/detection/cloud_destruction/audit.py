@@ -29,7 +29,7 @@ from typing import Any, Callable, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.registry import AUDIT_VERSION
+from algo.detection.cloud_destruction.registry import AUDIT_VERSION
 
 __all__ = ["AuditAction", "AuditEntry", "AuditLogger"]
 

@@ -22,9 +22,9 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional
 
-from detection.cloud_destruction.config import SessionConfig
-from detection.cloud_destruction.exceptions import SessionBuildError
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.config import SessionConfig
+from algo.detection.cloud_destruction.exceptions import SessionBuildError
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     DESTRUCTIVE_CATEGORIES,

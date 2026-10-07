@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import pytest
 
-from detection.cloud_destruction.session import DestructiveSessionBuilder
-from detection.cloud_destruction.tests.helpers import make_event
+from algo.detection.cloud_destruction.session import DestructiveSessionBuilder
+from algo.detection.cloud_destruction.tests.helpers import make_event
 
 
 def test_session_carries_no_risk_score_field():
@@ -35,7 +35,7 @@ def test_event_carries_no_score_fields():
 
 
 def test_feature_vector_carries_no_verdict_fields():
-    from detection.cloud_destruction.features import SessionFeatureVector
+    from algo.detection.cloud_destruction.features import SessionFeatureVector
 
     dumped = SessionFeatureVector(session_id="s").model_dump()
     for forbidden in ("destruction_score", "severity", "verdict", "is_ransomware"):
@@ -45,7 +45,7 @@ def test_feature_vector_carries_no_verdict_fields():
 class TestPart3Boundaries:
     def test_detector_produces_findings_not_exceptions(self):
         """Part 3: detect() works and emits audit-complete findings."""
-        from detection.cloud_destruction.detector import DestructionDetector
+        from algo.detection.cloud_destruction.detector import DestructionDetector
 
         outcome = DestructionDetector().detect([make_event(event_id="e1")])
         assert len(outcome.findings) == len(outcome.sessions)
@@ -58,7 +58,7 @@ class TestPart3Boundaries:
 
     def test_risk_and_confidence_are_separate_values(self):
         """Risk ≠ confidence, and confidence is never risk/100."""
-        from detection.cloud_destruction.detector import DestructionDetector
+        from algo.detection.cloud_destruction.detector import DestructionDetector
 
         outcome = DestructionDetector().detect(
             [make_event(event_id="e1"), make_event(event_id="e2", actor_id="other")]
@@ -70,12 +70,12 @@ class TestPart3Boundaries:
 
     def test_supervised_slot_requires_declared_labels(self):
         """The supervised slot never fabricates labels or trains silently."""
-        from detection.cloud_destruction.supervised import SupervisedDetector
+        from algo.detection.cloud_destruction.supervised import SupervisedDetector
 
         detector = SupervisedDetector()
         assert not detector.is_fitted
         assert detector.predict_row([0.1, 0.2]) is None
         with pytest.raises(ValueError):
-            from detection.cloud_destruction.supervised import SupervisedTrainingData
+            from algo.detection.cloud_destruction.supervised import SupervisedTrainingData
 
             SupervisedTrainingData(rows=[[1.0]], labels=[1], label_source="made-up")

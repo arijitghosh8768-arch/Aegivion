@@ -30,19 +30,19 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence
 
-from detection.cloud_destruction.arde import (
+from algo.detection.cloud_destruction.arde import (
     CheckVerdict,
     ValidationCheck,
     ValidationReport,
 )
-from detection.cloud_destruction.config import DestructionDetectorConfig
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.evaluation import _pr_auc, _roc_auc
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.config import DestructionDetectorConfig
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.evaluation import _pr_auc, _roc_auc
+from algo.detection.cloud_destruction.schemas import (
     DestructiveActivitySession,
     ResourceActivityEvent,
 )
-from detection.cloud_destruction.scorer import ScoringConfig
+from algo.detection.cloud_destruction.scorer import ScoringConfig
 
 __all__ = ["AblationResult", "AblationStudy", "run_ablation"]
 

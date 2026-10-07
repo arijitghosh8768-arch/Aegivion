@@ -21,7 +21,7 @@ from datetime import timedelta
 
 import pytest
 
-from detection.cloud_destruction.baseline import (
+from algo.detection.cloud_destruction.baseline import (
     BaselineConfig,
     BaselineContamination,
     BaselineQuality,
@@ -30,34 +30,34 @@ from detection.cloud_destruction.baseline import (
     classify_contamination,
     measure_novelty,
 )
-from detection.cloud_destruction.backup import analyze_backup
-from detection.cloud_destruction.config import BehavioralConfig, DestructionDetectorConfig
-from detection.cloud_destruction.deletion import analyze_deletion
-from detection.cloud_destruction.deviation import clamp01, ratio_to_factor
-from detection.cloud_destruction.evidence import collect_evidence
-from detection.cloud_destruction.features import SessionFeatureVector, extract_features
-from detection.cloud_destruction.legitimate import (
+from algo.detection.cloud_destruction.backup import analyze_backup
+from algo.detection.cloud_destruction.config import BehavioralConfig, DestructionDetectorConfig
+from algo.detection.cloud_destruction.deletion import analyze_deletion
+from algo.detection.cloud_destruction.deviation import clamp01, ratio_to_factor
+from algo.detection.cloud_destruction.evidence import collect_evidence
+from algo.detection.cloud_destruction.features import SessionFeatureVector, extract_features
+from algo.detection.cloud_destruction.legitimate import (
     ActivityContext,
     ApprovedActivityProfile,
     match_profile,
 )
-from detection.cloud_destruction.modification import analyze_modification
-from detection.cloud_destruction.provenance import DataProvenance
-from detection.cloud_destruction.recoverability import analyze_recoverability
-from detection.cloud_destruction.rewrite import analyze_rewrite
-from detection.cloud_destruction.sequence import analyze_sequences
-from detection.cloud_destruction.session import DestructiveSessionBuilder
-from detection.cloud_destruction.snapshot import analyze_snapshots
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.modification import analyze_modification
+from algo.detection.cloud_destruction.provenance import DataProvenance
+from algo.detection.cloud_destruction.recoverability import analyze_recoverability
+from algo.detection.cloud_destruction.rewrite import analyze_rewrite
+from algo.detection.cloud_destruction.sequence import analyze_sequences
+from algo.detection.cloud_destruction.session import DestructiveSessionBuilder
+from algo.detection.cloud_destruction.snapshot import analyze_snapshots
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     BusinessCriticality,
     DestructiveActivitySession,
     ResourceActivityEvent,
 )
-from detection.cloud_destruction.temporal import analyze_temporal
-from detection.cloud_destruction.versioning import analyze_versioning
+from algo.detection.cloud_destruction.temporal import analyze_temporal
+from algo.detection.cloud_destruction.versioning import analyze_versioning
 
-from detection.cloud_destruction.tests.helpers import BASE_TIME, make_event
+from algo.detection.cloud_destruction.tests.helpers import BASE_TIME, make_event
 
 # --------------------------------------------------------------------------- #
 # Event/session factories

@@ -39,17 +39,17 @@ from typing import Any, Callable, Optional, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.exceptions import (
     CloudDestructionError,
 )
-from detection.cloud_destruction.finding import DestructionFinding
-from detection.cloud_destruction.legitimate import (
+from algo.detection.cloud_destruction.finding import DestructionFinding
+from algo.detection.cloud_destruction.legitimate import (
     ActivityContext,
     ApprovedActivityProfile,
     match_profile,
 )
-from detection.cloud_destruction.registry import CONTEXT_VERSION
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.registry import CONTEXT_VERSION
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     DestructiveActivitySession,
     ResourceActivityEvent,

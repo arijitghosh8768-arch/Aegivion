@@ -30,8 +30,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session as SASession, mapped_column
 from sqlalchemy.pool import StaticPool
 
-from detection.cloud_destruction.exceptions import DatabaseError
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.exceptions import DatabaseError
+from algo.detection.cloud_destruction.schemas import (
     DestructiveActivitySession,
     ResourceActivityEvent,
     ResourceProtectionProfile,
@@ -357,7 +357,7 @@ def _finding_payload(finding: Any) -> dict[str, Any]:
 
 def _finding_from_payload(payload: dict[str, Any]) -> Any:
     """Rebuild a DestructionFinding from its persisted payload."""
-    from detection.cloud_destruction.finding import DestructionFinding, Severity
+    from algo.detection.cloud_destruction.finding import DestructionFinding, Severity
 
     versions = payload.get("versions") or {}
     return DestructionFinding(

@@ -30,43 +30,43 @@ from types import SimpleNamespace
 
 import pytest
 
-from detection.cloud_destruction.arde import (
+from algo.detection.cloud_destruction.arde import (
     ArdeValidator,
     CheckVerdict,
 )
-from detection.cloud_destruction.baseline import (
+from algo.detection.cloud_destruction.baseline import (
     BaselineStore,
     BaselineContamination,
     LEARNING_WEIGHT,
     classify_contamination,
 )
-from detection.cloud_destruction.confidence import (
+from algo.detection.cloud_destruction.confidence import (
     ConfidenceConfig,
     compute_confidence,
 )
-from detection.cloud_destruction.context import (
+from algo.detection.cloud_destruction.context import (
     ContextEngine,
     LegitimateActivity,
 )
-from detection.cloud_destruction.detector import DestructionDetector
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.detector import DestructionDetector
+from algo.detection.cloud_destruction.exceptions import (
     MalformedEventError,
     UnsupportedEventError,
 )
-from detection.cloud_destruction.explainability import (
+from algo.detection.cloud_destruction.explainability import (
     FINDING_LABEL,
     build_explanation,
 )
-from detection.cloud_destruction.features import extract_features
-from detection.cloud_destruction.finding import build_finding
-from detection.cloud_destruction.normalizer import (
+from algo.detection.cloud_destruction.features import extract_features
+from algo.detection.cloud_destruction.finding import build_finding
+from algo.detection.cloud_destruction.normalizer import (
     ResourceActivityNormalizer,
 )
-from detection.cloud_destruction.scorer import score_destruction
-from detection.cloud_destruction.session import (
+from algo.detection.cloud_destruction.scorer import score_destruction
+from algo.detection.cloud_destruction.session import (
     DestructiveSessionBuilder,
 )
-from detection.cloud_destruction.tests.helpers import (
+from algo.detection.cloud_destruction.tests.helpers import (
     BASE_TIME,
     advance,
     make_event,
@@ -87,7 +87,7 @@ def _pipeline(events, *, detail=True, use_ml=True):
     per-event telemetry) — the robustness scenarios below use it
     to simulate missing telemetry.
     """
-    from detection.cloud_destruction.config import (
+    from algo.detection.cloud_destruction.config import (
         DestructionDetectorConfig,
     )
 
@@ -195,7 +195,7 @@ class TestMissingDeletionEvents:
 
 class TestMissingSnapshotEvents:
     def test_recovery_counters_without_detail_warn(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             ActionCategory,
         )
 
@@ -220,7 +220,7 @@ class TestMissingSnapshotEvents:
 
 class TestIncompleteBackupRecords:
     def test_backup_deletion_without_vault_still_counted(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             ActionCategory,
         )
 
@@ -426,7 +426,7 @@ class TestNoisyResourceMetadata:
         assert check.evidence["unknown_resource_type_events"] == 6
 
     def test_mixed_known_and_unknown_degrades_gently(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             ResourceType,
         )
 
@@ -461,7 +461,7 @@ class TestNoisyResourceMetadata:
 
 class TestBaselineContamination:
     def _destructive_history(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             ActionCategory,
         )
 
@@ -482,7 +482,7 @@ class TestBaselineContamination:
         assert LEARNING_WEIGHT[classification] == 0.0
 
     def test_high_destructive_ratio_is_high_contamination(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             ActionCategory,
         )
 
@@ -540,7 +540,7 @@ class TestBaselineContamination:
 
 class TestContradictoryTelemetry:
     def test_protected_deletions_exceed_totals(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             ActionCategory,
         )
 
@@ -566,11 +566,11 @@ class TestContradictoryTelemetry:
                 is CheckVerdict.FAIL)
 
     def test_high_recoverability_contradicts_deleted_recovery(self):
-        from detection.cloud_destruction.provenance import (
+        from algo.detection.cloud_destruction.provenance import (
             MeasurementConfidence,
             MeasuredValue,
         )
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             ActionCategory,
         )
 
@@ -603,7 +603,7 @@ class TestContradictoryTelemetry:
 
 class TestLegitimateScheduledCleanup:
     def _cleanup_events(self):
-        from detection.cloud_destruction.schemas import (
+        from algo.detection.cloud_destruction.schemas import (
             ActorType,
             ActionCategory,
         )
@@ -663,7 +663,7 @@ class TestLegitimateScheduledCleanup:
 
 class TestConfidenceChangesAppropriately:
     def _scenario(self, *, detail, baseline_store=None):
-        from detection.cloud_destruction.config import (
+        from algo.detection.cloud_destruction.config import (
             DestructionDetectorConfig,
         )
 
@@ -709,7 +709,7 @@ class TestConfidenceChangesAppropriately:
         assert degraded < complete
 
     def test_no_baseline_lowers_confidence(self):
-        from detection.cloud_destruction.baseline import (
+        from algo.detection.cloud_destruction.baseline import (
             BaselineQuality,
         )
 
