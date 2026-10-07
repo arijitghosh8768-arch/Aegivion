@@ -42,3 +42,6 @@ from app.models.history import AssetSnapshot, SecurityRiskSnapshot, FindingSuppr
 from .organization_member import OrganizationMember, OrgRole, MemberStatus
 from .session import Session
 
+# Import Postgres Knowledge Models for RAG Phase 3
+from app.models.postgres_base import PostgresBase
+from app.models.knowledge import KnowledgeDocument, KnowledgeChunk, KnowledgeScope, AuthorityLevel, ChunkStatus
