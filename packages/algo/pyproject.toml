@@ -1,19 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "aegivion"
+name = "aegivion-cloud-destruction"
 version = "0.1.0"
-description = "Aegivion - Autonomous Explainable Cloud Security Copilot"
-requires-python = ">=3.10"
+description = "Aegivion Attack Algorithm #3: Cloud Destructive Activity Detector (Parts 1-5)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
 dependencies = [
-    "pydantic>=2.6",
+    "pydantic>=2.7",
     "SQLAlchemy>=2.0",
 ]
 
 [project.optional-dependencies]
-api = ["fastapi>=0.110", "uvicorn>=0.29"]
-postgres = ["psycopg[binary]>=3.1"]
-dev = ["pytest>=7.4"]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["detection*", "ingestion*", "correlation*"]
 
 [tool.pytest.ini_options]
-testpaths = ["detection", "ingestion", "storage"]
-pythonpath = [".."]
+testpaths = ["detection/cloud_destruction/tests"]
 addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

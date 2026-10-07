@@ -52,3 +52,4 @@ coverage.xml
 # Alembic pycache
 packages/backend/alembic/__pycache__/
 packages/backend/alembic/versions/__pycache__/
+..bfg-report/

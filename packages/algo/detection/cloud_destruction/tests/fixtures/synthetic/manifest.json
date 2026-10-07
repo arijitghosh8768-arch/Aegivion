@@ -1,0 +1,83 @@
+{
+  "base_time": "2026-09-01T00:00:00Z",
+  "scenarios": [
+    {
+      "scenario": "normal_writes",
+      "description": "Routine daily uploads by a human administrator over 20 days",
+      "raw_records": 60,
+      "canonical_events": 60
+    },
+    {
+      "scenario": "normal_lifecycle_cleanup",
+      "description": "Steady scheduled lifecycle deletion at 02:00 by an automation role",
+      "raw_records": 50,
+      "canonical_events": 50
+    },
+    {
+      "scenario": "scheduled_backup_cleanup",
+      "description": "Scheduled expiry deletion of recovery points by the backup automation role",
+      "raw_records": 40,
+      "canonical_events": 40
+    },
+    {
+      "scenario": "mass_modification",
+      "description": "Burst modification of 40 existing objects within 80 minutes",
+      "raw_records": 40,
+      "canonical_events": 40
+    },
+    {
+      "scenario": "mass_deletion",
+      "description": "Four batched DeleteObjects calls removing 80 objects across 3 buckets",
+      "raw_records": 4,
+      "canonical_events": 4
+    },
+    {
+      "scenario": "version_deletion",
+      "description": "Versioned-bucket scrubbing: 60 version deletions in 15 minutes",
+      "raw_records": 60,
+      "canonical_events": 60
+    },
+    {
+      "scenario": "snapshot_deletion",
+      "description": "12 EBS snapshot deletions across 2 regions within an hour",
+      "raw_records": 12,
+      "canonical_events": 12
+    },
+    {
+      "scenario": "recovery_point_deletion",
+      "description": "Recovery-point deletion across two vaults within 30 minutes",
+      "raw_records": 10,
+      "canonical_events": 10
+    },
+    {
+      "scenario": "recovery_protection_change",
+      "description": "16 protection-degrading actions across buckets and backup vaults",
+      "raw_records": 16,
+      "canonical_events": 16
+    },
+    {
+      "scenario": "mass_rewrite_sequence",
+      "description": "70 same-prefix rewrites with new encryption keys in 20 minutes",
+      "raw_records": 70,
+      "canonical_events": 70
+    },
+    {
+      "scenario": "mixed_normal_destructive",
+      "description": "Routine activity followed by a destructive burst (overlapping actors)",
+      "raw_records": 54,
+      "canonical_events": 54
+    },
+    {
+      "scenario": "malformed_telemetry",
+      "description": "Malformed records: missing/invalid required fields and wrong types",
+      "raw_records": 11,
+      "canonical_events": 1
+    },
+    {
+      "scenario": "missing_telemetry_fields",
+      "description": "Valid records with absent actor/region/account/network fields",
+      "raw_records": 5,
+      "canonical_events": 5
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "records": [
+    {
+      "version": "0",
+      "id": "eb-backup-001",
+      "detail-type": "Backup Job State Change",
+      "source": "aws.backup",
+      "account": "111122223333",
+      "time": "2026-09-01T01:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "jobId": "job-001",
+        "state": "COMPLETED",
+        "backupVaultArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault",
+        "recoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/nightly-001"
+      }
+    },
+    {
+      "version": "0",
+      "id": "eb-backup-002",
+      "detail-type": "Backup Job State Change",
+      "source": "aws.backup",
+      "account": "111122223333",
+      "time": "2026-09-01T02:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "jobId": "job-002",
+        "state": "EXPIRED",
+        "backupVaultArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault",
+        "recoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/nightly-002"
+      }
+    },
+    {
+      "version": "0",
+      "id": "eb-backup-003",
+      "detail-type": "Restore Job State Change",
+      "source": "aws.backup",
+      "account": "111122223333",
+      "time": "2026-09-01T03:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "jobId": "job-003",
+        "state": "COMPLETED",
+        "backupVaultArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault",
+        "recoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/nightly-003"
+      }
+    },
+    {
+      "version": "0",
+      "id": "eb-backup-004",
+      "detail-type": "Copy Job State Change",
+      "source": "aws.backup",
+      "account": "111122223333",
+      "time": "2026-09-01T04:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "jobId": "job-004",
+        "state": "COMPLETED",
+        "backupVaultArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault",
+        "recoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/nightly-004"
+      }
+    },
+    {
+      "version": "0",
+      "id": "eb-backup-005",
+      "detail-type": "Backup Job State Change",
+      "source": "aws.backup",
+      "account": "111122223333",
+      "time": "2026-09-01T05:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "jobId": "job-005",
+        "state": "DELETE_COMPLETED",
+        "backupVaultArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy",
+        "recoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/nightly-005"
+      }
+    }
+  ]
+}

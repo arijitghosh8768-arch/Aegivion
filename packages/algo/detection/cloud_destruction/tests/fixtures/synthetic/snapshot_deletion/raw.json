@@ -1,0 +1,402 @@
+{
+  "scenario": "snapshot_deletion",
+  "description": "12 EBS snapshot deletions across 2 regions within an hour",
+  "records": [
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100255",
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db000"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:us-east-1:111122223333:snapshot/snap-0db000"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100256",
+      "eventTime": "2026-09-01T00:05:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "eu-west-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db001"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:eu-west-1:111122223333:snapshot/snap-0db001"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100257",
+      "eventTime": "2026-09-01T00:10:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db002"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:us-east-1:111122223333:snapshot/snap-0db002"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100258",
+      "eventTime": "2026-09-01T00:15:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "eu-west-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db003"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:eu-west-1:111122223333:snapshot/snap-0db003"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100259",
+      "eventTime": "2026-09-01T00:20:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db004"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:us-east-1:111122223333:snapshot/snap-0db004"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100260",
+      "eventTime": "2026-09-01T00:25:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "eu-west-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db005"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:eu-west-1:111122223333:snapshot/snap-0db005"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100261",
+      "eventTime": "2026-09-01T00:30:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db006"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:us-east-1:111122223333:snapshot/snap-0db006"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100262",
+      "eventTime": "2026-09-01T00:35:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "eu-west-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db007"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:eu-west-1:111122223333:snapshot/snap-0db007"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100263",
+      "eventTime": "2026-09-01T00:40:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db008"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:us-east-1:111122223333:snapshot/snap-0db008"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100264",
+      "eventTime": "2026-09-01T00:45:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "eu-west-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db009"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:eu-west-1:111122223333:snapshot/snap-0db009"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100265",
+      "eventTime": "2026-09-01T00:50:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db010"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:us-east-1:111122223333:snapshot/snap-0db010"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100266",
+      "eventTime": "2026-09-01T00:55:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "eu-west-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "SnapshotId": "snap-0db011"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:ec2:eu-west-1:111122223333:snapshot/snap-0db011"
+        }
+      ]
+    }
+  ]
+}

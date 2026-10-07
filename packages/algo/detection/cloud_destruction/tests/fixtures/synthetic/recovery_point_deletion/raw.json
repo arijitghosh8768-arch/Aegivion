@@ -1,0 +1,346 @@
+{
+  "scenario": "recovery_point_deletion",
+  "description": "Recovery-point deletion across two vaults within 30 minutes",
+  "records": [
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100267",
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault-legacy",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/rp-0000"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/rp-0000"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100268",
+      "eventTime": "2026-09-01T00:03:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0001"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0001"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100269",
+      "eventTime": "2026-09-01T00:06:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0002"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0002"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100270",
+      "eventTime": "2026-09-01T00:09:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault-legacy",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/rp-0003"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/rp-0003"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100271",
+      "eventTime": "2026-09-01T00:12:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0004"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0004"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100272",
+      "eventTime": "2026-09-01T00:15:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0005"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0005"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100273",
+      "eventTime": "2026-09-01T00:18:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault-legacy",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/rp-0006"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/rp-0006"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100274",
+      "eventTime": "2026-09-01T00:21:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0007"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0007"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100275",
+      "eventTime": "2026-09-01T00:24:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0008"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/rp-0008"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100276",
+      "eventTime": "2026-09-01T00:27:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault-legacy",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/rp-0009"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault-legacy/recovery-point/rp-0009"
+        }
+      ]
+    }
+  ]
+}

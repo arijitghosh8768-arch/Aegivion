@@ -19,7 +19,7 @@ from security.engine.agent_controller import (
 
 from security.engine.detectors.credential_compromise_adapter import CredentialCompromiseAdapter
 from security.engine.detectors.data_exfiltration_adapter import DataExfiltrationAdapter
-from security.engine.detectors.ransomware_destruction import RansomwareDestructionDetector
+from security.engine.detectors.destructive_activity_adapter import DestructiveActivityAdapter
 from security.engine.detection_context import DetectionContext
 from security.engine.detection_correlation import DetectionCorrelationEngine
 
@@ -329,7 +329,7 @@ class DetectionCorrelationWorker(AsyncQueueWorker):
         self.detectors = [
             CredentialCompromiseAdapter(),
             DataExfiltrationAdapter(),
-            RansomwareDestructionDetector()
+            DestructiveActivityAdapter()
         ]
         self.context = DetectionContext(
             max_events_per_tenant=1000, 

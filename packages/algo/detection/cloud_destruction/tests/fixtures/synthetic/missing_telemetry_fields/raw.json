@@ -1,0 +1,62 @@
+{
+  "scenario": "missing_telemetry_fields",
+  "description": "Valid records with absent actor/region/account/network fields",
+  "records": [
+    {
+      "eventVersion": "1.09",
+      "eventID": "sparse-001",
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "requestParameters": {
+        "bucketName": "ops-app-logs",
+        "key": "logs/gap-001.log"
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "sparse-002",
+      "eventTime": "2026-09-01T00:01:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "recipientAccountId": "111122223333",
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/sparse-002.json"
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "sparse-003",
+      "eventTime": "2026-09-01T00:02:00Z",
+      "eventSource": "ec2.amazonaws.com",
+      "eventName": "DeleteSnapshot",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "requestParameters": {
+        "SnapshotId": "snap-0db900"
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "sparse-004",
+      "eventTime": "2026-09-01T00:03:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault"
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "sparse-005",
+      "eventTime": "2026-09-01T00:04:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjects",
+      "requestParameters": {
+        "bucketName": "ops-app-logs"
+      }
+    }
+  ]
+}

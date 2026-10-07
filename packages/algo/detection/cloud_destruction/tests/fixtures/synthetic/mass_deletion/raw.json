@@ -1,0 +1,398 @@
+{
+  "scenario": "mass_deletion",
+  "description": "Four batched DeleteObjects calls removing 80 objects across 3 buckets",
+  "records": [
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100191",
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjects",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "Delete": {
+          "Objects": [
+            {
+              "Key": "batch-delete/00/obj-000.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-001.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-002.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-003.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-004.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-005.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-006.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-007.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-008.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-009.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-010.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-011.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-012.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-013.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-014.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-015.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-016.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-017.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-018.bin"
+            },
+            {
+              "Key": "batch-delete/00/obj-019.bin"
+            }
+          ]
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100192",
+      "eventTime": "2026-09-01T00:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjects",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "Delete": {
+          "Objects": [
+            {
+              "Key": "batch-delete/01/obj-000.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-001.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-002.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-003.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-004.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-005.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-006.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-007.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-008.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-009.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-010.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-011.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-012.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-013.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-014.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-015.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-016.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-017.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-018.bin"
+            },
+            {
+              "Key": "batch-delete/01/obj-019.bin"
+            }
+          ]
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100193",
+      "eventTime": "2026-09-01T00:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjects",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "ops-app-logs",
+        "Delete": {
+          "Objects": [
+            {
+              "Key": "batch-delete/02/obj-000.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-001.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-002.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-003.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-004.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-005.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-006.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-007.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-008.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-009.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-010.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-011.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-012.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-013.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-014.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-015.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-016.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-017.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-018.bin"
+            },
+            {
+              "Key": "batch-delete/02/obj-019.bin"
+            }
+          ]
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::ops-app-logs",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100194",
+      "eventTime": "2026-09-01T00:21:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjects",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "Delete": {
+          "Objects": [
+            {
+              "Key": "batch-delete/03/obj-000.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-001.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-002.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-003.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-004.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-005.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-006.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-007.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-008.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-009.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-010.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-011.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-012.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-013.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-014.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-015.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-016.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-017.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-018.bin"
+            },
+            {
+              "Key": "batch-delete/03/obj-019.bin"
+            }
+          ]
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports",
+          "accountId": "111122223333"
+        }
+      ]
+    }
+  ]
+}

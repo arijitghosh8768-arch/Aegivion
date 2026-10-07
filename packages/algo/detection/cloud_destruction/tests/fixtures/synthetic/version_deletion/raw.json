@@ -1,0 +1,2196 @@
+{
+  "scenario": "version_deletion",
+  "description": "Versioned-bucket scrubbing: 60 version deletions in 15 minutes",
+  "records": [
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100195",
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/00.pq",
+        "versionId": "vId-000000abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/00.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100196",
+      "eventTime": "2026-09-01T00:00:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/01.pq",
+        "versionId": "vId-000001abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/01.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100197",
+      "eventTime": "2026-09-01T00:00:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/02.pq",
+        "versionId": "vId-000002abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/02.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100198",
+      "eventTime": "2026-09-01T00:00:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/03.pq",
+        "versionId": "vId-000003abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/03.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100199",
+      "eventTime": "2026-09-01T00:01:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/04.pq",
+        "versionId": "vId-000004abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/04.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100200",
+      "eventTime": "2026-09-01T00:01:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/05.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/05.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100201",
+      "eventTime": "2026-09-01T00:01:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/06.pq",
+        "versionId": "vId-000006abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/06.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100202",
+      "eventTime": "2026-09-01T00:01:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/07.pq",
+        "versionId": "vId-000007abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/07.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100203",
+      "eventTime": "2026-09-01T00:02:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/08.pq",
+        "versionId": "vId-000008abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/08.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100204",
+      "eventTime": "2026-09-01T00:02:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/09.pq",
+        "versionId": "vId-000009abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/09.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100205",
+      "eventTime": "2026-09-01T00:02:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/10.pq",
+        "versionId": "vId-000010abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/10.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100206",
+      "eventTime": "2026-09-01T00:02:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/11.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/11.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100207",
+      "eventTime": "2026-09-01T00:03:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/00.pq",
+        "versionId": "vId-000012abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/00.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100208",
+      "eventTime": "2026-09-01T00:03:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/01.pq",
+        "versionId": "vId-000013abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/01.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100209",
+      "eventTime": "2026-09-01T00:03:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/02.pq",
+        "versionId": "vId-000014abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/02.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100210",
+      "eventTime": "2026-09-01T00:03:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/03.pq",
+        "versionId": "vId-000015abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/03.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100211",
+      "eventTime": "2026-09-01T00:04:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/04.pq",
+        "versionId": "vId-000016abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/04.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100212",
+      "eventTime": "2026-09-01T00:04:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/05.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/05.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100213",
+      "eventTime": "2026-09-01T00:04:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/06.pq",
+        "versionId": "vId-000018abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/06.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100214",
+      "eventTime": "2026-09-01T00:04:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/07.pq",
+        "versionId": "vId-000019abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/07.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100215",
+      "eventTime": "2026-09-01T00:05:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/08.pq",
+        "versionId": "vId-000020abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/08.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100216",
+      "eventTime": "2026-09-01T00:05:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/09.pq",
+        "versionId": "vId-000021abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/09.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100217",
+      "eventTime": "2026-09-01T00:05:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/10.pq",
+        "versionId": "vId-000022abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/10.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100218",
+      "eventTime": "2026-09-01T00:05:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/11.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/11.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100219",
+      "eventTime": "2026-09-01T00:06:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/00.pq",
+        "versionId": "vId-000024abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/00.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100220",
+      "eventTime": "2026-09-01T00:06:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/01.pq",
+        "versionId": "vId-000025abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/01.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100221",
+      "eventTime": "2026-09-01T00:06:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/02.pq",
+        "versionId": "vId-000026abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/02.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100222",
+      "eventTime": "2026-09-01T00:06:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/03.pq",
+        "versionId": "vId-000027abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/03.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100223",
+      "eventTime": "2026-09-01T00:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/04.pq",
+        "versionId": "vId-000028abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/04.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100224",
+      "eventTime": "2026-09-01T00:07:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/05.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/05.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100225",
+      "eventTime": "2026-09-01T00:07:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/06.pq",
+        "versionId": "vId-000030abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/06.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100226",
+      "eventTime": "2026-09-01T00:07:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/07.pq",
+        "versionId": "vId-000031abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/07.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100227",
+      "eventTime": "2026-09-01T00:08:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/08.pq",
+        "versionId": "vId-000032abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/08.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100228",
+      "eventTime": "2026-09-01T00:08:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/09.pq",
+        "versionId": "vId-000033abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/09.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100229",
+      "eventTime": "2026-09-01T00:08:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/10.pq",
+        "versionId": "vId-000034abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/10.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100230",
+      "eventTime": "2026-09-01T00:08:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/11.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/11.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100231",
+      "eventTime": "2026-09-01T00:09:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/00.pq",
+        "versionId": "vId-000036abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/00.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100232",
+      "eventTime": "2026-09-01T00:09:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/01.pq",
+        "versionId": "vId-000037abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/01.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100233",
+      "eventTime": "2026-09-01T00:09:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/02.pq",
+        "versionId": "vId-000038abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/02.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100234",
+      "eventTime": "2026-09-01T00:09:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/03.pq",
+        "versionId": "vId-000039abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/03.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100235",
+      "eventTime": "2026-09-01T00:10:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/04.pq",
+        "versionId": "vId-000040abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/04.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100236",
+      "eventTime": "2026-09-01T00:10:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/05.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/05.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100237",
+      "eventTime": "2026-09-01T00:10:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/06.pq",
+        "versionId": "vId-000042abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/06.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100238",
+      "eventTime": "2026-09-01T00:10:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/07.pq",
+        "versionId": "vId-000043abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/07.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100239",
+      "eventTime": "2026-09-01T00:11:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/08.pq",
+        "versionId": "vId-000044abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/08.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100240",
+      "eventTime": "2026-09-01T00:11:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/09.pq",
+        "versionId": "vId-000045abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/09.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100241",
+      "eventTime": "2026-09-01T00:11:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/10.pq",
+        "versionId": "vId-000046abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/10.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100242",
+      "eventTime": "2026-09-01T00:11:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/11.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/11.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100243",
+      "eventTime": "2026-09-01T00:12:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/00.pq",
+        "versionId": "vId-000048abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/00.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100244",
+      "eventTime": "2026-09-01T00:12:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/01.pq",
+        "versionId": "vId-000049abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/01.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100245",
+      "eventTime": "2026-09-01T00:12:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/02.pq",
+        "versionId": "vId-000050abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/02.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100246",
+      "eventTime": "2026-09-01T00:12:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/03.pq",
+        "versionId": "vId-000051abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/03.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100247",
+      "eventTime": "2026-09-01T00:13:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/04.pq",
+        "versionId": "vId-000052abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/04.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100248",
+      "eventTime": "2026-09-01T00:13:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/05.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/05.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100249",
+      "eventTime": "2026-09-01T00:13:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/06.pq",
+        "versionId": "vId-000054abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/06.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100250",
+      "eventTime": "2026-09-01T00:13:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/07.pq",
+        "versionId": "vId-000055abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/07.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100251",
+      "eventTime": "2026-09-01T00:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/08.pq",
+        "versionId": "vId-000056abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/08.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100252",
+      "eventTime": "2026-09-01T00:14:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/09.pq",
+        "versionId": "vId-000057abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/09.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100253",
+      "eventTime": "2026-09-01T00:14:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObjectVersion",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/10.pq",
+        "versionId": "vId-000058abc"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/10.pq",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100254",
+      "eventTime": "2026-09-01T00:14:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/ledger/11.pq"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/ledger/11.pq",
+          "accountId": "111122223333"
+        }
+      ],
+      "responseElements": {
+        "x-amz-delete-marker": "true",
+        "x-amz-version-id": "marker.."
+      }
+    }
+  ]
+}

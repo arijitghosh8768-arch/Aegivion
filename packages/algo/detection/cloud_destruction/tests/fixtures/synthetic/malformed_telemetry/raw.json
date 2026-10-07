@@ -1,0 +1,87 @@
+{
+  "scenario": "malformed_telemetry",
+  "description": "Malformed records: missing/invalid required fields and wrong types",
+  "records": [
+    {
+      "note": "not a cloudtrail record at all"
+    },
+    {
+      "eventVersion": "1.09",
+      "eventTime": "2026-09-01T00:00:00Z"
+    },
+    {
+      "eventVersion": "1.09",
+      "eventName": "DeleteObject"
+    },
+    {
+      "eventName": "DeleteObject",
+      "eventTime": "not-a-timestamp",
+      "eventID": "malformed-001"
+    },
+    {
+      "eventVersion": "2.99",
+      "eventName": "DeleteObject",
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventID": "malformed-002"
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "",
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {},
+      "eventCategory": "Management"
+    },
+    {
+      "eventVersion": "1.09",
+      "eventName": 12345,
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventID": "malformed-003"
+    },
+    {
+      "eventVersion": "1.09",
+      "eventName": "DeleteObject",
+      "eventTime": 99999999999999.9,
+      "eventID": "malformed-004"
+    },
+    [],
+    {
+      "eventVersion": "1.09",
+      "eventName": "DeleteObject",
+      "eventTime": null,
+      "eventID": "malformed-005"
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "malformed-006",
+      "eventTime": "2026-09-01T00:01:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "DeleteObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": "not-a-dict",
+      "requestParameters": {},
+      "eventCategory": "Management"
+    }
+  ]
+}

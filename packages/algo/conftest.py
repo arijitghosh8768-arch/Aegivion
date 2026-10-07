@@ -1,7 +1,11 @@
-"""Root pytest bootstrap.
+"""Root pytest bootstrap for the Aegivion Algorithm #3 repository.
 
 Makes the repository root importable so tests can use absolute imports such as
-``from algo.detection.credential_compromise.schemas import IdentityActivityEvent``.
+``from detection.cloud_destruction.schemas import ResourceActivityEvent``.
+
+Independence guarantee: this conftest does not touch ``Aegivion_algo_1`` or
+``Aegivion_algo_2``. A dedicated boundary test (``test_independence.py``)
+asserts at runtime that Algorithm #3 never imports from them.
 """
 
 from __future__ import annotations

@@ -1,0 +1,2806 @@
+{
+  "scenario": "mass_rewrite_sequence",
+  "description": "70 same-prefix rewrites with new encryption keys in 20 minutes",
+  "records": [
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100293",
+      "eventTime": "2026-09-01T00:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/000.enc",
+        "copySource": "fin-prod-archive/archive/data/000.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/000.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100294",
+      "eventTime": "2026-09-01T00:00:17Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/001.enc",
+        "copySource": "fin-prod-archive/archive/data/001.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/001.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100295",
+      "eventTime": "2026-09-01T00:00:34Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/002.enc",
+        "copySource": "fin-prod-archive/archive/data/002.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/002.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100296",
+      "eventTime": "2026-09-01T00:00:51Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/003.enc",
+        "copySource": "fin-prod-archive/archive/data/003.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/003.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100297",
+      "eventTime": "2026-09-01T00:01:08Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/004.enc",
+        "copySource": "fin-prod-archive/archive/data/004.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/004.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100298",
+      "eventTime": "2026-09-01T00:01:25Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/005.enc",
+        "copySource": "fin-prod-archive/archive/data/005.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/005.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100299",
+      "eventTime": "2026-09-01T00:01:42Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/006.enc",
+        "copySource": "fin-prod-archive/archive/data/006.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/006.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100300",
+      "eventTime": "2026-09-01T00:01:59Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/007.enc",
+        "copySource": "fin-prod-archive/archive/data/007.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/007.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100301",
+      "eventTime": "2026-09-01T00:02:16Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/008.enc",
+        "copySource": "fin-prod-archive/archive/data/008.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/008.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100302",
+      "eventTime": "2026-09-01T00:02:33Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/009.enc",
+        "copySource": "fin-prod-archive/archive/data/009.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/009.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100303",
+      "eventTime": "2026-09-01T00:02:50Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/010.enc",
+        "copySource": "fin-prod-archive/archive/data/010.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/010.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100304",
+      "eventTime": "2026-09-01T00:03:07Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/011.enc",
+        "copySource": "fin-prod-archive/archive/data/011.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/011.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100305",
+      "eventTime": "2026-09-01T00:03:24Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/012.enc",
+        "copySource": "fin-prod-archive/archive/data/012.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/012.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100306",
+      "eventTime": "2026-09-01T00:03:41Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/013.enc",
+        "copySource": "fin-prod-archive/archive/data/013.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/013.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100307",
+      "eventTime": "2026-09-01T00:03:58Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/014.enc",
+        "copySource": "fin-prod-archive/archive/data/014.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/014.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100308",
+      "eventTime": "2026-09-01T00:04:15Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/015.enc",
+        "copySource": "fin-prod-archive/archive/data/015.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/015.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100309",
+      "eventTime": "2026-09-01T00:04:32Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/016.enc",
+        "copySource": "fin-prod-archive/archive/data/016.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/016.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100310",
+      "eventTime": "2026-09-01T00:04:49Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/017.enc",
+        "copySource": "fin-prod-archive/archive/data/017.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/017.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100311",
+      "eventTime": "2026-09-01T00:05:06Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/018.enc",
+        "copySource": "fin-prod-archive/archive/data/018.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/018.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100312",
+      "eventTime": "2026-09-01T00:05:23Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/019.enc",
+        "copySource": "fin-prod-archive/archive/data/019.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/019.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100313",
+      "eventTime": "2026-09-01T00:05:40Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/020.enc",
+        "copySource": "fin-prod-archive/archive/data/020.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/020.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100314",
+      "eventTime": "2026-09-01T00:05:57Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/021.enc",
+        "copySource": "fin-prod-archive/archive/data/021.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/021.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100315",
+      "eventTime": "2026-09-01T00:06:14Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/022.enc",
+        "copySource": "fin-prod-archive/archive/data/022.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/022.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100316",
+      "eventTime": "2026-09-01T00:06:31Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/023.enc",
+        "copySource": "fin-prod-archive/archive/data/023.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/023.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100317",
+      "eventTime": "2026-09-01T00:06:48Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/024.enc",
+        "copySource": "fin-prod-archive/archive/data/024.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/024.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100318",
+      "eventTime": "2026-09-01T00:07:05Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/025.enc",
+        "copySource": "fin-prod-archive/archive/data/025.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/025.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100319",
+      "eventTime": "2026-09-01T00:07:22Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/026.enc",
+        "copySource": "fin-prod-archive/archive/data/026.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/026.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100320",
+      "eventTime": "2026-09-01T00:07:39Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/027.enc",
+        "copySource": "fin-prod-archive/archive/data/027.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/027.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100321",
+      "eventTime": "2026-09-01T00:07:56Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/028.enc",
+        "copySource": "fin-prod-archive/archive/data/028.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/028.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100322",
+      "eventTime": "2026-09-01T00:08:13Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/029.enc",
+        "copySource": "fin-prod-archive/archive/data/029.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/029.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100323",
+      "eventTime": "2026-09-01T00:08:30Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/030.enc",
+        "copySource": "fin-prod-archive/archive/data/030.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/030.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100324",
+      "eventTime": "2026-09-01T00:08:47Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/031.enc",
+        "copySource": "fin-prod-archive/archive/data/031.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/031.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100325",
+      "eventTime": "2026-09-01T00:09:04Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/032.enc",
+        "copySource": "fin-prod-archive/archive/data/032.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/032.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100326",
+      "eventTime": "2026-09-01T00:09:21Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/033.enc",
+        "copySource": "fin-prod-archive/archive/data/033.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/033.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100327",
+      "eventTime": "2026-09-01T00:09:38Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/034.enc",
+        "copySource": "fin-prod-archive/archive/data/034.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/034.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100328",
+      "eventTime": "2026-09-01T00:09:55Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/035.enc",
+        "copySource": "fin-prod-archive/archive/data/035.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/035.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100329",
+      "eventTime": "2026-09-01T00:10:12Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/036.enc",
+        "copySource": "fin-prod-archive/archive/data/036.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/036.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100330",
+      "eventTime": "2026-09-01T00:10:29Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/037.enc",
+        "copySource": "fin-prod-archive/archive/data/037.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/037.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100331",
+      "eventTime": "2026-09-01T00:10:46Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/038.enc",
+        "copySource": "fin-prod-archive/archive/data/038.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/038.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100332",
+      "eventTime": "2026-09-01T00:11:03Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/039.enc",
+        "copySource": "fin-prod-archive/archive/data/039.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/039.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100333",
+      "eventTime": "2026-09-01T00:11:20Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/040.enc",
+        "copySource": "fin-prod-archive/archive/data/040.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/040.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100334",
+      "eventTime": "2026-09-01T00:11:37Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/041.enc",
+        "copySource": "fin-prod-archive/archive/data/041.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/041.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100335",
+      "eventTime": "2026-09-01T00:11:54Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/042.enc",
+        "copySource": "fin-prod-archive/archive/data/042.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/042.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100336",
+      "eventTime": "2026-09-01T00:12:11Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/043.enc",
+        "copySource": "fin-prod-archive/archive/data/043.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/043.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100337",
+      "eventTime": "2026-09-01T00:12:28Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/044.enc",
+        "copySource": "fin-prod-archive/archive/data/044.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/044.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100338",
+      "eventTime": "2026-09-01T00:12:45Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/045.enc",
+        "copySource": "fin-prod-archive/archive/data/045.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/045.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100339",
+      "eventTime": "2026-09-01T00:13:02Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/046.enc",
+        "copySource": "fin-prod-archive/archive/data/046.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/046.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100340",
+      "eventTime": "2026-09-01T00:13:19Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/047.enc",
+        "copySource": "fin-prod-archive/archive/data/047.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/047.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100341",
+      "eventTime": "2026-09-01T00:13:36Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/048.enc",
+        "copySource": "fin-prod-archive/archive/data/048.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/048.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100342",
+      "eventTime": "2026-09-01T00:13:53Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/049.enc",
+        "copySource": "fin-prod-archive/archive/data/049.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/049.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100343",
+      "eventTime": "2026-09-01T00:14:10Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/050.enc",
+        "copySource": "fin-prod-archive/archive/data/050.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/050.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100344",
+      "eventTime": "2026-09-01T00:14:27Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/051.enc",
+        "copySource": "fin-prod-archive/archive/data/051.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/051.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100345",
+      "eventTime": "2026-09-01T00:14:44Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/052.enc",
+        "copySource": "fin-prod-archive/archive/data/052.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/052.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100346",
+      "eventTime": "2026-09-01T00:15:01Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/053.enc",
+        "copySource": "fin-prod-archive/archive/data/053.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/053.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100347",
+      "eventTime": "2026-09-01T00:15:18Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/054.enc",
+        "copySource": "fin-prod-archive/archive/data/054.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/054.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100348",
+      "eventTime": "2026-09-01T00:15:35Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/055.enc",
+        "copySource": "fin-prod-archive/archive/data/055.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/055.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100349",
+      "eventTime": "2026-09-01T00:15:52Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/056.enc",
+        "copySource": "fin-prod-archive/archive/data/056.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/056.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100350",
+      "eventTime": "2026-09-01T00:16:09Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/057.enc",
+        "copySource": "fin-prod-archive/archive/data/057.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/057.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100351",
+      "eventTime": "2026-09-01T00:16:26Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/058.enc",
+        "copySource": "fin-prod-archive/archive/data/058.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/058.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100352",
+      "eventTime": "2026-09-01T00:16:43Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/059.enc",
+        "copySource": "fin-prod-archive/archive/data/059.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/059.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100353",
+      "eventTime": "2026-09-01T00:17:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/060.enc",
+        "copySource": "fin-prod-archive/archive/data/060.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/060.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100354",
+      "eventTime": "2026-09-01T00:17:17Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/061.enc",
+        "copySource": "fin-prod-archive/archive/data/061.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/061.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100355",
+      "eventTime": "2026-09-01T00:17:34Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/062.enc",
+        "copySource": "fin-prod-archive/archive/data/062.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/062.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100356",
+      "eventTime": "2026-09-01T00:17:51Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/063.enc",
+        "copySource": "fin-prod-archive/archive/data/063.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/063.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100357",
+      "eventTime": "2026-09-01T00:18:08Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/064.enc",
+        "copySource": "fin-prod-archive/archive/data/064.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/064.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100358",
+      "eventTime": "2026-09-01T00:18:25Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/065.enc",
+        "copySource": "fin-prod-archive/archive/data/065.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/065.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100359",
+      "eventTime": "2026-09-01T00:18:42Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/066.enc",
+        "copySource": "fin-prod-archive/archive/data/066.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/066.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100360",
+      "eventTime": "2026-09-01T00:18:59Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/067.enc",
+        "copySource": "fin-prod-archive/archive/data/067.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/067.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100361",
+      "eventTime": "2026-09-01T00:19:16Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/068.enc",
+        "copySource": "fin-prod-archive/archive/data/068.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/068.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100362",
+      "eventTime": "2026-09-01T00:19:33Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "CopyObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "203.0.113.66",
+      "userAgent": "aws-cli/2.15.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/devops-contractor/compromised-session",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:devops-contractor",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/devops-contractor",
+            "userName": "devops-contractor"
+          }
+        }
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-archive",
+        "key": "archive/data/069.enc",
+        "copySource": "fin-prod-archive/archive/data/069.dat",
+        "ServerSideEncryption": {
+          "SSEAlgorithm": "aws:kms",
+          "KMSMasterKeyID": "rekeyed"
+        }
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-archive/archive/data/069.enc",
+          "accountId": "111122223333"
+        }
+      ]
+    }
+  ]
+}

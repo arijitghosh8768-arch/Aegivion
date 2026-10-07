@@ -1,0 +1,1366 @@
+{
+  "scenario": "scheduled_backup_cleanup",
+  "description": "Scheduled expiry deletion of recovery points by the backup automation role",
+  "records": [
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100111",
+      "eventTime": "2026-09-01T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-000"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-000"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100112",
+      "eventTime": "2026-09-01T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-001"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-001"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100113",
+      "eventTime": "2026-09-01T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-002"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-002"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100114",
+      "eventTime": "2026-09-01T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-003"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-003"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100115",
+      "eventTime": "2026-09-02T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-010"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-010"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100116",
+      "eventTime": "2026-09-02T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-011"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-011"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100117",
+      "eventTime": "2026-09-02T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-012"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-012"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100118",
+      "eventTime": "2026-09-02T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-013"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-013"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100119",
+      "eventTime": "2026-09-03T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-020"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-020"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100120",
+      "eventTime": "2026-09-03T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-021"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-021"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100121",
+      "eventTime": "2026-09-03T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-022"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-022"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100122",
+      "eventTime": "2026-09-03T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-023"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-023"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100123",
+      "eventTime": "2026-09-04T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-030"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-030"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100124",
+      "eventTime": "2026-09-04T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-031"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-031"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100125",
+      "eventTime": "2026-09-04T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-032"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-032"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100126",
+      "eventTime": "2026-09-04T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-033"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-033"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100127",
+      "eventTime": "2026-09-05T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-040"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-040"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100128",
+      "eventTime": "2026-09-05T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-041"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-041"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100129",
+      "eventTime": "2026-09-05T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-042"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-042"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100130",
+      "eventTime": "2026-09-05T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-043"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-043"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100131",
+      "eventTime": "2026-09-06T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-050"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-050"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100132",
+      "eventTime": "2026-09-06T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-051"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-051"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100133",
+      "eventTime": "2026-09-06T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-052"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-052"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100134",
+      "eventTime": "2026-09-06T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-053"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-053"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100135",
+      "eventTime": "2026-09-07T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-060"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-060"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100136",
+      "eventTime": "2026-09-07T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-061"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-061"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100137",
+      "eventTime": "2026-09-07T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-062"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-062"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100138",
+      "eventTime": "2026-09-07T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-063"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-063"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100139",
+      "eventTime": "2026-09-08T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-070"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-070"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100140",
+      "eventTime": "2026-09-08T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-071"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-071"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100141",
+      "eventTime": "2026-09-08T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-072"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-072"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100142",
+      "eventTime": "2026-09-08T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-073"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-073"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100143",
+      "eventTime": "2026-09-09T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-080"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-080"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100144",
+      "eventTime": "2026-09-09T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-081"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-081"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100145",
+      "eventTime": "2026-09-09T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-082"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-082"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100146",
+      "eventTime": "2026-09-09T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-083"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-083"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100147",
+      "eventTime": "2026-09-10T03:00:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-090"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-090"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100148",
+      "eventTime": "2026-09-10T03:11:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-091"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-091"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100149",
+      "eventTime": "2026-09-10T03:22:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-092"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-092"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100150",
+      "eventTime": "2026-09-10T03:33:00Z",
+      "eventSource": "backup.amazonaws.com",
+      "eventName": "DeleteRecoveryPoint",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "10.20.30.40",
+      "userAgent": "aws-sdk-python/1.34.0",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "arn": "arn:aws:sts::111122223333:assumed-role/backup-planner/scheduled-job-1",
+        "accountId": "111122223333",
+        "principalId": "AROAJEXAMPLE:backup-planner",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "arn": "arn:aws:iam::111122223333:role/backup-planner",
+            "userName": "backup-planner"
+          }
+        }
+      },
+      "requestParameters": {
+        "BackupVaultName": "fin-prod-vault",
+        "RecoveryPointArn": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-093"
+      },
+      "eventCategory": "Management",
+      "resources": [
+        {
+          "ARN": "arn:aws:backup:us-east-1:111122223333:backup-vault:fin-prod-vault/recovery-point/regular-093"
+        }
+      ]
+    }
+  ]
+}

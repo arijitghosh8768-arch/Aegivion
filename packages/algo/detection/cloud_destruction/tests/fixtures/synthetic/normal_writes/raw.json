@@ -1,0 +1,1686 @@
+{
+  "scenario": "normal_writes",
+  "description": "Routine daily uploads by a human administrator over 20 days",
+  "records": [
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100001",
+      "eventTime": "2026-09-01T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-00-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-00-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100002",
+      "eventTime": "2026-09-01T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-00-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-00-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100003",
+      "eventTime": "2026-09-01T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-00-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-00-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100004",
+      "eventTime": "2026-09-02T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-01-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-01-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100005",
+      "eventTime": "2026-09-02T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-01-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-01-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100006",
+      "eventTime": "2026-09-02T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-01-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-01-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100007",
+      "eventTime": "2026-09-03T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-02-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-02-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100008",
+      "eventTime": "2026-09-03T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-02-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-02-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100009",
+      "eventTime": "2026-09-03T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-02-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-02-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100010",
+      "eventTime": "2026-09-04T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-03-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-03-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100011",
+      "eventTime": "2026-09-04T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-03-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-03-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100012",
+      "eventTime": "2026-09-04T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-03-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-03-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100013",
+      "eventTime": "2026-09-05T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-04-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-04-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100014",
+      "eventTime": "2026-09-05T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-04-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-04-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100015",
+      "eventTime": "2026-09-05T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-04-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-04-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100016",
+      "eventTime": "2026-09-06T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-05-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-05-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100017",
+      "eventTime": "2026-09-06T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-05-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-05-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100018",
+      "eventTime": "2026-09-06T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-05-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-05-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100019",
+      "eventTime": "2026-09-07T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-06-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-06-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100020",
+      "eventTime": "2026-09-07T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-06-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-06-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100021",
+      "eventTime": "2026-09-07T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-06-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-06-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100022",
+      "eventTime": "2026-09-08T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-07-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-07-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100023",
+      "eventTime": "2026-09-08T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-07-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-07-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100024",
+      "eventTime": "2026-09-08T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-07-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-07-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100025",
+      "eventTime": "2026-09-09T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-08-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-08-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100026",
+      "eventTime": "2026-09-09T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-08-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-08-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100027",
+      "eventTime": "2026-09-09T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-08-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-08-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100028",
+      "eventTime": "2026-09-10T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-09-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-09-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100029",
+      "eventTime": "2026-09-10T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-09-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-09-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100030",
+      "eventTime": "2026-09-10T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-09-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-09-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100031",
+      "eventTime": "2026-09-11T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-10-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-10-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100032",
+      "eventTime": "2026-09-11T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-10-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-10-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100033",
+      "eventTime": "2026-09-11T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-10-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-10-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100034",
+      "eventTime": "2026-09-12T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-11-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-11-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100035",
+      "eventTime": "2026-09-12T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-11-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-11-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100036",
+      "eventTime": "2026-09-12T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-11-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-11-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100037",
+      "eventTime": "2026-09-13T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-12-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-12-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100038",
+      "eventTime": "2026-09-13T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-12-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-12-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100039",
+      "eventTime": "2026-09-13T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-12-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-12-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100040",
+      "eventTime": "2026-09-14T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-13-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-13-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100041",
+      "eventTime": "2026-09-14T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-13-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-13-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100042",
+      "eventTime": "2026-09-14T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-13-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-13-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100043",
+      "eventTime": "2026-09-15T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-14-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-14-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100044",
+      "eventTime": "2026-09-15T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-14-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-14-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100045",
+      "eventTime": "2026-09-15T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-14-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-14-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100046",
+      "eventTime": "2026-09-16T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-15-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-15-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100047",
+      "eventTime": "2026-09-16T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-15-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-15-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100048",
+      "eventTime": "2026-09-16T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-15-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-15-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100049",
+      "eventTime": "2026-09-17T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-16-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-16-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100050",
+      "eventTime": "2026-09-17T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-16-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-16-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100051",
+      "eventTime": "2026-09-17T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-16-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-16-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100052",
+      "eventTime": "2026-09-18T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-17-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-17-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100053",
+      "eventTime": "2026-09-18T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-17-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-17-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100054",
+      "eventTime": "2026-09-18T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-17-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-17-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100055",
+      "eventTime": "2026-09-19T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-18-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-18-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100056",
+      "eventTime": "2026-09-19T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-18-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-18-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100057",
+      "eventTime": "2026-09-19T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-18-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-18-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100058",
+      "eventTime": "2026-09-20T09:00:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-19-batch-0.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-19-batch-0.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100059",
+      "eventTime": "2026-09-20T10:07:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-19-batch-1.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-19-batch-1.json",
+          "accountId": "111122223333"
+        }
+      ]
+    },
+    {
+      "eventVersion": "1.09",
+      "eventID": "synthetic-00100060",
+      "eventTime": "2026-09-20T11:14:00Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "PutObject",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "111122223333",
+      "sourceIPAddress": "198.51.100.24",
+      "userAgent": "aws-console/Mozilla",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::111122223333:user/alice.admin",
+        "accountId": "111122223333",
+        "userName": "alice.admin"
+      },
+      "requestParameters": {
+        "bucketName": "fin-prod-reports",
+        "key": "reports/2026/09/day-19-batch-2.json"
+      },
+      "eventCategory": "Data",
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::fin-prod-reports/reports/2026/09/day-19-batch-2.json",
+          "accountId": "111122223333"
+        }
+      ]
+    }
+  ]
+}

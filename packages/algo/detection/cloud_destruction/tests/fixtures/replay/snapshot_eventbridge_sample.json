@@ -1,0 +1,76 @@
+{
+  "records": [
+    {
+      "version": "0",
+      "id": "eb-snap-001",
+      "detail-type": "EC2 Snapshot Create",
+      "source": "aws.ec2",
+      "account": "111122223333",
+      "time": "2026-09-01T01:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "source": "snap-0db101",
+        "state": "completed"
+      }
+    },
+    {
+      "version": "0",
+      "id": "eb-snap-002",
+      "detail-type": "EC2 Snapshot Delete",
+      "source": "aws.ec2",
+      "account": "111122223333",
+      "time": "2026-09-01T02:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "source": "snap-0db102",
+        "state": "deleted"
+      }
+    },
+    {
+      "version": "0",
+      "id": "eb-snap-003",
+      "detail-type": "EC2 Snapshot Copy",
+      "source": "aws.ec2",
+      "account": "111122223333",
+      "time": "2026-09-01T03:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "source": "snap-0db103",
+        "state": "completed"
+      }
+    },
+    {
+      "version": "0",
+      "id": "eb-rds-001",
+      "detail-type": "RDS DB Snapshot Event",
+      "source": "aws.rds",
+      "account": "111122223333",
+      "time": "2026-09-01T04:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "SourceIdentifier": "snap-0rdsfin001",
+        "EventID": "RDS-EVENT-0058",
+        "Message": "Manual snapshot deleted"
+      }
+    },
+    {
+      "version": "0",
+      "id": "eb-rds-002",
+      "detail-type": "RDS DB Snapshot Event",
+      "source": "aws.rds",
+      "account": "111122223333",
+      "time": "2026-09-01T05:00:00Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+        "SourceIdentifier": "snap-0rdsfin002",
+        "EventID": "RDS-EVENT-0070",
+        "Message": "Snapshot created"
+      }
+    }
+  ]
+}
