@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 from app.database import get_db
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
 from app.models.history import AssetSnapshot, SecurityRiskSnapshot, FindingSuppression, SecurityChange, SyncQuality, EvaluationResult
 from app.models.cloud import CloudAsset
 from security.models.finding import Finding
@@ -18,7 +19,7 @@ def get_asset_history(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve configuration snapshots and version history for a given asset ID"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     snapshots = db.query(AssetSnapshot).filter(
         AssetSnapshot.asset_id == asset_id,
         AssetSnapshot.organization_id == user_org_id
@@ -81,7 +82,7 @@ def get_asset_diff(
     current_user: Any = Depends(get_current_user)
 ):
     """Compare two configuration snapshots created on Day 29 (M1 Diff Engine)"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     snap_from = db.query(AssetSnapshot).filter(
         AssetSnapshot.asset_id == asset_id,
@@ -181,7 +182,7 @@ def suppress_finding(
     current_user: Any = Depends(get_current_user)
 ):
     """Audit-trail log to suppress active finding temporarily (M2 Exception logic)"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     finding = db.query(Finding).filter(Finding.id == finding_id).first()
     if not finding:
@@ -218,7 +219,7 @@ def get_historical_risk_dataset(
     current_user: Any = Depends(get_current_user)
 ):
     """Fetch chronological security risk metrics with synthetic fallback dataset"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     dataset = db.query(SecurityRiskSnapshot).filter(
         SecurityRiskSnapshot.organization_id == user_org_id
     ).all()
@@ -258,7 +259,7 @@ def get_risk_trend_analysis(
     current_user: Any = Depends(get_current_user)
 ):
     """Perform deterministic risk-trend calculations based on dataset"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     data = get_historical_risk_dataset(7, db, current_user)["data"]
     
     if len(data) < 2:
@@ -302,7 +303,7 @@ def get_baseline_risk_forecast(
     current_user: Any = Depends(get_current_user)
 ):
     """Calculate moving average forecasting projections of posture risk score (M3 baseline model)"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     data = get_historical_risk_dataset(7, db, current_user)["data"]
     
     if len(data) < 3:
@@ -341,7 +342,7 @@ def get_security_posture_drift(
     current_user: Any = Depends(get_current_user)
 ):
     """Compute multi-metric security posture drift direction & weighted indicators (M3 posture drift)"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     data = get_historical_risk_dataset(7, db, current_user)["data"]
     
     if len(data) < 3:
@@ -404,7 +405,7 @@ def get_sync_quality(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve database data quality collectors freshness and sync coverage metrics (M1 Sync Quality API)"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     sync = db.query(SyncQuality).filter(SyncQuality.organization_id == user_org_id).first()
     
     if not sync:
@@ -431,7 +432,7 @@ def get_compliance_forecast(
     current_user: Any = Depends(get_current_user)
 ):
     """Compute mathematical forecasting projections of compliance pass rate trends (M3 compliance prediction)"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     data = get_historical_risk_dataset(7, db, current_user)["data"]
     
     if len(data) < 3:
@@ -468,7 +469,7 @@ def get_evaluation_dataset(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve benchmark quality metrics comparative evaluation datasets (M2 Confusion Matrix)"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     eval_res = db.query(EvaluationResult).filter(EvaluationResult.organization_id == user_org_id).first()
     
     if not eval_res:
@@ -510,7 +511,7 @@ def get_ai_predictive_reasoning(
     current_user: Any = Depends(get_current_user)
 ):
     """Integrate compliance forecasts and risk posture trends into structured AI reasoning insights (M3 AI reasoning integration)"""
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     # Fetch current metrics
     data = get_historical_risk_dataset(7, db, current_user)["data"]

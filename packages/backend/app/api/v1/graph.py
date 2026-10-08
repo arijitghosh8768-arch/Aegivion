@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models.cloud import CloudAsset, AssetRelationship
 from security.correlation.attack_graph import AttackGraphEngine
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
 
 router = APIRouter()
 
@@ -14,9 +15,7 @@ def get_attack_graph(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve security nodes, edges, and active potential paths with tenant isolation"""
-    user_org_id = getattr(current_user, 'organization_id', None)
-
-    # 1. Fetch DB assets & relationships
+    user_org_id = get_current_organization(current_user, db)# 1. Fetch DB assets & relationships
     assets = db.query(CloudAsset).all()
     if user_org_id:
         assets = [a for a in assets if str(getattr(a, 'organization_id', '')) == str(user_org_id)]
@@ -28,10 +27,10 @@ def get_attack_graph(
     # Fallbacks if DB is empty
     if not assets:
         assets = [
-            {"resource_id": "aws:ec2:i-example", "asset_id": "aws:ec2:i-example", "name": "production-api", "type": "EC2", "organization_id": user_org_id or "org-default"},
-            {"resource_id": "aws:iam:role:example-role", "asset_id": "aws:iam:role:example-role", "name": "application-role", "type": "IAM_ROLE", "organization_id": user_org_id or "org-default"},
-            {"resource_id": "aws:iam:policy:example-policy", "asset_id": "aws:iam:policy:example-policy", "name": "application-policy", "type": "IAM_POLICY", "organization_id": user_org_id or "org-default"},
-            {"resource_id": "aws:s3:example-bucket", "asset_id": "aws:s3:example-bucket", "name": "application-data", "type": "S3_BUCKET", "organization_id": user_org_id or "org-default"}
+            {"resource_id": "aws:ec2:i-example", "asset_id": "aws:ec2:i-example", "name": "production-api", "type": "EC2", "organization_id": user_org_id},
+            {"resource_id": "aws:iam:role:example-role", "asset_id": "aws:iam:role:example-role", "name": "application-role", "type": "IAM_ROLE", "organization_id": user_org_id},
+            {"resource_id": "aws:iam:policy:example-policy", "asset_id": "aws:iam:policy:example-policy", "name": "application-policy", "type": "IAM_POLICY", "organization_id": user_org_id},
+            {"resource_id": "aws:s3:example-bucket", "asset_id": "aws:s3:example-bucket", "name": "application-data", "type": "S3_BUCKET", "organization_id": user_org_id}
         ]
         relationships = [
             {
@@ -39,7 +38,7 @@ def get_attack_graph(
                 "target_asset_id": "aws:iam:role:example-role",
                 "relationship_type": "USES_ROLE",
                 "confidence": "CONFIRMED",
-                "organization_id": user_org_id or "org-default",
+                "organization_id": user_org_id,
                 "evidence": {"source": "instance_profile"}
             },
             {
@@ -47,7 +46,7 @@ def get_attack_graph(
                 "target_asset_id": "aws:iam:policy:example-policy",
                 "relationship_type": "HAS_POLICY",
                 "confidence": "CONFIRMED",
-                "organization_id": user_org_id or "org-default",
+                "organization_id": user_org_id,
                 "evidence": {"policy_arn": "arn:aws:iam::123456789012:policy/example-policy"}
             },
             {
@@ -55,7 +54,7 @@ def get_attack_graph(
                 "target_asset_id": "aws:s3:example-bucket",
                 "relationship_type": "CAN_ACCESS",
                 "confidence": "CONFIRMED",
-                "organization_id": user_org_id or "org-default",
+                "organization_id": user_org_id,
                 "evidence": {
                     "policy_id": "example-policy",
                     "effect": "Allow",

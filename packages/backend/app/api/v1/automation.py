@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 from app.database import get_db
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
 from app.api.deps import require_permission
 from app.database.base import BaseModel as OrmBaseModel
 from app.models.runbook import Runbook
@@ -20,14 +21,14 @@ class RuleCreateRequest(BaseModel):
 
 @router.get("/rules")
 def list_rules(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     rules = db.query(Runbook).filter(Runbook.organization_id == user_org_id).all()
     
     return {"rules": [r.dict() for r in rules]}
 
 @router.post("/rules", dependencies=[Depends(require_permission("manage_automation"))])
 def create_rule(req: RuleCreateRequest, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     new_rule = Runbook(
         organization_id=user_org_id,
@@ -47,7 +48,7 @@ def create_rule(req: RuleCreateRequest, db: Session = Depends(get_db), current_u
 
 @router.patch("/rules/{rule_id}/toggle", dependencies=[Depends(require_permission("manage_automation"))])
 def toggle_rule(rule_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     rule = db.query(Runbook).filter(
         Runbook.id == rule_id, 
@@ -63,7 +64,7 @@ def toggle_rule(rule_id: str, db: Session = Depends(get_db), current_user: Any =
 
 @router.get("/overview")
 def get_automation_overview(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     rules = OrmBaseModel.find(db, "runbooks", {"organization_id": user_org_id})
     active = sum(1 for r in rules if r.get("enabled"))
@@ -81,7 +82,7 @@ def get_automation_overview(db: Session = Depends(get_db), current_user: Any = D
 
 @router.get("/agent/status")
 def get_agent_status(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     heartbeats = OrmBaseModel.find(db, "agentheartbeats", {"organization_id": user_org_id})
     
@@ -116,13 +117,13 @@ def get_agent_status(db: Session = Depends(get_db), current_user: Any = Depends(
 
 @router.get("/executions")
 def get_executions(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     executions = OrmBaseModel.find(db, "responseexecutions", {"organization_id": user_org_id})
     return {"executions": [e for e in executions]}
 
 @router.get("/approvals")
 def get_approvals(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     approvals = OrmBaseModel.find(db, "pendingapprovals", {"organization_id": user_org_id})
     return {"approvals": [a for a in approvals]}
 from app.services.automation.optimizer import optimizer_engine, CandidateAction
@@ -130,7 +131,7 @@ from app.services.automation.safety import safety_policy_engine
 
 @router.post('/rules/{rule_id}/simulate')
 def simulate_runbook(rule_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or 'org-default'
+    user_org_id = get_current_organization(current_user, db)
     
     candidates = [
         CandidateAction(
@@ -176,10 +177,10 @@ def simulate_runbook(rule_id: str, db: Session = Depends(get_db), current_user: 
 
 @router.post('/approvals/{approval_id}/approve')
 def approve_action(approval_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or 'org-default'
+    user_org_id = get_current_organization(current_user, db)
     return {'status': 'APPROVED', 'message': 'Action execution triggered and transitioning to VERIFYING state.'}
 
 @router.post('/approvals/{approval_id}/reject')
 def reject_action(approval_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
-    user_org_id = getattr(current_user, 'organization_id', None) or 'org-default'
+    user_org_id = get_current_organization(current_user, db)
     return {'status': 'REJECTED', 'message': 'Response candidate rejected.'}

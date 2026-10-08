@@ -9,6 +9,7 @@ from security.correlation.engine import CorrelationEngine
 from ai.services.action_planner import ActionPlanner
 from datetime import datetime
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
 
 router = APIRouter()
 
@@ -207,7 +208,7 @@ def validate_remediation(
 ):
     """Perform scan validation comparing before/after state to verify path interruption"""
     from app.models.remediation_validation import RemediationValidation, ValidationStatus
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     # Try locating validation log
     val = db.query(RemediationValidation).filter(
@@ -245,7 +246,7 @@ def get_remediation_validation_status(
 ):
     """Retrieve validation logs"""
     from app.models.remediation_validation import RemediationValidation, ValidationStatus
-    user_org_id = getattr(current_user, 'organization_id', None) or "org-default"
+    user_org_id = get_current_organization(current_user, db)
     
     val = db.query(RemediationValidation).filter(
         RemediationValidation.remediation_id == remediation_id,

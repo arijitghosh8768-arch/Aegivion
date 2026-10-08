@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Optional
 from app.database import get_db
 from app.models.cloud import AssetRelationship
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
 
 router = APIRouter()
 
@@ -16,7 +17,7 @@ def get_relationships(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve all relationships with tenant isolation"""
-    user_org_id = getattr(current_user, 'organization_id', None)
+    user_org_id = get_current_organization(current_user, db)
     
     # Query database
     db_rels = db.query(AssetRelationship).all()
@@ -30,7 +31,7 @@ def get_relationships(
         db_rels = [
             AssetRelationship(
                 id="r1",
-                organization_id=user_org_id or "org-default",
+                organization_id=user_org_id,
                 cloud_account_id="acc-default",
                 source_asset_id="aws:ec2:i-example",
                 target_asset_id="aws:sg:sg-example",
@@ -42,7 +43,7 @@ def get_relationships(
             ),
             AssetRelationship(
                 id="r2",
-                organization_id=user_org_id or "org-default",
+                organization_id=user_org_id,
                 cloud_account_id="acc-default",
                 source_asset_id="aws:ec2:i-example",
                 target_asset_id="aws:iam:role:example-role",
@@ -54,7 +55,7 @@ def get_relationships(
             ),
             AssetRelationship(
                 id="r3",
-                organization_id=user_org_id or "org-default",
+                organization_id=user_org_id,
                 cloud_account_id="acc-default",
                 source_asset_id="aws:iam:role:example-role",
                 target_asset_id="aws:iam:policy:example-policy",
@@ -66,7 +67,7 @@ def get_relationships(
             ),
             AssetRelationship(
                 id="r4",
-                organization_id=user_org_id or "org-default",
+                organization_id=user_org_id,
                 cloud_account_id="acc-default",
                 source_asset_id="aws:iam:policy:example-policy",
                 target_asset_id="aws:s3:example-bucket",
@@ -112,7 +113,7 @@ def get_asset_relationships(
     current_user: Any = Depends(get_current_user)
 ):
     """Retrieve relationships specific to an asset with tenant isolation"""
-    user_org_id = getattr(current_user, 'organization_id', None)
+    user_org_id = get_current_organization(current_user, db)
     
     db_rels = db.query(AssetRelationship).all()
     if user_org_id:
@@ -123,7 +124,7 @@ def get_asset_relationships(
         db_rels = [
             AssetRelationship(
                 id="r1",
-                organization_id=user_org_id or "org-default",
+                organization_id=user_org_id,
                 cloud_account_id="acc-default",
                 source_asset_id="aws:ec2:i-example",
                 target_asset_id="aws:sg:sg-example",
@@ -135,7 +136,7 @@ def get_asset_relationships(
             ),
             AssetRelationship(
                 id="r2",
-                organization_id=user_org_id or "org-default",
+                organization_id=user_org_id,
                 cloud_account_id="acc-default",
                 source_asset_id="aws:ec2:i-example",
                 target_asset_id="aws:iam:role:example-role",
