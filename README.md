@@ -446,9 +446,19 @@ Aegivion operates via temporary, least-privilege STS credentials rather than sto
 
 ---
 
-## 20. 📡 API Documentation
+## 20. 📚 Documentation & Specifications
 
-Available when the backend is running at `http://localhost:8000/docs` (Swagger UI).
+Aegivion maintains a complete documentation library in [`docs/`](docs/README.md):
+
+### 📋 Complete Specification Pack (01–17)
+- **Product & Architecture:** [01. Product Requirements](docs/01-product-requirements.md) · [02. System Architecture](docs/02-system-architecture.md) · [11. Module Ownership](docs/11-module-ownership.md)
+- **Contracts & Data Models:** [03. API Contracts](docs/03-api-contracts.md) · [04. Event & Data Contracts](docs/04-event-and-data-contracts.md) · [05. Data Model & Migrations](docs/05-data-model-and-migrations.md)
+- **Security & Multi-Cloud:** [06. Security Threat Model](docs/06-security-threat-model.md) · [12. Remediation Policy](docs/12-agent-and-remediation-policy.md) · [13. Cloud Provider Matrix](docs/13-cloud-provider-matrix.md)
+- **AI & Explainability:** [07. AI/RAG Specification](docs/07-ai-rag-specification.md) · [14. AI Evaluation Plan](docs/14-ai-evaluation-plan.md) · [15. Benchmark Plan](docs/15-research-and-benchmark-plan.md)
+- **Testing & Operations:** [08. Testing & Acceptance](docs/08-testing-and-acceptance.md) · [09. Deployment & Ops](docs/09-deployment-and-operations.md) · [10. Project Status](docs/10-current-project-status.md) · [16. Release Workflow](docs/16-development-and-release-workflow.md) · [17. User/Admin Guide](docs/17-user-and-admin-guide.md)
+
+### 📡 Interactive API Documentation
+Available when the backend is running at `http://localhost:8000/docs` (Swagger UI) and `http://localhost:8000/redoc` (ReDoc).
 Core routes include:
 - `/api/v1/auth`
 - `/api/v1/cloud-accounts`
