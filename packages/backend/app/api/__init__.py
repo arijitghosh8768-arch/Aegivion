@@ -25,6 +25,8 @@ api_router.include_router(org_settings.router, prefix="/v1/orgs", tags=["Organiz
 api_router.include_router(invitations.router, prefix="/v1", tags=["Invitations"])
 api_router.include_router(admin.router, prefix="/v1/admin", tags=["Admin"])
 api_router.include_router(automation.router, prefix="/v1/automation", tags=["Automation"])
-from .v1 import events, twin
+from .v1 import events, twin, correlations, memory
 api_router.include_router(events.router, prefix="/v1/events", tags=["Events"])
 api_router.include_router(twin.router, prefix="/v1/twin", tags=["Digital Twin"])
+api_router.include_router(correlations.router, prefix="/v1/correlations", tags=["Correlations"])
+api_router.include_router(memory.router, prefix="/v1/memory", tags=["Security Memory"])

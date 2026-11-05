@@ -50,13 +50,13 @@ class InMemoryEventStore(EventStore):
             ev = self._events.get(self._key(org_id, event_id))
             if not ev or ev.claimed_by != worker_id or ev.fencing_token != fencing_token:
                 return False
-                
+
             now = Clock.get_instance().now()
             ev.status = state
             ev.updated_at = now
             if error_msg:
                 ev.last_error = error_msg
-                
+
             if state == EventState.FAILED:
                 if fatal or ev.attempt_count >= 3:
                     ev.status = EventState.DEAD_LETTER
@@ -65,7 +65,7 @@ class InMemoryEventStore(EventStore):
                     ev.claimed_by = None
                     ev.fencing_token = None
                     ev.lease_expires_at = None
-                    
+
             return True
 
     async def get_event(self, org_id: str, event_id: str) -> Optional[PersistentEvent]:
@@ -79,13 +79,13 @@ class InMemoryEventStore(EventStore):
             ev = self._events.get(self._key(org_id, event_id))
             if not ev or ev.status != EventState.DEAD_LETTER:
                 return False
-            
+
             if ev.requeue_count >= max_requeues:
                 return False
-                
+
             ev.requeue_count += 1
             now = Clock.get_instance().now()
-            
+
             record = RequeueRecord(
                 recovery_id=str(uuid.uuid4()),
                 org_id=org_id,
@@ -98,7 +98,7 @@ class InMemoryEventStore(EventStore):
                 requeue_count=ev.requeue_count
             )
             ev.requeue_history.append(record)
-            
+
             ev.status = EventState.PENDING
             ev.claimed_by = None
             ev.fencing_token = None
@@ -108,8 +108,37 @@ class InMemoryEventStore(EventStore):
             return True
 
 class InMemoryAgentStateRepository(AgentStateRepository):
-    pass
+    def __init__(self):
+        self._states = {}
+
+    async def get_state(self, org_id: str, agent_id: str) -> Optional[dict]:
+        return self._states.get(f"{org_id}:{agent_id}")
+
+    async def save_state(self, org_id: str, agent_id: str, state_data: dict):
+        self._states[f"{org_id}:{agent_id}"] = state_data
+
 class InMemoryDetectionContextRepository(DetectionContextRepository):
-    pass
+    def __init__(self):
+        self._contexts = {}
+
+    async def get_context(self, org_id: str) -> Optional[dict]:
+        return self._contexts.get(org_id)
+
+    async def save_context(self, org_id: str, context_data: dict):
+        self._contexts[org_id] = context_data
+
 class InMemoryAttackStateRepository(AttackStateRepository):
-    pass
+    def __init__(self):
+        self._states = {}
+
+    async def get_state(self, org_id: str) -> Optional[dict]:
+        return self._states.get(org_id)
+
+    async def save_state(self, org_id: str, state_data: dict):
+        self._states[org_id] = state_data
+
+# Aliases for compatibility
+MemoryEventStore = InMemoryEventStore
+MemoryAgentStateRepository = InMemoryAgentStateRepository
+MemoryDetectionContextRepository = InMemoryDetectionContextRepository
+MemoryAttackStateRepository = InMemoryAttackStateRepository

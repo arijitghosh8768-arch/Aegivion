@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from app.database.base import BaseModel
+from app.database.base import LegacyBaseModel as BaseModel
 from typing import Dict, List, Any, Optional
 
 class ComplianceStatus(str, enum.Enum):

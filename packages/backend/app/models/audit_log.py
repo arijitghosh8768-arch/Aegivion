@@ -1,5 +1,5 @@
 import enum
-from app.database.base import BaseModel
+from app.database.base import LegacyBaseModel as BaseModel
 
 class AuditAction(str, enum.Enum):
     USER_LOGIN = "user_login"

@@ -106,6 +106,8 @@ DEFAULT_POLICY = ResponseSafetyPolicy(
 )
 
 class ResponseSafetyPolicyEngine:
+    def __init__(self, policy: Optional[ResponseSafetyPolicy] = None):
+        self.default_policy = policy or DEFAULT_POLICY
     
     def evaluate(self,
                  prediction: NextStagePredictionResult,

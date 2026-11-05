@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from app.database.base import BaseModel
+from app.database.base import LegacyBaseModel as BaseModel
 
 class FindingSeverity(str, enum.Enum):
     CRITICAL = "critical"

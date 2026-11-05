@@ -1,5 +1,5 @@
 import enum
-from app.database.base import BaseModel
+from app.database.base import LegacyBaseModel as BaseModel
 
 class KnowledgeCategory(str, enum.Enum):
     SECURITY_BEST_PRACTICE = "security_best_practice"

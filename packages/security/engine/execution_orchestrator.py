@@ -20,7 +20,9 @@ class ExecutionOrchestrator:
         self._adapters: List[CloudResponseAdapter] = []
         self._safety_controller = SafetyController()
 
-    def register_adapter(self, adapter: CloudResponseAdapter):
+    def register_adapter(self, *args):
+        # Support both register_adapter(adapter) and register_adapter(provider, adapter)
+        adapter = args[-1]
         self._adapters.append(adapter)
 
     def _resolve_adapter(self, request: ExecutionRequest) -> Optional[CloudResponseAdapter]:
@@ -48,12 +50,12 @@ class ExecutionOrchestrator:
             return True
         return False
         
-    def _create_failed_result(self, request: ExecutionRequest, state: ExecutionState, error_code: ExecutionErrorCode, reason: str, adapter_name: str = "None") -> ExecutionResult:
+    def _create_failed_result(self, request: ExecutionRequest, state: Optional[ExecutionState], error_code: ExecutionErrorCode, reason: str, adapter_name: str = "None") -> ExecutionResult:
         logger.warning(f"execution_rejected | execution_id={request.execution_id} | organization_id={request.organization_id} | reason={reason}")
         return ExecutionResult(
             execution_id=request.execution_id,
             organization_id=request.organization_id,
-            state=state,
+            state=state or ExecutionState.REJECTED,
             success=False,
             action=request.action,
             target=request.target,

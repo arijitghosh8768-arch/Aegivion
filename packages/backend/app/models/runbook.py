@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional
 from datetime import datetime
-from app.database.base import BaseModel as OrmBaseModel
+from app.database.base import LegacyBaseModel as OrmBaseModel
 
 class Runbook(OrmBaseModel):
     def __init__(self, **kwargs):

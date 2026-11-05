@@ -28,6 +28,8 @@ class ApprovalStatus(str, Enum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     EXPIRED = "EXPIRED"
+    APPROVAL_REQUIRED = "PENDING"
+
 
 class ExecutionState(str, Enum):
     CREATED = "CREATED"
@@ -136,6 +138,9 @@ class CloudResponseAdapter:
         raise NotImplementedError()
 
 class MockIdentityPrivilegeAdapter(CloudResponseAdapter):
+    def __init__(self):
+        self.calls = []
+
     def supports(self, action: ExecutionAction, target: TargetDescriptor) -> bool:
         return action == ExecutionAction.RESTRICT_IDENTITY_PRIVILEGE and target.target_type == "identity"
         
@@ -155,6 +160,11 @@ class MockIdentityPrivilegeAdapter(CloudResponseAdapter):
         return True
         
     def execute(self, request: ExecutionRequest) -> ExecutionResult:
+        self.calls.append({
+            "action": request.action.value if hasattr(request.action, "value") else str(request.action),
+            "target": request.target,
+            "request": request
+        })
         return ExecutionResult(
             execution_id=request.execution_id,
             organization_id=request.organization_id,

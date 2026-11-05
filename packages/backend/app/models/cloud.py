@@ -1,5 +1,8 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, JSON, Integer, Float
+from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.database.base import BaseModel
 
 class CloudProvider(str, enum.Enum):
@@ -12,33 +15,62 @@ class CloudAccountStatus(str, enum.Enum):
     DISCONNECTED = "disconnected"
     FAILED = "failed"
 
+class ScanStatus(str, enum.Enum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
 class CloudAccount(BaseModel):
+    __tablename__ = "cloud_accounts"
+
+    name = Column(String(200), nullable=False)
+    provider = Column(String(50), nullable=False, default="AWS")
+    aws_access_key_id = Column(String(100), nullable=True)
+    aws_secret_access_key = Column(String(100), nullable=True)
+    aws_region = Column(String(50), nullable=True, default="ap-south-1")
+    status = Column(String(50), default="connected")
+    last_scan_at = Column(DateTime(timezone=True), nullable=True)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = kwargs.get("name")
-        self.provider = kwargs.get("provider") or CloudProvider.AWS
+        self.provider = kwargs.get("provider") or CloudProvider.AWS.value
         self.aws_access_key_id = kwargs.get("aws_access_key_id")
         self.aws_secret_access_key = kwargs.get("aws_secret_access_key")
         self.aws_region = kwargs.get("aws_region") or "ap-south-1"
-        self.status = kwargs.get("status") or CloudAccountStatus.CONNECTED
+        self.status = kwargs.get("status") or CloudAccountStatus.CONNECTED.value
         self.last_scan_at = kwargs.get("last_scan_at")
         self.organization_id = kwargs.get("organization_id")
 
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "name": self.name,
-            "provider": self.provider,
-            "aws_access_key_id": self.aws_access_key_id,
-            "aws_secret_access_key": self.aws_secret_access_key,
-            "aws_region": self.aws_region,
-            "status": self.status,
-            "last_scan_at": self.last_scan_at.isoformat() if isinstance(self.last_scan_at, datetime) else self.last_scan_at,
-            "organization_id": str(self.organization_id) if self.organization_id else None
-        })
-        return res
-
 class CloudAsset(BaseModel):
+    __tablename__ = "cloud_assets"
+
+    account_id = Column(UUID(as_uuid=True), ForeignKey("cloud_accounts_v2.id", ondelete="CASCADE"), nullable=True, index=True)
+    resource_id = Column(String(300), nullable=False, index=True)
+    name = Column(String(300), nullable=False)
+    type = Column(String(100), nullable=False, index=True)
+    region = Column(String(100), nullable=True)
+    provider = Column(String(50), nullable=False, default="AWS")
+    metadata_json = Column(JSON, default=dict)
+
+    # Criticality & Context
+    environment = Column(String(50), default="DEVELOPMENT")
+    owner = Column(String(100), default="UNKNOWN")
+    department = Column(String(100), default="UNKNOWN")
+    application = Column(String(100), default="UNKNOWN")
+    data_classification = Column(String(50), default="UNKNOWN")
+    business_criticality = Column(String(50), default="UNKNOWN")
+    internet_exposed = Column(Boolean, default=False)
+    importance_score = Column(Float, default=0.0)
+
+    # Relationships
+    security_group_details = relationship("SecurityGroupAsset", back_populates="asset", uselist=False, cascade="all, delete-orphan")
+    iam_user_details = relationship("IAMUserAsset", back_populates="asset", uselist=False, cascade="all, delete-orphan")
+    s3_bucket_details = relationship("S3BucketAsset", back_populates="asset", uselist=False, cascade="all, delete-orphan")
+    ec2_instance_details = relationship("EC2InstanceAsset", back_populates="asset", uselist=False, cascade="all, delete-orphan")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.account_id = kwargs.get("account_id")
@@ -46,43 +78,29 @@ class CloudAsset(BaseModel):
         self.name = kwargs.get("name")
         self.type = kwargs.get("type")
         self.region = kwargs.get("region")
-        self.provider = kwargs.get("provider") or CloudProvider.AWS
+        self.provider = kwargs.get("provider") or CloudProvider.AWS.value
         self.metadata_json = kwargs.get("metadata_json") or {}
-        
-        # M1 Day 32 Criticality Context Fields
         self.environment = kwargs.get("environment") or "DEVELOPMENT"
         self.owner = kwargs.get("owner") or "UNKNOWN"
         self.department = kwargs.get("department") or "UNKNOWN"
         self.application = kwargs.get("application") or "UNKNOWN"
         self.data_classification = kwargs.get("data_classification") or "UNKNOWN"
         self.business_criticality = kwargs.get("business_criticality") or "UNKNOWN"
-        
-        # M1 Day 36 Advanced Context Fields
         self.internet_exposed = kwargs.get("internet_exposed", False)
         self.importance_score = kwargs.get("importance_score", 0.0)
 
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "account_id": str(self.account_id) if self.account_id else None,
-            "resource_id": self.resource_id,
-            "name": self.name,
-            "type": self.type,
-            "region": self.region,
-            "provider": self.provider,
-            "metadata_json": self.metadata_json,
-            "environment": self.environment,
-            "owner": self.owner,
-            "department": self.department,
-            "application": self.application,
-            "data_classification": self.data_classification,
-            "business_criticality": self.business_criticality,
-            "internet_exposed": self.internet_exposed,
-            "importance_score": self.importance_score
-        })
-        return res
-
 class SecurityGroupAsset(BaseModel):
+    __tablename__ = "security_groups"
+
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("cloud_assets.id", ondelete="CASCADE"), nullable=False, unique=True)
+    group_id = Column(String(100), nullable=False)
+    group_name = Column(String(200), nullable=False)
+    vpc_id = Column(String(100), nullable=True)
+    ingress_rules = Column(JSON, default=list)
+    egress_rules = Column(JSON, default=list)
+
+    asset = relationship("CloudAsset", back_populates="security_group_details")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.asset_id = kwargs.get("asset_id")
@@ -92,19 +110,19 @@ class SecurityGroupAsset(BaseModel):
         self.ingress_rules = kwargs.get("ingress_rules") or []
         self.egress_rules = kwargs.get("egress_rules") or []
 
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "asset_id": str(self.asset_id) if self.asset_id else None,
-            "group_id": self.group_id,
-            "group_name": self.group_name,
-            "vpc_id": self.vpc_id,
-            "ingress_rules": self.ingress_rules,
-            "egress_rules": self.egress_rules
-        })
-        return res
-
 class IAMUserAsset(BaseModel):
+    __tablename__ = "iam_users"
+
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("cloud_assets.id", ondelete="CASCADE"), nullable=False, unique=True)
+    username = Column(String(200), nullable=False)
+    arn = Column(String(300), nullable=False)
+    mfa_enabled = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)
+    access_keys_age_days = Column(Integer, default=0)
+    last_active = Column(DateTime(timezone=True), nullable=True)
+
+    asset = relationship("CloudAsset", back_populates="iam_user_details")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.asset_id = kwargs.get("asset_id")
@@ -112,45 +130,44 @@ class IAMUserAsset(BaseModel):
         self.arn = kwargs.get("arn")
         self.mfa_enabled = kwargs.get("mfa_enabled", False)
         self.is_admin = kwargs.get("is_admin", False)
-        self.access_keys_age_days = kwargs.get("access_keys_age_days")
+        self.access_keys_age_days = kwargs.get("access_keys_age_days") or 0
         self.last_active = kwargs.get("last_active")
 
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "asset_id": str(self.asset_id) if self.asset_id else None,
-            "username": self.username,
-            "arn": self.arn,
-            "mfa_enabled": self.mfa_enabled,
-            "is_admin": self.is_admin,
-            "access_keys_age_days": self.access_keys_age_days,
-            "last_active": self.last_active.isoformat() if isinstance(self.last_active, datetime) else self.last_active
-        })
-        return res
-
 class S3BucketAsset(BaseModel):
+    __tablename__ = "s3_buckets"
+
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("cloud_assets.id", ondelete="CASCADE"), nullable=False, unique=True)
+    bucket_name = Column(String(200), nullable=False)
+    arn = Column(String(300), nullable=False)
+    is_public = Column(Boolean, default=False)
+    encryption_enabled = Column(Boolean, default=False)
+    versioning_enabled = Column(Boolean, default=False)
+
+    asset = relationship("CloudAsset", back_populates="s3_bucket_details")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.asset_id = kwargs.get("asset_id")
         self.bucket_name = kwargs.get("bucket_name")
         self.arn = kwargs.get("arn")
         self.is_public = kwargs.get("is_public", False)
-        self.encryption_enabled = kwargs.get("encryption_enabled", True)
+        self.encryption_enabled = kwargs.get("encryption_enabled", False)
         self.versioning_enabled = kwargs.get("versioning_enabled", False)
 
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "asset_id": str(self.asset_id) if self.asset_id else None,
-            "bucket_name": self.bucket_name,
-            "arn": self.arn,
-            "is_public": self.is_public,
-            "encryption_enabled": self.encryption_enabled,
-            "versioning_enabled": self.versioning_enabled
-        })
-        return res
-
 class EC2InstanceAsset(BaseModel):
+    __tablename__ = "ec2_instances"
+
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("cloud_assets.id", ondelete="CASCADE"), nullable=False, unique=True)
+    instance_id = Column(String(100), nullable=False)
+    state = Column(String(50), nullable=False)
+    public_ip = Column(String(50), nullable=True)
+    private_ip = Column(String(50), nullable=True)
+    instance_type = Column(String(50), nullable=False)
+    security_groups = Column(JSON, default=list)
+    has_public_ip = Column(Boolean, default=False)
+
+    asset = relationship("CloudAsset", back_populates="ec2_instance_details")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.asset_id = kwargs.get("asset_id")
@@ -162,32 +179,25 @@ class EC2InstanceAsset(BaseModel):
         self.security_groups = kwargs.get("security_groups") or []
         self.has_public_ip = kwargs.get("has_public_ip", False)
 
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "asset_id": str(self.asset_id) if self.asset_id else None,
-            "instance_id": self.instance_id,
-            "state": self.state,
-            "public_ip": self.public_ip,
-            "private_ip": self.private_ip,
-            "instance_type": self.instance_type,
-            "security_groups": self.security_groups,
-            "has_public_ip": self.has_public_ip
-        })
-        return res
-
-class ScanStatus(str, enum.Enum):
-    QUEUED = "queued"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
 class ScanJob(BaseModel):
+    __tablename__ = "scan_jobs"
+
+    cloud_account_id = Column(UUID(as_uuid=True), ForeignKey("cloud_accounts.id", ondelete="CASCADE"), nullable=True)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(String(50), default="queued")
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    assets_discovered = Column(Integer, default=0)
+    findings_generated = Column(Integer, default=0)
+    collector_status = Column(JSON, default=dict)
+    error_summary = Column(String(500), nullable=True)
+    region = Column(String(50), nullable=True)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.cloud_account_id = kwargs.get("cloud_account_id")
         self.organization_id = kwargs.get("organization_id")
-        self.status = kwargs.get("status") or ScanStatus.QUEUED
+        self.status = kwargs.get("status") or ScanStatus.QUEUED.value
         self.started_at = kwargs.get("started_at")
         self.completed_at = kwargs.get("completed_at")
         self.assets_discovered = kwargs.get("assets_discovered") or 0
@@ -196,23 +206,14 @@ class ScanJob(BaseModel):
         self.error_summary = kwargs.get("error_summary")
         self.region = kwargs.get("region")
 
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "cloud_account_id": str(self.cloud_account_id) if self.cloud_account_id else None,
-            "organization_id": str(self.organization_id) if self.organization_id else None,
-            "status": self.status,
-            "started_at": self.started_at.isoformat() if isinstance(self.started_at, datetime) else self.started_at,
-            "completed_at": self.completed_at.isoformat() if isinstance(self.completed_at, datetime) else self.completed_at,
-            "assets_discovered": self.assets_discovered,
-            "findings_generated": self.findings_generated,
-            "collector_status": self.collector_status,
-            "error_summary": self.error_summary,
-            "region": self.region
-        })
-        return res
-
 class Relationship(BaseModel):
+    __tablename__ = "legacy_relationships"
+
+    source_id = Column(String(300), nullable=False)
+    target_id = Column(String(300), nullable=False)
+    type = Column(String(100), nullable=False)
+    target_type = Column(String(100), nullable=True)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.source_id = kwargs.get("source_id")
@@ -231,6 +232,20 @@ class Relationship(BaseModel):
         return res
 
 class AssetRelationship(BaseModel):
+    __tablename__ = "asset_relationships"
+
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
+    cloud_account_id = Column(UUID(as_uuid=True), nullable=True)
+    source_asset_id = Column(String(300), nullable=False, index=True)
+    target_asset_id = Column(String(300), nullable=False, index=True)
+    relationship_type = Column(String(100), nullable=False)
+    account_id = Column(String(100), nullable=True)
+    region = Column(String(100), nullable=True)
+    evidence = Column(JSON, default=dict)
+    confidence = Column(String(50), default="UNKNOWN")
+    first_seen_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    last_seen_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
@@ -242,56 +257,24 @@ class AssetRelationship(BaseModel):
         self.region = kwargs.get("region")
         self.evidence = kwargs.get("evidence") or {}
         self.confidence = kwargs.get("confidence") or "UNKNOWN"
-        self.first_seen_at = kwargs.get("first_seen_at") or datetime.utcnow()
-        self.last_seen_at = kwargs.get("last_seen_at") or datetime.utcnow()
-
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "organization_id": str(self.organization_id) if self.organization_id else None,
-            "cloud_account_id": str(self.cloud_account_id) if self.cloud_account_id else None,
-            "source_asset_id": self.source_asset_id,
-            "target_asset_id": self.target_asset_id,
-            "relationship_type": self.relationship_type,
-            "account_id": self.account_id,
-            "region": self.region,
-            "evidence": self.evidence,
-            "confidence": self.confidence,
-            "first_seen_at": self.first_seen_at.isoformat() if isinstance(self.first_seen_at, datetime) else self.first_seen_at,
-            "last_seen_at": self.last_seen_at.isoformat() if isinstance(self.last_seen_at, datetime) else self.last_seen_at,
-        })
-        return res
+        self.first_seen_at = kwargs.get("first_seen_at") or datetime.now(timezone.utc)
+        self.last_seen_at = kwargs.get("last_seen_at") or datetime.now(timezone.utc)
 
 class CloudIdentity(BaseModel):
+    __tablename__ = "cloud_identities"
+
+    identity_id = Column(String(200), nullable=True)
+    organization_id = Column(String(200), nullable=True)
+    account_id = Column(String(200), nullable=True)
+    native_id = Column(String(500), nullable=True)
+    identity_type = Column(String(100), nullable=True)
+    name = Column(String(200), nullable=True)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.identity_id = kwargs.get("identity_id")
         self.organization_id = kwargs.get("organization_id")
         self.account_id = kwargs.get("account_id")
-        self.provider = kwargs.get("provider") or CloudProvider.AWS
         self.native_id = kwargs.get("native_id")
         self.identity_type = kwargs.get("identity_type")
         self.name = kwargs.get("name")
-        self.status = kwargs.get("status") or "ACTIVE"
-        self.criticality = kwargs.get("criticality") or "UNKNOWN"
-        self.metadata = kwargs.get("metadata") or {}
-        self.first_seen = kwargs.get("first_seen") or datetime.utcnow()
-        self.last_seen = kwargs.get("last_seen") or datetime.utcnow()
-
-    def dict(self):
-        res = super().dict()
-        res.update({
-            "identity_id": self.identity_id,
-            "organization_id": str(self.organization_id) if self.organization_id else None,
-            "account_id": str(self.account_id) if self.account_id else None,
-            "provider": self.provider,
-            "native_id": self.native_id,
-            "identity_type": self.identity_type,
-            "name": self.name,
-            "status": self.status,
-            "criticality": self.criticality,
-            "metadata": self.metadata,
-            "first_seen": self.first_seen.isoformat() if isinstance(self.first_seen, datetime) else self.first_seen,
-            "last_seen": self.last_seen.isoformat() if isinstance(self.last_seen, datetime) else self.last_seen,
-        })
-        return res

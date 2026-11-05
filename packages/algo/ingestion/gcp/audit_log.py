@@ -40,17 +40,17 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.exceptions import (
     MalformedEventError,
     UnsupportedEventError,
 )
-from detection.cloud_destruction.provenance import (
+from algo.detection.cloud_destruction.provenance import (
     AvailabilityTracker,
     DataProvenance,
     UnavailableReason,
 )
-from detection.cloud_destruction.protection import ProtectionCatalog
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.protection import ProtectionCatalog
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     ActorType,
     BusinessCriticality,

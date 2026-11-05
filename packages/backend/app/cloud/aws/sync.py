@@ -9,9 +9,12 @@ import boto3
 
 # AEGIVION Supabase & Mappings
 from app.database.supabase_client import supabase
+from app.repositories.twin_persistence_repository import TwinPersistenceRepository
 from app.cloud.aws.collectors.ec2 import EC2Collector
 from app.cloud.aws.collectors.s3 import S3Collector
 from app.cloud.aws.collectors.iam import IAMCollector
+from app.cloud.aws.collectors.vpc import VPCCollector
+from app.cloud.aws.collectors.security_groups import SecurityGroupCollector
 # Assume others exist or will be added
 
 logger = logging.getLogger(__name__)
@@ -21,35 +24,37 @@ class AWSCloudSync:
     Real-Data AWS Sync Pipeline.
     Connects to AWS, extracts resources, normalizes them, and persists to Supabase.
     """
-    
+
     def __init__(self, organization_id: str, cloud_account_id: str, aws_access_key: str, aws_secret_key: str, default_region: str = "ap-south-1"):
         self.organization_id = organization_id
         self.cloud_account_id = cloud_account_id
         self.region = default_region
-        
+
         # Create Boto3 Session (Securely initialized with scoped credentials)
         self.session = boto3.Session(
             aws_access_key_id=aws_access_key,
             aws_secret_access_key=aws_secret_key,
             region_name=self.region
         )
-        
+
         self.collectors = [
             EC2Collector(self.session, self.region),
             S3Collector(self.session, self.region),
-            IAMCollector(self.session, self.region)
+            IAMCollector(self.session, self.region),
+            VPCCollector(self.session, self.region),
+            SecurityGroupCollector(self.session, self.region)
         ]
 
     def run_sync(self):
         """Executes the full collection and storage lifecycle."""
         logger.info(f"Starting AWS sync for account {self.cloud_account_id}")
-        
+
         # Mark sync started
         supabase.table("cloud_accounts").update({
             "status": "SYNCING",
             "last_sync_at": datetime.utcnow().isoformat()
         }).eq("id", self.cloud_account_id).execute()
-        
+
         try:
             total_assets = 0
             for collector in self.collectors:
@@ -70,16 +75,16 @@ class AWSCloudSync:
                 normalized_assets = [self._normalize(r, rtype) for r in raw_resources]
                 self._store_in_supabase(normalized_assets)
                 total_assets += len(normalized_assets)
-                
+
             # Mark sync success
             supabase.table("cloud_accounts").update({
                 "status": "HEALTHY",
                 "last_success_at": datetime.utcnow().isoformat()
             }).eq("id", self.cloud_account_id).execute()
-            
+
             logger.info(f"AWS sync complete. Stored {total_assets} assets.")
             return True
-            
+
         except Exception as e:
             logger.error(f"AWS sync failed: {str(e)}")
             supabase.table("cloud_accounts").update({
@@ -90,23 +95,37 @@ class AWSCloudSync:
 
     def _normalize(self, raw_resource: Dict[str, Any], resource_type: str) -> Dict[str, Any]:
         """Converts AWS-specific shapes into the standard Aegivion CloudAsset schema."""
-        
-        # Extract generic identifiers (Implementation depends on the raw resource shape)
-        # Boto3 resources typically use IDs like 'InstanceId', 'BucketName', 'RoleName'
+        if 'asset_id' in raw_resource:
+            # Already normalized by the modern collectors
+            return {
+                "organization_id": self.organization_id,
+                "cloud_account_id": self.cloud_account_id,
+                "provider": "aws",
+                "provider_resource_id": raw_resource['asset_id'],
+                "resource_type": f"aws_{resource_type.lower()}",
+                "name": raw_resource.get('name', raw_resource['asset_id']),
+                "location": raw_resource.get('region', self.region),
+                "status": raw_resource.get('status', 'ACTIVE'),
+                "configuration": raw_resource.get('configuration', raw_resource),
+                "tags": raw_resource.get('configuration', {}).get('tags', {}),
+                "provider_metadata": {"raw": False, "relationships": raw_resource.get('relationships', [])}
+            }
+
+        # Legacy fallback for raw Boto3 resources
         provider_id = (
-            raw_resource.get('InstanceId') or 
-            raw_resource.get('BucketName') or 
-            raw_resource.get('RoleName') or 
-            raw_resource.get('Id') or 
+            raw_resource.get('InstanceId') or
+            raw_resource.get('BucketName') or
+            raw_resource.get('RoleName') or
+            raw_resource.get('Id') or
             f"unknown-{int(time.time())}"
         )
-        
+
         name = raw_resource.get('BucketName') or raw_resource.get('RoleName')
         if not name and 'Tags' in raw_resource:
             name = next((t['Value'] for t in raw_resource.get('Tags', []) if t['Key'] == 'Name'), provider_id)
-            
+
         status = raw_resource.get('State', {}).get('Name', 'ACTIVE')
-        
+
         return {
             "organization_id": self.organization_id,
             "cloud_account_id": self.cloud_account_id,
@@ -122,18 +141,25 @@ class AWSCloudSync:
         }
 
     def _store_in_supabase(self, assets: List[Dict[str, Any]]):
-        """Upserts the normalized assets into Supabase."""
+        """Upserts the normalized assets, identities, and relationships into Supabase via Digital Twin."""
+        twin_repo = TwinPersistenceRepository(supabase, self.organization_id)
+
         for asset in assets:
+            provider_resource_id = asset.get("provider_resource_id")
+            if not provider_resource_id:
+                continue
+
+            # 1. Store Asset
             # Check if asset exists
             existing = supabase.table("cloud_assets").select("id, version, configuration").eq(
-                "provider_resource_id", asset["provider_resource_id"]
+                "provider_resource_id", provider_resource_id
             ).eq("organization_id", self.organization_id).execute()
-            
+
             if existing.data:
                 # Update existing
                 current = existing.data[0]
                 new_version = current["version"]
-                
+
                 # Simple change detection
                 if str(current["configuration"]) != str(asset["configuration"]):
                     new_version += 1
@@ -143,7 +169,7 @@ class AWSCloudSync:
                         "version": current["version"],
                         "configuration": current["configuration"]
                     }).execute()
-                
+
                 supabase.table("cloud_assets").update({
                     **asset,
                     "last_seen": datetime.utcnow().isoformat(),
@@ -152,3 +178,26 @@ class AWSCloudSync:
             else:
                 # Insert new
                 supabase.table("cloud_assets").insert(asset).execute()
+
+            # 2. Store Identity (if applicable)
+            if asset.get("resource_type") == "aws_iam_user" or asset.get("resource_type") == "aws_iam_role":
+                identity_type = "IAM_USER" if asset.get("resource_type") == "aws_iam_user" else "IAM_ROLE"
+                twin_repo.upsert_identity(self.organization_id, {
+                    "account_id": self.cloud_account_id,
+                    "provider": "aws",
+                    "native_id": provider_resource_id,
+                    "identity_type": identity_type,
+                    "name": asset.get("name"),
+                    "status": "ACTIVE",
+                    "metadata": asset.get("configuration", {})
+                })
+
+            # 3. Store Relationships
+            provider_metadata = asset.get("provider_metadata", {})
+            relationships = provider_metadata.get("relationships", [])
+            if relationships:
+                twin_repo.replace_asset_relationships(
+                    self.organization_id,
+                    provider_resource_id,
+                    relationships
+                )

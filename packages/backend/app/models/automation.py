@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from app.database.base import BaseModel as OrmBaseModel
+from app.database.base import LegacyBaseModel as OrmBaseModel
 
 class AgentHeartbeat(OrmBaseModel):
     def __init__(self, **kwargs):

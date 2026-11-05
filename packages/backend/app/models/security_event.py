@@ -3,7 +3,7 @@ import hashlib
 import json
 from datetime import datetime
 from typing import Dict, Any, Optional
-from app.database.base import BaseModel
+from app.database.base import LegacyBaseModel as BaseModel
 
 class SecurityEventCategory(str, enum.Enum):
     # Identity

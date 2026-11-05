@@ -14,22 +14,22 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.exceptions import (
     MalformedEventError,
     UnsupportedEventError,
 )
-from detection.cloud_destruction.normalizer import (
+from algo.detection.cloud_destruction.normalizer import (
     _parse_timestamp,
     _resource_id_from_arn,
 )
-from detection.cloud_destruction.protection import ProtectionCatalog
-from detection.cloud_destruction.provenance import (
+from algo.detection.cloud_destruction.protection import ProtectionCatalog
+from algo.detection.cloud_destruction.provenance import (
     AvailabilityTracker,
     DataProvenance,
     UnavailableReason,
 )
-from detection.cloud_destruction.config import NORMALIZER_VERSION
-from detection.cloud_destruction.schemas import (
+from algo.detection.cloud_destruction.config import NORMALIZER_VERSION
+from algo.detection.cloud_destruction.schemas import (
     ActionCategory,
     OperationType,
     ResourceActivityEvent,

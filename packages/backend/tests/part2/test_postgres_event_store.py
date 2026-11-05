@@ -12,7 +12,7 @@ from security.engine.persistence.postgres.postgres_event_store import PostgresEv
 from security.engine.persistence.postgres.models import Base
 
 # Determine if Postgres is available
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://aegivion:aegivion123@localhost:5432/test_db")
 
 
 
@@ -178,8 +178,6 @@ def test_max_retries_dead_letter(store: PostgresEventStore):
                 
             # Simulate wait time so it can be reclaimed
             async with store.SessionLocal() as session:
-                db_ev = await session.get(store.engine, (ret.event_id, ret.org_id))
-                # Just manual query in real life, here we use raw SQL to modify lease_expires_at
                 from sqlalchemy import text
                 await session.execute(text("UPDATE persistent_events SET lease_expires_at = '2000-01-01T00:00:00Z'"))
                 await session.commit()

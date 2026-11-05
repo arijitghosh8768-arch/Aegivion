@@ -78,7 +78,7 @@ from app.models.org_settings import OrgSettings
 
 @router.post("/chat", response_model=ChatResponse)
 @limiter.limit("10/minute")
-async def chat_endpoint(request_obj: Request, request: ChatRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def chat_endpoint(request: Request, body: ChatRequest, current_user: Any = Depends(get_current_user), db: Session = Depends(get_db)):
     start_time = time.time()
     api_requests_total.labels(method="POST", endpoint="/api/v1/chat").inc()
     ai_requests_total.inc()
@@ -94,31 +94,56 @@ async def chat_endpoint(request_obj: Request, request: ChatRequest, current_user
     if settings and not settings.ai_features_enabled:
         raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
 
-    logger.info("processing_chat_request", user_id=current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id"), org_id=user_org_id, finding_id=request.finding_id)
+    user_id = current_user.get("user_id") or current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id", None)
+    logger.info("processing_chat_request", user_id=str(user_id), org_id=str(user_org_id), finding_id=body.finding_id)
 
     context_data = {
-        "finding_id": request.finding_id,
-        "asset_id": request.asset_id,
-        "org_id": current_user.org_id,
+        "finding_id": body.finding_id,
+        "asset_id": body.asset_id,
+        "org_id": str(user_org_id),
         "note": "This is simulated context for the chat grounding."
     }
     
     # Retrieve RAG context if applicable
-    if request.finding_id:
+    if body.finding_id:
         rag_data = rag_retriever.retrieve_security_knowledge(
-            finding_id=request.finding_id,
+            finding_id=body.finding_id,
             provider="aws",
             finding_type="general",
             finding_metadata={}
         )
         context_data["threat_intelligence"] = rag_data.get("relevant_knowledge", [])
         
-    prompt = build_chat_prompt(request, context_data)
+    prompt = build_chat_prompt(body, context_data)
     provider = get_llm_provider()
     
     try:
         response_text = provider.generate(prompt)
-        parsed = json.loads(response_text)
+        if not response_text or not isinstance(response_text, str):
+            raise HTTPException(
+                status_code=502,
+                detail={"error": "LLM_PROVIDER_EMPTY", "message": "The AI provider returned an empty or invalid response."}
+            )
+
+        # Attempt JSON decoding
+        try:
+            parsed = json.loads(response_text.strip())
+        except (json.JSONDecodeError, ValueError) as json_err:
+            logger.warning("llm_response_not_json", raw_response=response_text, error=str(json_err))
+            raise HTTPException(
+                status_code=502,
+                detail={
+                    "error": "LLM_INVALID_FORMAT",
+                    "message": "AI provider response could not be parsed into the required structured format.",
+                    "raw_response": response_text[:200]
+                }
+            )
+
+        if not isinstance(parsed, dict):
+            raise HTTPException(
+                status_code=502,
+                detail={"error": "LLM_INVALID_STRUCTURE", "message": "AI provider response must be a structured JSON object."}
+            )
         
         duration = time.time() - start_time
         api_request_duration_seconds.labels(method="POST", endpoint="/api/v1/chat").observe(duration)
@@ -128,14 +153,15 @@ async def chat_endpoint(request_obj: Request, request: ChatRequest, current_user
         
         return {
             "response": parsed.get("response", "I could not generate a response."),
-            "observed": parsed.get("observed", []),
-            "inferred": parsed.get("inferred", []),
-            "unknown": parsed.get("unknown", []),
-            "declined": parsed.get("declined", False)
+            "observed": parsed.get("observed", []) if isinstance(parsed.get("observed"), list) else [],
+            "inferred": parsed.get("inferred", []) if isinstance(parsed.get("inferred"), list) else [],
+            "unknown": parsed.get("unknown", []) if isinstance(parsed.get("unknown"), list) else [],
+            "declined": bool(parsed.get("declined", False))
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("chat_request_failed", error=str(e), exc_info=True)
-        # Fallback if model fails to output valid JSON
         if "DECLINE:" in str(e):
             return {
                 "response": "I do not have evidence or context to answer that question.",
@@ -144,11 +170,10 @@ async def chat_endpoint(request_obj: Request, request: ChatRequest, current_user
                 "unknown": [],
                 "declined": True
             }
-            
-        return {
-            "response": "I encountered an error processing your request.",
-            "observed": [],
-            "inferred": [],
-            "unknown": [],
-            "declined": False
-        }
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "error": "LLM_PROVIDER_ERROR",
+                "message": f"AI provider execution failed: {str(e)}"
+            }
+        )

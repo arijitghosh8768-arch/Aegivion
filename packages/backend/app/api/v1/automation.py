@@ -23,13 +23,13 @@ class RuleCreateRequest(BaseModel):
 def list_rules(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
     rules = db.query(Runbook).filter(Runbook.organization_id == user_org_id).all()
-    
+
     return {"rules": [r.dict() for r in rules]}
 
 @router.post("/rules", dependencies=[Depends(require_permission("manage_automation"))])
 def create_rule(req: RuleCreateRequest, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
-    
+
     new_rule = Runbook(
         organization_id=user_org_id,
         name=req.name,
@@ -49,15 +49,15 @@ def create_rule(req: RuleCreateRequest, db: Session = Depends(get_db), current_u
 @router.patch("/rules/{rule_id}/toggle", dependencies=[Depends(require_permission("manage_automation"))])
 def toggle_rule(rule_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
-    
+
     rule = db.query(Runbook).filter(
-        Runbook.id == rule_id, 
+        Runbook.id == rule_id,
         Runbook.organization_id == user_org_id
     ).first()
-    
+
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
-        
+
     rule.enabled = not rule.enabled
     db.commit()
     return rule.dict()
@@ -65,11 +65,11 @@ def toggle_rule(rule_id: str, db: Session = Depends(get_db), current_user: Any =
 @router.get("/overview")
 def get_automation_overview(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
-    
+
     rules = OrmBaseModel.find(db, "runbooks", {"organization_id": user_org_id})
     active = sum(1 for r in rules if r.get("enabled"))
     total_runs = sum(r.get("runs", 0) for r in rules)
-    
+
     return {
         "active_runbooks": active,
         "total_rules": len(rules),
@@ -83,9 +83,9 @@ def get_automation_overview(db: Session = Depends(get_db), current_user: Any = D
 @router.get("/agent/status")
 def get_agent_status(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
-    
+
     heartbeats = OrmBaseModel.find(db, "agentheartbeats", {"organization_id": user_org_id})
-    
+
     workers = {
         "discovery": "OFFLINE",
         "detection": "OFFLINE",
@@ -93,11 +93,11 @@ def get_agent_status(db: Session = Depends(get_db), current_user: Any = Depends(
         "response": "OFFLINE",
         "verification": "OFFLINE"
     }
-    
+
     latest_hb = "Never"
     activity = "Idle"
     status = "OFFLINE"
-    
+
     if heartbeats and len(heartbeats) > 0:
         status = "ONLINE"
         # Sort by created_at or assume sequential insertion
@@ -132,7 +132,7 @@ from app.services.automation.safety import safety_policy_engine
 @router.post('/rules/{rule_id}/simulate')
 def simulate_runbook(rule_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
-    
+
     candidates = [
         CandidateAction(
             id=str(uuid.uuid4()),
@@ -155,14 +155,14 @@ def simulate_runbook(rule_id: str, db: Session = Depends(get_db), current_user: 
             runbook_mode='APPROVAL_REQUIRED'
         )
     ]
-    
+
     best = optimizer_engine.select_best_candidate(candidates)
-    
+
     if not best:
         return {'status': 'NO_SAFE_ACTION'}
-        
+
     policy_result = safety_policy_engine.evaluate(best)
-    
+
     return {
         'status': 'SIMULATION_COMPLETE',
         'selected_action': best.action_type,
@@ -178,6 +178,10 @@ def simulate_runbook(rule_id: str, db: Session = Depends(get_db), current_user: 
 @router.post('/approvals/{approval_id}/approve')
 def approve_action(approval_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
+    # Since pendingapprovals isn't a real SQL table yet, we just return the success structure expected by the frontend
+    # In a full deployment, this would invoke ApprovalManager and transition state.
+
+    # We simulate agent execution payload
     return {'status': 'APPROVED', 'message': 'Action execution triggered and transitioning to VERIFYING state.'}
 
 @router.post('/approvals/{approval_id}/reject')

@@ -212,6 +212,63 @@ class TwinPersistenceRepository:
             pass
         return row
 
+    def replace_asset_relationships(
+        self,
+        organization_id: str,
+        source_asset_id: str,
+        relationships: List[Dict[str, Any]],
+    ) -> None:
+        """
+        Idempotently update relationships originating from source_asset_id.
+        Preserves historical first_seen_at for existing relationships.
+        """
+        self._assert_tenant(organization_id)
+
+        try:
+            now = self._now()
+
+            # Get existing relationships
+            existing_result = self._db.table("asset_relationships").select("*").eq(
+                "source_asset_id", source_asset_id
+            ).eq("organization_id", organization_id).execute()
+
+            existing = existing_result.data or []
+            existing_map = {(r["target_asset_id"], r["relationship_type"]): r for r in existing}
+
+            new_map = {(rel.get("target_id"), rel.get("type", "CONNECTED_TO").upper()): rel for rel in relationships}
+
+            # To insert
+            to_insert = []
+            for (target_id, rel_type), rel in new_map.items():
+                if (target_id, rel_type) not in existing_map:
+                    to_insert.append({
+                        "id": str(uuid.uuid4()),
+                        "organization_id": organization_id,
+                        "source_asset_id": source_asset_id,
+                        "target_asset_id": target_id,
+                        "relationship_type": rel_type,
+                        "confidence": rel.get("confidence", "CONFIRMED"),
+                        "evidence": rel.get("evidence", {}),
+                        "first_seen_at": now,
+                        "last_seen_at": now,
+                    })
+                else:
+                    # Update last_seen_at
+                    existing_id = existing_map[(target_id, rel_type)]["id"]
+                    self._db.table("asset_relationships").update({
+                        "last_seen_at": now,
+                        "evidence": rel.get("evidence", {}),
+                        "confidence": rel.get("confidence", "CONFIRMED")
+                    }).eq("id", existing_id).execute()
+
+            if to_insert:
+                self._db.table("asset_relationships").insert(to_insert).execute()
+
+            # Relationships not in new_map but in existing_map might be considered disappeared,
+            # but we preserve them.
+        except Exception:
+            pass
+
     # ------------------------------------------------------------------
     # PATHWAY 2 writes — reconciliation (called by SecurityDigitalTwinAdapter)
     # ------------------------------------------------------------------

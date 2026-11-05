@@ -16,14 +16,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from detection.cloud_destruction.config import NORMALIZER_VERSION
-from detection.cloud_destruction.exceptions import (
+from algo.detection.cloud_destruction.config import NORMALIZER_VERSION
+from algo.detection.cloud_destruction.exceptions import (
     MalformedEventError,
     UnsupportedEventError,
 )
-from detection.cloud_destruction.normalizer import ResourceActivityNormalizer
-from detection.cloud_destruction.protection import ProtectionCatalog
-from detection.cloud_destruction.schemas import CloudProvider, ResourceActivityEvent
+from algo.detection.cloud_destruction.normalizer import ResourceActivityNormalizer
+from algo.detection.cloud_destruction.protection import ProtectionCatalog
+from algo.detection.cloud_destruction.schemas import CloudProvider, ResourceActivityEvent
 
 
 @dataclass

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from app.database.base import BaseModel
+from app.database.base import LegacyBaseModel as BaseModel
 
 class OrgSettings(BaseModel):
     def __init__(self, **kwargs):

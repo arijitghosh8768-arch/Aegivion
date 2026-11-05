@@ -42,7 +42,8 @@ def list_assets(
 @router.get("/{asset_id}")
 def get_asset(
     asset_id: str,
-    db = Depends(get_db)
+    db = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     user_org_id = get_current_organization(current_user, db)
     

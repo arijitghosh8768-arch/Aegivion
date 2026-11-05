@@ -2,7 +2,7 @@ import enum
 import hashlib
 import json
 from datetime import datetime
-from app.database.base import BaseModel
+from app.database.base import LegacyBaseModel as BaseModel
 from typing import Dict, Any, List, Optional
 
 class AssetSnapshot(BaseModel):
