@@ -21,7 +21,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -65,8 +65,11 @@ jobs:
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi
-          if [ "${{ matrix.service }}" == "backend" ] && [ -f ../security/requirements.txt ]; then
-            pip install -r ../security/requirements.txt
+          if [ "${{ matrix.service }}" == "backend" ]; then
+            if [ -f ../security/requirements.txt ]; then
+              pip install -r ../security/requirements.txt
+            fi
+            alembic upgrade head
           fi
           pip install pytest
           PYTHONPATH=".:.." python -m pytest
