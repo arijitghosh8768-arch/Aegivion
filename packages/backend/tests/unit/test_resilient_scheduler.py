@@ -14,12 +14,18 @@ from app.database import SessionLocal
 def test_botocore_adaptive_retry_config():
     """Verify that AWS_CLIENT_CONFIG specifies adaptive retries with 5 attempts"""
     assert isinstance(AWS_CLIENT_CONFIG, Config)
-    assert AWS_CLIENT_CONFIG.retries["max_attempts"] == 5
-    assert AWS_CLIENT_CONFIG.retries["mode"] == "adaptive"
+    retries = getattr(AWS_CLIENT_CONFIG, "retries", {}) or {}
+    max_attempts = retries.get("max_attempts") if isinstance(retries, dict) else getattr(retries, "max_attempts", None)
+    mode = retries.get("mode") if isinstance(retries, dict) else getattr(retries, "mode", None)
+    assert max_attempts == 5
+    assert mode == "adaptive"
 
     assert isinstance(BASE_AWS_CLIENT_CONFIG, Config)
-    assert BASE_AWS_CLIENT_CONFIG.retries["max_attempts"] == 5
-    assert BASE_AWS_CLIENT_CONFIG.retries["mode"] == "adaptive"
+    base_retries = getattr(BASE_AWS_CLIENT_CONFIG, "retries", {}) or {}
+    base_max_attempts = base_retries.get("max_attempts") if isinstance(base_retries, dict) else getattr(base_retries, "max_attempts", None)
+    base_mode = base_retries.get("mode") if isinstance(base_retries, dict) else getattr(base_retries, "mode", None)
+    assert base_max_attempts == 5
+    assert base_mode == "adaptive"
 
 @pytest.mark.asyncio
 async def test_periodic_aws_discovery_skips_running_scans():

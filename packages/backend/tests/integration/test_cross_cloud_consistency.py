@@ -5,6 +5,7 @@ from app.cloud.aws.sync import AWSCloudSync
 from app.cloud.azure.sync import AzureCloudSync
 from app.cloud.gcp.sync import GCPCloudSync
 
+@patch('app.cloud.aws.client.get_aws_session')
 @patch('app.cloud.aws.sync.TwinPersistenceRepository')
 @patch('app.cloud.azure.sync.TwinPersistenceRepository')
 @patch('app.cloud.gcp.sync.TwinPersistenceRepository')
@@ -13,12 +14,16 @@ from app.cloud.gcp.sync import GCPCloudSync
 @patch('app.cloud.gcp.sync.supabase')
 def test_cross_cloud_consistency_same_graph(
     mock_gcp_supa, mock_azure_supa, mock_aws_supa,
-    mock_gcp_twin, mock_azure_twin, mock_aws_twin
+    mock_gcp_twin, mock_azure_twin, mock_aws_twin,
+    mock_get_aws_session
 ):
     """
     Tests that equivalent AWS, Azure, and GCP resources can coexist in the same 
     provider-neutral Digital Twin model without creating provider-specific graph implementations.
     """
+    mock_aws_session = MagicMock()
+    mock_get_aws_session.return_value = mock_aws_session
+
     org_id = "org-unified-twin"
     
     # 1. AWS Sync

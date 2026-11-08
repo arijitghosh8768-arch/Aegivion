@@ -87,6 +87,9 @@ def add_cloud_account(
                     role_arn=role_arn,
                     external_id=external_id
                 )
+                if not session:
+                    raise HTTPException(status_code=401, detail="Invalid AWS credentials or access denied.")
+
                 sts = session.client("sts")
                 caller_identity = sts.get_caller_identity()
                 verified_account_id = caller_identity.get("Account")
@@ -102,7 +105,7 @@ def add_cloud_account(
                 provider_account_id = verified_account_id
 
             except ClientError as e:
-                raise HTTPException(status_code=401, detail=f"Invalid AWS credentials or access denied: {str(e)}")
+                raise HTTPException(status_code=401, detail="Invalid AWS credentials or access denied.")
             except HTTPException:
                 raise
             except Exception as e:

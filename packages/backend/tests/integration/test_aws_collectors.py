@@ -82,8 +82,11 @@ async def test_security_group_collector():
     assert "vpc-123" in rel_targets
 
 
+@patch('app.cloud.aws.client.get_aws_session')
 @patch('app.cloud.aws.sync.supabase')
-def test_aws_sync_normalize_with_asset_id(mock_supabase):
+def test_aws_sync_normalize_with_asset_id(mock_supabase, mock_get_aws_session):
+    mock_session = MagicMock()
+    mock_get_aws_session.return_value = mock_session
     sync = AWSCloudSync("org-1", "acc-1", "AKIA", "SECRET")
     
     raw_normalized = {

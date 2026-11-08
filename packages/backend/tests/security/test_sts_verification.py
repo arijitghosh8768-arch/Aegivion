@@ -9,14 +9,14 @@ def mock_get_current_user_org_a():
     return {
         "user_id": "u-123",
         "organization_id": "org-a",
-        "role": "admin"
+        "role": "organization_admin"
     }
 
 def mock_get_current_user_org_b():
     return {
         "user_id": "u-456",
         "organization_id": "org-b",
-        "role": "admin"
+        "role": "organization_admin"
     }
 
 class MockQuery:

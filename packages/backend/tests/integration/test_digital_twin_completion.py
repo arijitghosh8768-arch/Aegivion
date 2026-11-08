@@ -62,9 +62,13 @@ def test_twin_persistence_relationships_preserve_history(mock_supabase):
     assert mock_supabase.table().update.called
     assert mock_supabase.table().insert.called
 
+@patch('app.cloud.aws.client.get_aws_session')
 @patch('app.cloud.aws.sync.TwinPersistenceRepository')
 @patch('app.cloud.aws.sync.supabase')
-def test_aws_sync_writes_twin_identities_and_relationships(mock_supabase_global, mock_repo_cls):
+def test_aws_sync_writes_twin_identities_and_relationships(mock_supabase_global, mock_repo_cls, mock_get_aws_session):
+    mock_session = MagicMock()
+    mock_get_aws_session.return_value = mock_session
+
     mock_repo = MagicMock()
     mock_repo_cls.return_value = mock_repo
     
