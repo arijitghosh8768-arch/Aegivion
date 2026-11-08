@@ -29,6 +29,8 @@ class CloudAccount(BaseModel):
     aws_access_key_id = Column(String(100), nullable=True)
     aws_secret_access_key = Column(String(100), nullable=True)
     aws_region = Column(String(50), nullable=True, default="ap-south-1")
+    role_arn = Column(String(300), nullable=True)
+    external_id = Column(String(100), nullable=True)
     status = Column(String(50), default="connected")
     last_scan_at = Column(DateTime(timezone=True), nullable=True)
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
@@ -40,6 +42,8 @@ class CloudAccount(BaseModel):
         self.aws_access_key_id = kwargs.get("aws_access_key_id")
         self.aws_secret_access_key = kwargs.get("aws_secret_access_key")
         self.aws_region = kwargs.get("aws_region") or "ap-south-1"
+        self.role_arn = kwargs.get("role_arn")
+        self.external_id = kwargs.get("external_id")
         self.status = kwargs.get("status") or CloudAccountStatus.CONNECTED.value
         self.last_scan_at = kwargs.get("last_scan_at")
         self.organization_id = kwargs.get("organization_id")
@@ -64,6 +68,8 @@ class CloudAsset(BaseModel):
     business_criticality = Column(String(50), default="UNKNOWN")
     internet_exposed = Column(Boolean, default=False)
     importance_score = Column(Float, default=0.0)
+    last_seen_at = Column(DateTime(timezone=True), nullable=True)
+    current_hash = Column(String(64), nullable=True)
 
     # Relationships
     security_group_details = relationship("SecurityGroupAsset", back_populates="asset", uselist=False, cascade="all, delete-orphan")

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,17 +21,64 @@ export default function SignupPage() {
   const login = useAppStore((s) => s.login);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
+  const [orgName, setOrgName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || password.length < 8) return;
+    setErrorMsg(null);
+    if (!name || !email || !orgName) {
+      setErrorMsg("Please complete all required fields.");
+      return;
+    }
+    if (password.length < 8) {
+      setErrorMsg("Password must be at least 8 characters long.");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      login({ name, email, role: "Security Analyst", company: "Acme Corp" });
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com";
+      const res = await fetch(`${baseUrl}/api/v1/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: name,
+          organization_name: orgName,
+          email,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to create workspace.");
+      }
+
+      // Store JWT token and refresh token
+      if (data.token) {
+        localStorage.setItem("aegivion_token", data.token);
+      }
+      if (data.refresh_token) {
+        localStorage.setItem("aegivion_refresh_token", data.refresh_token);
+      }
+
+      // Update local state store
+      login({
+        name: data.user.name || name,
+        email: data.user.email,
+        role: data.user.role || "organization_admin",
+        company: data.user.organization_name || orgName,
+      });
+
+      // Redirect to onboarding or main dashboard
       router.push("/");
-    }, 1000);
+    } catch (err: any) {
+      setErrorMsg(err.message || "An unexpected error occurred during signup.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,10 +107,21 @@ export default function SignupPage() {
           ))}
         </ul>
 
+        {errorMsg && (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">Full name</Label>
-            <Input id="name" placeholder="Alex Rivera" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="name" placeholder="Alex Rivera" value={name} onChange={(e) => setName(e.target.value)} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="orgName">Organization / Company name</Label>
+            <Input id="orgName" placeholder="Acme Cybersecurity" value={orgName} onChange={(e) => setOrgName(e.target.value)} required />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Work email</Label>
@@ -73,6 +131,7 @@ export default function SignupPage() {
               placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
           <div className="space-y-1.5">
@@ -83,6 +142,7 @@ export default function SignupPage() {
               placeholder="8+ characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
           <Button type="submit" size="lg" variant="gradient" className="w-full" disabled={loading}>

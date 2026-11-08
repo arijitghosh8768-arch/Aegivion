@@ -26,8 +26,11 @@ packages/frontend/.env
 
 # Environment files (keep .env.example, ignore real secrets)
 .env
+.env.*
+*.env
 *.env.local
 *.env.production
+*.env.test
 
 # Build artifacts
 *.pyc

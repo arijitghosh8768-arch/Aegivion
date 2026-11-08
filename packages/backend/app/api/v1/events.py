@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 from app.core.security import get_current_user
@@ -11,6 +11,9 @@ from security.engine.security_event_deduplicator import SecurityEventDeduplicato
 from security.engine.security_digital_twin import SecurityDigitalTwin
 from security.engine.security_event_detector_adapter import SecurityEventDetectorAdapter
 from security.engine.security_event_correlator import SecurityEventCorrelator
+
+from app.api.deps import require_permission
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
@@ -29,8 +32,10 @@ def list_events(
     except Exception as e:
         return {"events": [], "error": str(e)}
 
-@router.post("")
+@router.post("", dependencies=[Depends(require_permission("manage_findings"))])
+@limiter.limit("60/minute")
 async def ingest_event(
+    request: Request,
     event_data: dict, 
     current_user: Dict[str, Any] = Depends(get_current_user),
     db: Session = Depends(get_db)

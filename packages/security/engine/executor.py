@@ -9,11 +9,25 @@ logger = logging.getLogger(__name__)
 class RuleExecutor:
     """Enhanced rule executor with network correlation"""
     
-    def __init__(self):
+    def __init__(self, rules: Optional[List[Any]] = None):
         self.rules: List[RuleSchema] = []
+        if rules:
+            self.load_rules(rules)
     
-    def load_rules(self, rules: List[RuleSchema]):
-        self.rules = [r for r in rules if r.enabled]
+    def load_rules(self, rules: List[Any]):
+        loaded = []
+        for r in rules:
+            if isinstance(r, RuleSchema):
+                if r.enabled:
+                    loaded.append(r)
+            elif isinstance(r, dict):
+                try:
+                    schema = RuleSchema(**r)
+                    if schema.enabled:
+                        loaded.append(schema)
+                except Exception:
+                    continue
+        self.rules = loaded
     
     def execute(self, asset: Dict) -> List[Dict]:
         """Execute rules against asset with correlation"""

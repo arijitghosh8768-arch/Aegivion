@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
@@ -6,10 +6,13 @@ import uuid
 from datetime import datetime
 
 from app.database import get_db
+from app.core.rate_limit import limiter
 from app.models.cloud import ScanJob, ScanStatus, CloudAsset, CloudAccount
 from security.models.finding import Finding
 from app.cloud.aws.scan.orchestrator import ScanOrchestrator
 from security.engine.risk_engine import ContextualRiskEngine
+from app.core.security import get_current_user
+from app.api.deps import require_permission
 
 router = APIRouter()
 
@@ -22,15 +25,18 @@ class ScanResponse(BaseModel):
     status: str
     message: str
 
-@router.post("/scans/start", response_model=ScanResponse)
+@router.post("/scans/start", response_model=ScanResponse, dependencies=[Depends(require_permission("manage_assets"))])
+@limiter.limit("3/minute")
 async def start_scan(
-    request: ScanRequest,
-    db: Session = Depends(get_db)
+    request: Request,
+    scan_req: ScanRequest,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
 ):
     """Start a full AWS security scan in the background"""
     # Verify account exists
     try:
-        acc_uuid = uuid.UUID(request.cloud_account_id)
+        acc_uuid = uuid.UUID(scan_req.cloud_account_id)
         account = db.query(CloudAccount).filter_by(id=acc_uuid).first()
         if not account:
             raise HTTPException(status_code=404, detail="Cloud account not found")
@@ -41,7 +47,7 @@ async def start_scan(
         org_id = uuid.uuid4()
         
     orchestrator = ScanOrchestrator(
-        cloud_account_id=request.cloud_account_id,
+        cloud_account_id=scan_req.cloud_account_id,
         organization_id=org_id
     )
     

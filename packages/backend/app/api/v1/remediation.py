@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from app.database import get_db
 from security.models.finding import Finding
 from app.models.cloud import CloudAsset
@@ -10,6 +10,7 @@ from ai.services.action_planner import ActionPlanner
 from datetime import datetime
 from app.core.security import get_current_user
 from app.core.tenant import get_current_organization
+from app.api.deps import require_permission
 
 router = APIRouter()
 
@@ -200,7 +201,7 @@ def get_path_remediations(
       ]
     }
 
-@router.post("/remediations/{remediation_id}/validate")
+@router.post("/remediations/{remediation_id}/validate", dependencies=[Depends(require_permission("manage_findings"))])
 def validate_remediation(
     remediation_id: str,
     db: Session = Depends(get_db),
@@ -208,7 +209,9 @@ def validate_remediation(
 ):
     """Perform scan validation comparing before/after state to verify path interruption"""
     from app.models.remediation_validation import RemediationValidation, ValidationStatus
-    user_org_id = get_current_organization(current_user, db)
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
     
     # Try locating validation log
     val = db.query(RemediationValidation).filter(
@@ -246,7 +249,9 @@ def get_remediation_validation_status(
 ):
     """Retrieve validation logs"""
     from app.models.remediation_validation import RemediationValidation, ValidationStatus
-    user_org_id = get_current_organization(current_user, db)
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
     
     val = db.query(RemediationValidation).filter(
         RemediationValidation.remediation_id == remediation_id,
@@ -262,7 +267,387 @@ def get_remediation_validation_status(
         }
     return val.dict()
 
-@router.post("/remediations/{remediation_id}/plan")
+from pydantic import BaseModel, Field
+from app.models.remediation import RemediationPlan as RemediationPlanModel, RemediationAction as RemediationActionModel, RemediationAuditLog as RemediationAuditLogModel
+from app.services.remediation_allowlist import RemediationAllowlistService
+from fastapi import HTTPException, status
+import uuid
+
+@router.get("/plans")
+def list_remediation_plans(
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """List all remediation plans and associated actions for the current tenant."""
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
+
+    plans = db.query(RemediationPlan).filter(
+        RemediationPlan.organization_id == user_org_id
+    ).order_by(RemediationPlan.created_at.desc()).all()
+
+    now = datetime.now(timezone.utc)
+    res = []
+    for plan in plans:
+        # Check TTL expiration
+        if plan.status == "PENDING_APPROVAL" and plan.expires_at:
+            exp = plan.expires_at if plan.expires_at.tzinfo else plan.expires_at.replace(tzinfo=timezone.utc)
+            if now > exp:
+                plan.status = "EXPIRED"
+                db.add(plan)
+
+        actions_data = []
+        for action in plan.actions:
+            actions_data.append({
+                "id": str(action.id),
+                "action_type": action.action_type,
+                "status": action.status,
+                "parameters": action.parameters,
+                "aws_request_id": action.aws_request_id
+            })
+
+        res.append({
+            "id": str(plan.id),
+            "organization_id": str(plan.organization_id),
+            "finding_id": str(plan.finding_id) if plan.finding_id else None,
+            "resource_id": plan.resource_id,
+            "status": plan.status,
+            "expires_at": plan.expires_at.isoformat() if plan.expires_at else None,
+            "created_at": plan.created_at.isoformat() if plan.created_at else None,
+            "actions": actions_data,
+            "action_type": actions_data[0]["action_type"] if actions_data else "UNKNOWN"
+        })
+
+    db.commit()
+    return {"success": True, "data": res}
+
+class CreateRemediationPlanRequest(BaseModel):
+    finding_id: str
+    resource_id: str
+    action_type: str
+    parameters: Dict[str, Any]
+    idempotency_key: Optional[str] = None
+
+@router.post("/plans", status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_permission("manage_findings"))])
+def create_remediation_plan(
+    payload: CreateRemediationPlanRequest,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """Create a validated remediation plan with strict action allowlist and parameter check"""
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
+    
+    # 1. Validate action against strict Zero-Trust allowlist
+    try:
+        sanitized_params = RemediationAllowlistService.validate_action(
+            action_type=payload.action_type,
+            parameters=payload.parameters
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    # 2. Check Finding exists and belongs to org
+    finding_uuid = None
+    try:
+        finding_uuid = uuid.UUID(payload.finding_id)
+        finding_db = db.query(Finding).filter(
+            Finding.id == finding_uuid,
+            Finding.organization_id == user_org_id
+        ).first()
+        if not finding_db:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Finding '{payload.finding_id}' not found in your organization."
+            )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid finding UUID: '{payload.finding_id}'"
+        )
+
+    # 3. Create RemediationPlan and RemediationAction in DB
+    from datetime import datetime, timezone, timedelta
+    plan_id = uuid.uuid4()
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=2)
+    plan = RemediationPlanModel(
+        id=plan_id,
+        organization_id=user_org_id,
+        finding_id=finding_uuid,
+        resource_id=payload.resource_id,
+        status="PENDING_APPROVAL",
+        expires_at=expires_at,
+        idempotency_key=payload.idempotency_key or f"{user_org_id}:{finding_uuid}:{payload.action_type}"
+    )
+    db.add(plan)
+
+    action = RemediationActionModel(
+        id=uuid.uuid4(),
+        plan_id=plan_id,
+        organization_id=user_org_id,
+        action_type=payload.action_type.strip().upper(),
+        parameters=sanitized_params,
+        rollback_payload={},
+        status="PENDING"
+    )
+    db.add(action)
+
+    audit = RemediationAuditLogModel(
+        id=uuid.uuid4(),
+        organization_id=user_org_id,
+        plan_id=plan_id,
+        actor_id=current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id", None),
+        action="PLAN_PROPOSED",
+        details={"action_type": payload.action_type, "parameters": sanitized_params, "expires_at": expires_at.isoformat()}
+    )
+    db.add(audit)
+    db.commit()
+
+    return plan.to_dict()
+
+@router.post("/plans/{plan_id}/approve", dependencies=[Depends(require_permission("manage_automation"))])
+def approve_remediation_plan(
+    plan_id: str,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """Approve a proposed remediation plan (Admin/manage_automation permission required)"""
+    from datetime import datetime, timezone
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
+
+    try:
+        plan_uuid = uuid.UUID(plan_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid plan UUID: '{plan_id}'"
+        )
+
+    plan = db.query(RemediationPlanModel).filter(
+        RemediationPlanModel.id == plan_uuid,
+        RemediationPlanModel.organization_id == user_org_id
+    ).first()
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Remediation plan '{plan_id}' not found in your organization."
+        )
+
+    # Check already approved, rejected or executed
+    if plan.status != "PENDING_APPROVAL":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot approve plan with status '{plan.status}'. Only 'PENDING_APPROVAL' plans can be approved."
+        )
+
+    # Check Expiration (TTL = 2 hours)
+    now = datetime.now(timezone.utc)
+    if plan.expires_at and now > plan.expires_at:
+        plan.status = "EXPIRED"
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Plan has expired. Please re-scan and generate a new plan."
+        )
+
+    # Transition to APPROVED
+    plan.status = "APPROVED"
+
+    # Create Audit Log
+    raw_actor = current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id", None)
+    actor_uuid = None
+    if raw_actor:
+        try:
+            actor_uuid = uuid.UUID(str(raw_actor))
+            from app.models.user import User
+            if not db.query(User).filter_by(id=actor_uuid).first():
+                actor_uuid = None
+        except Exception:
+            actor_uuid = None
+
+    audit = RemediationAuditLogModel(
+        id=uuid.uuid4(),
+        organization_id=user_org_id,
+        plan_id=plan.id,
+        actor_id=actor_uuid,
+        action="PLAN_APPROVED",
+        details={"approved_at": now.isoformat(), "raw_actor": str(raw_actor) if raw_actor else "unknown"}
+    )
+    db.add(audit)
+    db.commit()
+
+    return plan.to_dict()
+
+@router.post("/plans/{plan_id}/reject", dependencies=[Depends(require_permission("manage_automation"))])
+def reject_remediation_plan(
+    plan_id: str,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """Reject a proposed remediation plan (Admin/manage_automation permission required)"""
+    from datetime import datetime, timezone
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
+
+    try:
+        plan_uuid = uuid.UUID(plan_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid plan UUID: '{plan_id}'"
+        )
+
+    plan = db.query(RemediationPlanModel).filter(
+        RemediationPlanModel.id == plan_uuid,
+        RemediationPlanModel.organization_id == user_org_id
+    ).first()
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Remediation plan '{plan_id}' not found in your organization."
+        )
+
+    if plan.status not in ["PENDING_APPROVAL", "APPROVED"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot reject plan with status '{plan.status}'."
+        )
+
+    plan.status = "REJECTED"
+    now = datetime.now(timezone.utc)
+
+    raw_actor = current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id", None)
+    actor_uuid = None
+    if raw_actor:
+        try:
+            actor_uuid = uuid.UUID(str(raw_actor))
+            from app.models.user import User
+            if not db.query(User).filter_by(id=actor_uuid).first():
+                actor_uuid = None
+        except Exception:
+            actor_uuid = None
+
+    audit = RemediationAuditLogModel(
+        id=uuid.uuid4(),
+        organization_id=user_org_id,
+        plan_id=plan.id,
+        actor_id=actor_uuid,
+        action="PLAN_REJECTED",
+        details={"rejected_at": now.isoformat(), "raw_actor": str(raw_actor) if raw_actor else "unknown"}
+    )
+    db.add(audit)
+    db.commit()
+
+    return plan.to_dict()
+
+@router.post("/plans/{plan_id}/execute", dependencies=[Depends(require_permission("manage_automation"))])
+def execute_remediation_plan(
+    plan_id: str,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """Execute an approved remediation plan against target AWS resources (Admin/manage_automation required)"""
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
+
+    try:
+        plan_uuid = uuid.UUID(plan_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid plan UUID: '{plan_id}'"
+        )
+
+    plan = db.query(RemediationPlanModel).filter(
+        RemediationPlanModel.id == plan_uuid,
+        RemediationPlanModel.organization_id == user_org_id
+    ).first()
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Remediation plan '{plan_id}' not found in your organization."
+        )
+
+    if plan.status != "APPROVED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot execute remediation plan with status '{plan.status}'. Plan must be 'APPROVED' before execution."
+        )
+
+    from app.cloud.aws.remediation_executor import RemediationExecutor
+    executor = RemediationExecutor(db=db, plan_id=str(plan_uuid))
+    try:
+        result = executor.execute_plan(actor_id=current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id", None))
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Execution error: {str(e)}")
+
+@router.post("/plans/{plan_id}/rollback", dependencies=[Depends(require_permission("manage_automation"))])
+def rollback_remediation_plan(
+    plan_id: str,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """Restore target AWS resource to pre-remediation configuration using snapshot payload (Admin required)"""
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
+
+    try:
+        plan_uuid = uuid.UUID(plan_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid plan UUID: '{plan_id}'"
+        )
+
+    plan = db.query(RemediationPlanModel).filter(
+        RemediationPlanModel.id == plan_uuid,
+        RemediationPlanModel.organization_id == user_org_id
+    ).first()
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Remediation plan '{plan_id}' not found in your organization."
+        )
+
+    allowed_rollback_statuses = ["VERIFIED", "FAILED", "COMPLETED", "EXECUTED", "FAILED_VERIFICATION"]
+    if plan.status not in allowed_rollback_statuses:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot rollback plan with status '{plan.status}'. Allowed statuses: {allowed_rollback_statuses}."
+        )
+
+    from app.cloud.aws.remediation_executor import RemediationExecutor
+    executor = RemediationExecutor(db=db, plan_id=str(plan_uuid))
+    try:
+        result = executor.rollback_plan(actor_id=current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id", None))
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Rollback error: {str(e)}")
+
+@router.post("/remediations/{remediation_id}/plan", dependencies=[Depends(require_permission("use_ai_assistant"))])
 async def generate_remediation_plan(
     remediation_id: str,
     current_user: Any = Depends(get_current_user)

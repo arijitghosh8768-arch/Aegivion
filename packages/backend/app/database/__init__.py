@@ -24,32 +24,8 @@ if not MONGODB_URI:
     else:
         MONGODB_URI = "mongodb://localhost:27017"
 
-import certifi
-client = MongoClient(MONGODB_URI, tlsAllowInvalidCertificates=True, tlsCAFile=certifi.where())
 # Extract db name from URI or default to aegivion
 db_name = "aegivion"
-
-SUPABASE_MAPPING = {
-    "CloudAsset": "cloud_assets",
-    "Finding": "findings",
-    "Incident": "incidents",
-    "CloudAccount": "cloud_accounts",
-    "CloudAccountV2": "cloud_accounts_v2",
-    "SecurityGroupAsset": "security_groups",
-    "IAMUserAsset": "iam_users",
-    "S3BucketAsset": "s3_buckets",
-    "EC2InstanceAsset": "ec2_instances",
-    "ScanJob": "scan_jobs",
-    "Relationship": "asset_relationships",
-    "AssetRelationship": "asset_relationships",
-    "Vulnerability": "vulnerabilities",
-    "Runbook": "runbooks",
-    "AgentHeartbeat": "agentheartbeats",
-    "ResponseExecution": "responseexecutions",
-    "PendingApproval": "pendingapprovals",
-    "SyncQuality": "syncqualitys",
-    "EvaluationResult": "evaluationresults"
-}
 try:
     path = MONGODB_URI.split("/")[-1].split("?")[0]
     if path and "." not in path and "@" not in path:
@@ -57,7 +33,16 @@ try:
 except Exception:
     pass
 
-db = client[db_name]
+import certifi
+try:
+    client = MongoClient(MONGODB_URI, tlsAllowInvalidCertificates=True, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=2000, connectTimeoutMS=2000)
+    db = client[db_name]
+except Exception:
+    class DummyClient:
+        def __getitem__(self, key):
+            return {}
+    client = DummyClient()
+    db = client[db_name]
 
 # Provide a mock Base for backward compatibility
 class Base:
@@ -205,88 +190,8 @@ class MockQuery:
         collection.delete_many(mongo_filters)
         return self
 
-class MongoSQLSession:
-    def __init__(self, db_instance):
-        self._db = db_instance
-        self._new_objects = []
-        self._queried_objects = []
+# Re-export real SQLAlchemy SessionLocal, get_db, and engine from .session
+from app.database.session import get_db, SessionLocal, engine
 
-    def query(self, model_class):
-        return MockQuery(self._db, model_class, session=self)
-
-    def add(self, obj):
-        self._new_objects.append(obj)
-
-    def commit(self):
-        for obj in self._new_objects:
-            name = obj.__class__.__name__
-            supabase_mapping = SUPABASE_MAPPING
-            data = obj.dict() if hasattr(obj, "dict") else obj.__dict__
-            if supabase and name in supabase_mapping:
-                try:
-                    supabase.table(supabase_mapping[name]).upsert(data).execute()
-                except Exception:
-                    pass
-            else:
-                collection = get_collection_for_model(self._db, obj)
-                collection.replace_one({"id": data["id"]}, data, upsert=True)
-                
-        for obj in self._queried_objects:
-            name = obj.__class__.__name__
-            supabase_mapping = SUPABASE_MAPPING
-            data = obj.dict() if hasattr(obj, "dict") else obj.__dict__
-            if supabase and name in supabase_mapping:
-                try:
-                    supabase.table(supabase_mapping[name]).upsert(data).execute()
-                except Exception:
-                    pass
-            else:
-                collection = get_collection_for_model(self._db, obj)
-                collection.replace_one({"id": data["id"]}, data, upsert=True)
-                
-        self._new_objects = []
-        self._queried_objects = []
-
-    def refresh(self, obj):
-        pass
-
-    def rollback(self):
-        self._new_objects = []
-        self._queried_objects = []
-
-    def delete(self, obj=None):
-        if obj:
-            collection = get_collection_for_model(self._db, obj)
-            collection.delete_one({"id": str(obj.id)})
-
-    def execute(self, statement, *args, **kwargs):
-        # Only ping if it is not a mongomock client
-        if "mongomock" not in str(type(self._db.client)):
-            self._db.client.admin.command('ping')
-        class MockResult:
-            def fetchall(self):
-                return []
-        return MockResult()
-
-    def add_all(self, objects):
-        for obj in objects:
-            self.add(obj)
-
-    def flush(self):
-        self.commit()
-
-    def close(self):
-        pass
-
-def get_db():
-    yield MongoSQLSession(db)
-
-def SessionLocal():
-    return MongoSQLSession(db)
-
-class MockEngine:
-    url = MONGODB_URI
-
-engine = MockEngine()
 
 

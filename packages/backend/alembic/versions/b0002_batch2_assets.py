@@ -44,6 +44,7 @@ def upgrade() -> None:
         sa.Column('organization_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('organizations.id', ondelete='CASCADE'), nullable=False),
         sa.Column('provider', sa.String(length=50), server_default='aws', nullable=False),
         sa.Column('account_id', sa.String(length=100), nullable=False),
+        sa.Column('name', sa.String(length=200), nullable=True),
         sa.Column('account_name', sa.String(length=200), nullable=True),
         sa.Column('default_region', sa.String(length=50), server_default='ap-south-1', nullable=True),
         sa.Column('connection_status', sa.String(length=50), server_default='disconnected', nullable=True),
@@ -60,6 +61,23 @@ def upgrade() -> None:
     op.create_index('ix_cloud_accounts_v2_org', 'cloud_accounts_v2', ['organization_id'], if_not_exists=True)
 
     # 3. Cloud Assets
+    op.execute("""
+        DO $$ BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'cloud_assets') THEN
+                ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS environment VARCHAR(50) DEFAULT 'DEVELOPMENT';
+                ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS owner VARCHAR(100) DEFAULT 'UNKNOWN';
+                ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS department VARCHAR(100) DEFAULT 'UNKNOWN';
+                ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS application VARCHAR(100) DEFAULT 'UNKNOWN';
+                ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS data_classification VARCHAR(50) DEFAULT 'UNKNOWN';
+                ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS business_criticality VARCHAR(50) DEFAULT 'UNKNOWN';
+                ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS internet_exposed BOOLEAN DEFAULT false;
+                ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS importance_score FLOAT DEFAULT 0.0;
+                -- Allow account_id to reference cloud_accounts_v2 or nullable
+                ALTER TABLE cloud_assets ALTER COLUMN account_id DROP NOT NULL;
+                ALTER TABLE cloud_assets ALTER COLUMN provider TYPE VARCHAR(50) USING provider::text;
+            END IF;
+        END $$;
+    """)
     op.create_table(
         'cloud_assets',
         sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),

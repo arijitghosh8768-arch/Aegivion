@@ -71,10 +71,26 @@ class APIResponse(BaseModel):
     timestamp: str
     request_id: str
 
+# Custom Rate Limit Handler
+def aegivion_rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    # Parse retry-after from exception if present, default 60s
+    retry_after = getattr(exc, "retry_after", 60)
+    response = JSONResponse(
+        status_code=429,
+        content={
+            "success": False,
+            "error": "Too Many Requests",
+            "detail": f"Rate limit exceeded: {exc.detail}",
+            "retry_after": retry_after
+        },
+        headers={"Retry-After": str(retry_after)}
+    )
+    return response
+
 # Register Exception Handlers
 app.add_exception_handler(AegivionException, aegivion_exception_handler)
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, aegivion_rate_limit_handler)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -90,7 +106,9 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Import and register Security Headers Middleware first (will execute after CORSMiddleware on responses)
 from .middleware.security import SecurityHeadersMiddleware
+from .middleware.security_audit import SecurityAuditMiddleware
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(SecurityAuditMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 # CORS middleware config (registered last, so it executes first on requests and last on responses)

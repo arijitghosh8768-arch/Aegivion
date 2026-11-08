@@ -13,7 +13,14 @@ from app.models.auth_session import AuthSession
 from app.models.invitation import Invitation
 from app.repositories.auth_repository import AuthRepository
 
-PG_URL = "postgresql+psycopg2://aegivion:aegivion123@localhost:5432/aegivion"
+import os
+from dotenv import load_dotenv, dotenv_values
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+test_env = dotenv_values(os.path.join(os.path.dirname(__file__), "..", "..", ".env.test"))
+
+PG_URL = os.getenv("TEST_DATABASE_URL") or test_env.get("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
+if PG_URL and PG_URL.startswith("postgresql://"):
+    PG_URL = PG_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 try:
     import psycopg2

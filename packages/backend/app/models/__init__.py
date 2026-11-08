@@ -24,7 +24,8 @@ from app.models.org_settings import OrgSettings
 from app.models.invitation import Invitation
 
 # Import security domain models
-from security.models.finding import Finding, FindingStatus, FindingSeverity, FindingSource
+from app.models.finding import Finding, FindingStatus, FindingSeverity, FindingSource
+from app.models.incident import Incident, IncidentStatus
 
 # Import AI domain models
 from ai.models.knowledge import KnowledgeBase, Conversation, KnowledgeCategory

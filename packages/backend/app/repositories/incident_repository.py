@@ -6,8 +6,7 @@ class IncidentRepository:
         self.db = db
 
     def get_by_organization(self, organization_id: str) -> List[Incident]:
-        all_incidents = self.db.query(Incident).all()
-        return [i for i in all_incidents if str(i.organization_id) == str(organization_id)]
+        return self.db.query(Incident).filter(Incident.organization_id == organization_id).all()
 
     def get_by_id(self, incident_id: str) -> Optional[Incident]:
         inc = self.db.query(Incident).filter(Incident.id == incident_id).first()

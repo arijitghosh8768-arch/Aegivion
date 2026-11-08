@@ -10,7 +10,63 @@ import pytest
 from fastapi.testclient import TestClient
 import mongomock
 from app.main import app
-from app.database import get_db, MongoSQLSession
+from app.database import get_db
+from app.database import get_collection_for_model, MockQuery
+
+class MockSessionForTests:
+    """Isolated test session mock for unit tests that override get_db."""
+    def __init__(self, db_instance):
+        self._db = db_instance
+        self._new_objects = []
+        self._queried_objects = []
+
+    def query(self, model_class):
+        return MockQuery(self._db, model_class, session=self)
+
+    def add(self, obj):
+        self._new_objects.append(obj)
+
+    def commit(self):
+        for obj in self._new_objects:
+            data = obj.dict() if hasattr(obj, "dict") else obj.__dict__
+            collection = get_collection_for_model(self._db, obj)
+            collection.replace_one({"id": data.get("id")}, data, upsert=True)
+            
+        for obj in self._queried_objects:
+            data = obj.dict() if hasattr(obj, "dict") else obj.__dict__
+            collection = get_collection_for_model(self._db, obj)
+            collection.replace_one({"id": data.get("id")}, data, upsert=True)
+            
+        self._new_objects = []
+        self._queried_objects = []
+
+    def refresh(self, obj):
+        pass
+
+    def rollback(self):
+        self._new_objects = []
+        self._queried_objects = []
+
+    def delete(self, obj=None):
+        if obj:
+            collection = get_collection_for_model(self._db, obj)
+            collection.delete_one({"id": str(getattr(obj, "id", ""))})
+
+    def execute(self, statement, *args, **kwargs):
+        class MockResult:
+            def fetchall(self):
+                return []
+        return MockResult()
+
+    def add_all(self, objects):
+        for obj in objects:
+            self.add(obj)
+
+    def flush(self):
+        self.commit()
+
+    def close(self):
+        pass
 
 @pytest.fixture(scope="session")
 def test_db():
@@ -23,7 +79,7 @@ def test_session(test_db):
     for col in test_db.list_collection_names():
         test_db[col].delete_many({})
     
-    session = MongoSQLSession(test_db)
+    session = MockSessionForTests(test_db)
     yield session
     session.rollback()
 

@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from datetime import datetime
 import uuid
 from app.repositories import IncidentRepository
+from app.api.deps import require_permission
 
 router = APIRouter()
 
@@ -66,7 +67,7 @@ def get_incident_detail(incident_id: str, db: Session = Depends(get_db), current
 
     return inc.dict()
 
-@router.patch("/{incident_id}/status")
+@router.patch("/{incident_id}/status", dependencies=[Depends(require_permission("manage_incidents"))])
 def update_incident_status(
     incident_id: str,
     request: StatusUpdate,
@@ -117,7 +118,7 @@ def update_incident_status(
     return {"success": True, "status": inc.status.value}
 
 
-@router.post("/{incident_id}/assign")
+@router.post("/{incident_id}/assign", dependencies=[Depends(require_permission("manage_incidents"))])
 def assign_incident(
     incident_id: str,
     request: AssignUpdate,

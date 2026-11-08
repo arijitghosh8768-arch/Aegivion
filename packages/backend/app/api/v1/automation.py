@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException, Body
+from fastapi import APIRouter, Depends, Query, HTTPException, Body, Request
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
@@ -6,6 +6,7 @@ from app.database import get_db
 from app.core.security import get_current_user
 from app.core.tenant import get_current_organization
 from app.api.deps import require_permission
+from app.core.rate_limit import limiter
 from app.database.base import BaseModel as OrmBaseModel
 from app.models.runbook import Runbook
 from app.models.automation import AgentHeartbeat, ResponseExecution, PendingApproval
@@ -129,8 +130,14 @@ def get_approvals(db: Session = Depends(get_db), current_user: Any = Depends(get
 from app.services.automation.optimizer import optimizer_engine, CandidateAction
 from app.services.automation.safety import safety_policy_engine
 
-@router.post('/rules/{rule_id}/simulate')
-def simulate_runbook(rule_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
+@router.post('/rules/{rule_id}/simulate', dependencies=[Depends(require_permission("manage_automation"))])
+@limiter.limit("10/minute")
+def simulate_runbook(
+    request: Request,
+    rule_id: str,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
     user_org_id = get_current_organization(current_user, db)
 
     candidates = [
@@ -175,7 +182,7 @@ def simulate_runbook(rule_id: str, db: Session = Depends(get_db), current_user: 
         'ai_explanation': 'The identity showed abnormal API activity. Restricting the affected session breaks the attack path immediately while preserving unrelated production access.'
     }
 
-@router.post('/approvals/{approval_id}/approve')
+@router.post('/approvals/{approval_id}/approve', dependencies=[Depends(require_permission("manage_automation"))])
 def approve_action(approval_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
     # Since pendingapprovals isn't a real SQL table yet, we just return the success structure expected by the frontend
@@ -184,7 +191,7 @@ def approve_action(approval_id: str, db: Session = Depends(get_db), current_user
     # We simulate agent execution payload
     return {'status': 'APPROVED', 'message': 'Action execution triggered and transitioning to VERIFYING state.'}
 
-@router.post('/approvals/{approval_id}/reject')
+@router.post('/approvals/{approval_id}/reject', dependencies=[Depends(require_permission("manage_automation"))])
 def reject_action(approval_id: str, db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
     return {'status': 'REJECTED', 'message': 'Response candidate rejected.'}

@@ -16,15 +16,24 @@ class AWSDiscoveryService:
     assets into the SecurityDigitalTwin via TwinPersistenceRepository.
     """
     
-    def __init__(self, persistence_repo: TwinPersistenceRepository, organization_id: str, account_id: str):
+    def __init__(
+        self,
+        persistence_repo: TwinPersistenceRepository,
+        organization_id: str,
+        account_id: str,
+        role_arn: str = None,
+        external_id: str = None
+    ):
         self.persistence_repo = persistence_repo
         self.organization_id = organization_id
         self.account_id = account_id
+        self.role_arn = role_arn
+        self.external_id = external_id
 
     def discover_all(self):
         """Run all discovery modules and store in the Digital Twin."""
         logger.info(f"Starting AWS Discovery for ORG {self.organization_id}, ACC {self.account_id}")
-        session = get_aws_session()
+        session = get_aws_session(role_arn=self.role_arn, external_id=self.external_id)
         
         if not session:
             logger.error("Failed to acquire AWS session for discovery")

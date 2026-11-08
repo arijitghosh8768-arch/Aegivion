@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 from app.database import get_db
 from app.core.security import get_current_user
 from app.core.tenant import get_current_organization
+from app.core.rate_limit import limiter
 from app.repositories import (
     AssetRepository,
     FindingRepository,
@@ -16,11 +17,14 @@ from app.models.compliance import ComplianceControlResult
 from app.models.incident import Incident
 from datetime import datetime
 import uuid
+from app.api.deps import require_permission
 
 router = APIRouter()
 
-@router.post("/generate")
+@router.post("/generate", dependencies=[Depends(require_permission("generate_reports"))])
+@limiter.limit("5/minute")
 async def generate_security_report(
+    request: Request,
     report_type: ReportType,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
@@ -138,3 +142,76 @@ def get_reports_library(
         reports = db.query(GeneratedReport).filter(GeneratedReport.organization_id == user_org_id).all()
 
     return {"reports": [r.dict() for r in reports]}
+
+@router.get("/export")
+def export_findings_report(
+    format: str = Query("csv", regex="^(csv|json)$"),
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
+):
+    """Export findings report as live CSV or JSON stream for the current organization"""
+    import io
+    import csv
+    from fastapi.responses import StreamingResponse
+    from app.models.finding import Finding as DBFinding
+
+    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
+    if not user_org_id:
+        user_org_id = get_current_organization(current_user, db)
+
+    findings = db.query(DBFinding).filter(DBFinding.organization_id == user_org_id).all()
+
+    if format == "json":
+        import json
+        data = [
+            {
+                "id": str(f.id),
+                "rule_id": f.rule_id,
+                "rule_name": f.rule_name,
+                "resource_id": f.resource_id,
+                "resource_type": f.resource_type,
+                "severity": f.severity,
+                "status": f.status,
+                "cloud_provider": f.cloud_provider,
+                "title": f.title,
+                "description": f.description,
+                "created_at": f.created_at.isoformat() if f.created_at else None
+            }
+            for f in findings
+        ]
+        stream = io.StringIO(json.dumps(data, indent=2))
+        return StreamingResponse(
+            iter([stream.getvalue()]),
+            media_type="application/json",
+            headers={"Content-Disposition": "attachment; filename=aegivion_findings_report.json"}
+        )
+
+    # Default: CSV format
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "id", "rule_id", "rule_name", "resource_id", "resource_type",
+        "severity", "status", "cloud_provider", "title", "created_at"
+    ])
+
+    for f in findings:
+        writer.writerow([
+            str(f.id),
+            f.rule_id,
+            f.rule_name,
+            f.resource_id,
+            f.resource_type,
+            f.severity,
+            f.status,
+            f.cloud_provider,
+            f.title,
+            f.created_at.isoformat() if f.created_at else ""
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=aegivion_findings_report.csv"}
+    )
+

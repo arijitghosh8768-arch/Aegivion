@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, status
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List
 import boto3
@@ -9,6 +9,7 @@ from app.core.tenant import get_current_organization
 from app.repositories import CloudAccountRepository
 from app.database.supabase_client import supabase
 from app.cloud.aws.sync import AWSCloudSync
+from app.api.deps import require_permission
 
 router = APIRouter()
 
@@ -35,7 +36,7 @@ def list_cloud_accounts(
     except Exception as e:
         return {"accounts": [], "error": str(e), "message": "Supabase table may not exist yet"}
 
-@router.post("")
+@router.post("", dependencies=[Depends(require_permission("manage_assets"))])
 def add_cloud_account(
     account_data: Dict[str, Any] = Body(...),
     current_user: Dict[str, Any] = Depends(get_current_user),
@@ -44,24 +45,47 @@ def add_cloud_account(
     """Adds a new real cloud account to Supabase and immediately triggers a sync."""
     user_org_id = get_current_organization(current_user, db)
 
+    # Enforce Subscription Tier Limits on Cloud Accounts
+    from app.models.organization import Organization
+    from app.models.cloud import CloudAccount
+    from app.api.v1.billing import PLAN_LIMITS
+
+    org = db.query(Organization).filter(Organization.id == user_org_id).first()
+    plan_key = (org.subscription_plan or "free").lower() if org else "free"
+    max_allowed = PLAN_LIMITS.get(plan_key, PLAN_LIMITS["free"])["max_cloud_accounts"]
+
+    # Count existing cloud accounts for tenant in PostgreSQL
+    current_count = db.query(CloudAccount).filter(CloudAccount.organization_id == user_org_id).count()
+    if current_count >= max_allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Subscription limit reached ({current_count}/{max_allowed} cloud accounts connected). Please upgrade to Pro or Enterprise to add more accounts."
+        )
+
     provider = account_data.get("provider")
     name = account_data.get("name")
     access_key = account_data.get("aws_access_key")
     secret_key = account_data.get("aws_secret_key")
+    role_arn = account_data.get("role_arn")
+    external_id = account_data.get("external_id")
 
     if not provider or not name:
         raise HTTPException(status_code=400, detail="Provider and name required")
 
-    if provider == "aws" and (not access_key or not secret_key):
-        raise HTTPException(status_code=400, detail="AWS credentials required")
+    if provider == "aws":
+        if not (role_arn or (access_key and secret_key)):
+            raise HTTPException(status_code=400, detail="AWS credentials required: either Role ARN (with optional External ID) or Access/Secret keys.")
 
     try:
         if provider == "aws":
             try:
-                session = boto3.Session(
+                from app.cloud.aws.client import get_aws_session
+                session = get_aws_session(
                     aws_access_key_id=access_key,
                     aws_secret_access_key=secret_key,
-                    region_name="us-east-1"
+                    region_name="us-east-1",
+                    role_arn=role_arn,
+                    external_id=external_id
                 )
                 sts = session.client("sts")
                 caller_identity = sts.get_caller_identity()
@@ -77,12 +101,12 @@ def add_cloud_account(
 
                 provider_account_id = verified_account_id
 
-            except ClientError:
-                raise HTTPException(status_code=401, detail="Invalid AWS credentials or access denied.")
+            except ClientError as e:
+                raise HTTPException(status_code=401, detail=f"Invalid AWS credentials or access denied: {str(e)}")
             except HTTPException:
                 raise
-            except Exception:
-                raise HTTPException(status_code=500, detail="Failed to verify AWS identity.")
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to verify AWS identity: {str(e)}")
         elif provider == "azure":
             tenant_id = account_data.get("tenant_id")
             client_id = account_data.get("client_id")
@@ -203,13 +227,19 @@ def add_cloud_account(
             provider_account_id = account_data.get("provider_account_id", f"acc_{name}")
 
         # Create the account record
-        insert_res = supabase.table("cloud_accounts").insert({
+        insert_payload = {
             "organization_id": user_org_id,
             "provider": provider,
             "provider_account_id": provider_account_id,
             "name": name,
             "status": "SYNCING"
-        }).execute()
+        }
+        if role_arn:
+            insert_payload["role_arn"] = role_arn
+        if external_id:
+            insert_payload["external_id"] = external_id
+
+        insert_res = supabase.table("cloud_accounts").insert(insert_payload).execute()
 
         new_account = insert_res.data[0]
 
@@ -219,7 +249,9 @@ def add_cloud_account(
                 organization_id=user_org_id,
                 cloud_account_id=new_account["id"],
                 aws_access_key=access_key,
-                aws_secret_key=secret_key
+                aws_secret_key=secret_key,
+                role_arn=role_arn,
+                external_id=external_id
             )
             success = sync_worker.run_sync()
             new_account["status"] = "HEALTHY" if success else "FAILED"

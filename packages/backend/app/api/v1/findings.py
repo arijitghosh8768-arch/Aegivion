@@ -226,7 +226,7 @@ def update_finding_status(finding_id: str, request: StatusUpdate, db: Session = 
     db.commit()
     return {"success": True, "status": request.status}
 
-@router.post("/{finding_id}/assign")
+@router.post("/{finding_id}/assign", dependencies=[Depends(require_permission("manage_findings"))])
 def assign_finding(finding_id: str, request: AssignUpdate, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
     finding_repo = FindingRepository(db)
@@ -283,7 +283,7 @@ def add_finding_note(finding_id: str, request: NoteCreate, db: Session = Depends
     return {"success": True, "notes": notes}
 
 
-@router.post("/{finding_id}/exceptions")
+@router.post("/{finding_id}/exceptions", dependencies=[Depends(require_permission("manage_findings"))])
 def create_finding_exception(finding_id: str, request: ExceptionCreate, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
     finding_repo = FindingRepository(db)
@@ -315,7 +315,7 @@ def create_finding_exception(finding_id: str, request: ExceptionCreate, db: Sess
     db.commit()
     return {"success": True, "status": status, "exception_id": ext_id}
 
-@router.post("/{finding_id}/exceptions/{ext_id}/approve")
+@router.post("/{finding_id}/exceptions/{ext_id}/approve", dependencies=[Depends(require_permission("resolve_findings"))])
 def approve_finding_exception(finding_id: str, ext_id: str, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
     finding_repo = FindingRepository(db)
@@ -397,7 +397,7 @@ def get_asset_context(asset_id: str, db: Session = Depends(get_db), current_user
         "business_criticality": getattr(asset, "business_criticality", "UNKNOWN")
     }
 
-@router.patch("/assets/{asset_id}/context")
+@router.patch("/assets/{asset_id}/context", dependencies=[Depends(require_permission("manage_assets"))])
 def update_asset_context(
     asset_id: str,
     environment: Optional[str] = None,

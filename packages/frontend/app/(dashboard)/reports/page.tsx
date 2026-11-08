@@ -59,15 +59,36 @@ export default function ReportsPage() {
     }, 1600);
   };
 
-  const downloadCsv = () => {
-    const csv = "";
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "aegivion-posture-2026-08.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+  const [exporting, setExporting] = useState(false);
+
+  const downloadCsv = async () => {
+    try {
+      setExporting(true);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com";
+      const token = typeof window !== "undefined" ? localStorage.getItem("aegivion_token") : null;
+      
+      const res = await fetch(`${baseUrl}/api/v1/reports/export?format=csv`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to export findings CSV.");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `aegivion-findings-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert("Export failed: " + err.message);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const printReport = () => window.print();
@@ -78,8 +99,8 @@ export default function ReportsPage() {
         title="Reports"
         description="Audit-grade reports generated from live telemetry — PDF, CSV, or print-ready."
       >
-        <Button variant="outline" onClick={downloadCsv}>
-          <Download className="h-4 w-4" /> Export CSV
+        <Button variant="outline" onClick={downloadCsv} disabled={exporting}>
+          <Download className={cn("h-4 w-4", exporting && "animate-spin")} /> {exporting ? "Exporting CSV…" : "Export Findings (CSV)"}
         </Button>
         <Button variant="gradient" onClick={printReport}>
           <Printer className="h-4 w-4" /> Print report

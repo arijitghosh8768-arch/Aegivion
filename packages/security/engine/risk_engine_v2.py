@@ -87,7 +87,13 @@ class RiskEngineV2:
         # 3. Asset Criticality
         criticality_score = self._calculate_criticality(context)
         if criticality_score > 0:
-            crit_level = context.get('criticality', {}).get('level') or context.get('criticality', 'unknown')
+            crit_raw = context.get('criticality')
+            if isinstance(crit_raw, dict):
+                crit_level = crit_raw.get('level') or 'unknown'
+            elif isinstance(crit_raw, str):
+                crit_level = crit_raw
+            else:
+                crit_level = 'unknown'
             crit_source = context.get('criticality_source') or 'unknown'
             factors.append(RiskFactor(
                 type="criticality",
@@ -114,12 +120,17 @@ class RiskEngineV2:
         # 5. Correlation Modifier
         correlation_score = self._calculate_correlation(correlations)
         if correlation_score > 0:
+            c_ids = [
+                c.get('correlation_id', c.get('id', '')) if isinstance(c, dict)
+                else getattr(c, 'correlation_id', getattr(c, 'id', ''))
+                for c in correlations
+            ]
             factors.append(RiskFactor(
                 type="correlation",
                 value=len(correlations),
                 contribution=correlation_score,
                 description=f"Related correlations: {len(correlations)}",
-                evidence=[f"correlation_ids: {[c.get('correlation_id', c.get('id', '')) for c in correlations]}"]
+                evidence=[f"correlation_ids: {c_ids}"]
             ))
             score += correlation_score
         

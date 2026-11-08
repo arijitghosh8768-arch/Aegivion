@@ -1,11 +1,25 @@
 import enum
 import hashlib
 import json
-from datetime import datetime
-from app.database.base import LegacyBaseModel as BaseModel
+import uuid
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
 
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Boolean
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from app.database.base import BaseModel, LegacyBaseModel
+
 class AssetSnapshot(BaseModel):
+    __tablename__ = "asset_snapshots"
+
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
+    cloud_account_id = Column(UUID(as_uuid=True), ForeignKey("cloud_accounts_v2.id", ondelete="SET NULL"), nullable=True)
+    asset_id = Column(String(300), nullable=False)
+    version_number = Column(Integer, default=1, nullable=False)
+    configuration = Column(JSONB, default=dict)
+    configuration_hash = Column(String(64), nullable=False, index=True)
+    scan_id = Column(String(100), nullable=True)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
@@ -15,7 +29,6 @@ class AssetSnapshot(BaseModel):
         self.configuration = kwargs.get("configuration") or {}
         self.configuration_hash = kwargs.get("configuration_hash") or self.calculate_hash(self.configuration)
         self.scan_id = kwargs.get("scan_id")
-        self.created_at = kwargs.get("created_at") or datetime.utcnow()
 
     @staticmethod
     def calculate_hash(config: Dict[str, Any]) -> str:
@@ -27,8 +40,8 @@ class AssetSnapshot(BaseModel):
             return "hash-fallback"
 
     def dict(self) -> Dict[str, Any]:
-        res = super().dict()
-        res.update({
+        return {
+            "id": str(self.id) if self.id else None,
             "organization_id": str(self.organization_id) if self.organization_id else None,
             "cloud_account_id": str(self.cloud_account_id) if self.cloud_account_id else None,
             "asset_id": self.asset_id,
@@ -37,16 +50,33 @@ class AssetSnapshot(BaseModel):
             "configuration_hash": self.configuration_hash,
             "scan_id": self.scan_id,
             "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else self.created_at
-        })
-        return res
+        }
 
 class SecurityRiskSnapshot(BaseModel):
+    __tablename__ = "security_risk_snapshots"
+
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
+    cloud_account_id = Column(UUID(as_uuid=True), ForeignKey("cloud_accounts_v2.id", ondelete="SET NULL"), nullable=True)
+    scan_id = Column(String(100), nullable=True)
+    timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    asset_count = Column(Integer, default=0)
+    finding_count = Column(Integer, default=0)
+    critical_findings = Column(Integer, default=0)
+    high_findings = Column(Integer, default=0)
+    medium_findings = Column(Integer, default=0)
+    low_findings = Column(Integer, default=0)
+    open_incidents = Column(Integer, default=0)
+    critical_attack_paths = Column(Integer, default=0)
+    high_attack_paths = Column(Integer, default=0)
+    compliance_pass_rate = Column(Integer, default=0)
+    overall_risk = Column(Integer, default=0)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
         self.cloud_account_id = kwargs.get("cloud_account_id")
         self.scan_id = kwargs.get("scan_id")
-        self.timestamp = kwargs.get("timestamp") or datetime.utcnow()
+        self.timestamp = kwargs.get("timestamp") or datetime.now(timezone.utc)
         self.asset_count = kwargs.get("asset_count") or 0
         self.finding_count = kwargs.get("finding_count") or 0
         self.critical_findings = kwargs.get("critical_findings") or 0
@@ -58,31 +88,8 @@ class SecurityRiskSnapshot(BaseModel):
         self.high_attack_paths = kwargs.get("high_attack_paths") or 0
         self.compliance_pass_rate = kwargs.get("compliance_pass_rate") or 0
         self.overall_risk = kwargs.get("overall_risk") or 0
-        self.data_source = kwargs.get("data_source") or "REAL"
 
-    def dict(self) -> Dict[str, Any]:
-        res = super().dict()
-        res.update({
-            "organization_id": str(self.organization_id) if self.organization_id else None,
-            "cloud_account_id": str(self.cloud_account_id) if self.cloud_account_id else None,
-            "scan_id": self.scan_id,
-            "timestamp": self.timestamp.isoformat() if isinstance(self.timestamp, datetime) else self.timestamp,
-            "asset_count": self.asset_count,
-            "finding_count": self.finding_count,
-            "critical_findings": self.critical_findings,
-            "high_findings": self.high_findings,
-            "medium_findings": self.medium_findings,
-            "low_findings": self.low_findings,
-            "open_incidents": self.open_incidents,
-            "critical_attack_paths": self.critical_attack_paths,
-            "high_attack_paths": self.high_attack_paths,
-            "compliance_pass_rate": self.compliance_pass_rate,
-            "overall_risk": self.overall_risk,
-            "data_source": self.data_source
-        })
-        return res
-
-class FindingSuppression(BaseModel):
+class FindingSuppression(LegacyBaseModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
@@ -94,111 +101,21 @@ class FindingSuppression(BaseModel):
         self.expires_at = kwargs.get("expires_at") or (datetime.utcnow() + timedelta(days=30))
         self.status = kwargs.get("status") or "ACTIVE"
 
-    def dict(self) -> Dict[str, Any]:
-        from datetime import timedelta
-        res = super().dict()
-        res.update({
-            "organization_id": str(self.organization_id) if self.organization_id else None,
-            "finding_id": str(self.finding_id),
-            "reason": self.reason,
-            "created_by": self.created_by,
-            "approved_by": self.approved_by,
-            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else self.created_at,
-            "expires_at": self.expires_at.isoformat() if isinstance(self.expires_at, datetime) else self.expires_at,
-            "status": self.status
-        })
-        return res
-
-class SecurityChange(BaseModel):
+class SecurityChange(LegacyBaseModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
-        self.asset_id = kwargs.get("asset_id")
-        self.change_type = kwargs.get("change_type") or "CHANGED"
-        self.field = kwargs.get("field")
-        self.old_value = kwargs.get("old_value")
-        self.new_value = kwargs.get("new_value")
-        self.security_relevance = kwargs.get("security_relevance") or "LOW"
-        self.security_category = kwargs.get("security_category") or "PUBLIC_EXPOSURE"
-        self.detected_at = kwargs.get("detected_at") or datetime.utcnow()
+        self.change_type = kwargs.get("change_type")
+        self.details = kwargs.get("details") or {}
 
-    def dict(self) -> Dict[str, Any]:
-        res = super().dict()
-        res.update({
-            "organization_id": str(self.organization_id) if self.organization_id else None,
-            "asset_id": self.asset_id,
-            "change_type": self.change_type,
-            "field": self.field,
-            "old_value": self.old_value,
-            "new_value": self.new_value,
-            "security_relevance": self.security_relevance,
-            "security_category": self.security_category,
-            "detected_at": self.detected_at.isoformat() if isinstance(self.detected_at, datetime) else self.detected_at
-        })
-        return res
-
-class SyncQuality(BaseModel):
+class SyncQuality(LegacyBaseModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
-        self.sync_id = kwargs.get("sync_id") or f"SYNC-{uuid.uuid4().hex[:6].upper()}"
-        self.status = kwargs.get("status") or "SUCCESS"
-        self.assets_discovered = kwargs.get("assets_discovered") or 0
-        self.assets_normalized = kwargs.get("assets_normalized") or 0
-        self.collection_errors = kwargs.get("collection_errors") or 0
-        self.unsupported_resources = kwargs.get("unsupported_resources") or 0
-        self.last_successful_sync = kwargs.get("last_successful_sync") or datetime.utcnow()
-        self.freshness = kwargs.get("freshness") or "FRESH"
+        self.score = kwargs.get("score") or 100
 
-    def dict(self) -> Dict[str, Any]:
-        res = super().dict()
-        res.update({
-            "organization_id": str(self.organization_id) if self.organization_id else None,
-            "sync_id": self.sync_id,
-            "status": self.status,
-            "assets_discovered": self.assets_discovered,
-            "assets_normalized": self.assets_normalized,
-            "collection_errors": self.collection_errors,
-            "unsupported_resources": self.unsupported_resources,
-            "last_successful_sync": self.last_successful_sync.isoformat() if isinstance(self.last_successful_sync, datetime) else self.last_successful_sync,
-            "freshness": self.freshness
-        })
-        return res
-
-class EvaluationResult(BaseModel):
+class EvaluationResult(LegacyBaseModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
-        self.evaluation_id = kwargs.get("evaluation_id") or f"EVAL-{uuid.uuid4().hex[:6].upper()}"
-        self.system = kwargs.get("system") or "Aegivion Contextual v2"
-        self.dataset_version = kwargs.get("dataset_version") or "v1.0"
-        self.true_positive = kwargs.get("true_positive") or 0
-        self.false_positive = kwargs.get("false_positive") or 0
-        self.false_negative = kwargs.get("false_negative") or 0
-        self.true_negative = kwargs.get("true_negative") or 0
-        self.precision = kwargs.get("precision") or 1.0
-        self.recall = kwargs.get("recall") or 1.0
-        self.false_positive_rate = kwargs.get("false_positive_rate") or 0.0
-        self.evaluated_at = kwargs.get("evaluated_at") or datetime.utcnow()
-
-    def dict(self) -> Dict[str, Any]:
-        res = super().dict()
-        res.update({
-            "organization_id": str(self.organization_id) if self.organization_id else None,
-            "evaluation_id": self.evaluation_id,
-            "system": self.system,
-            "dataset_version": self.dataset_version,
-            "true_positive": self.true_positive,
-            "false_positive": self.false_positive,
-            "false_negative": self.false_negative,
-            "true_negative": self.true_negative,
-            "precision": self.precision,
-            "recall": self.recall,
-            "false_positive_rate": self.false_positive_rate,
-            "evaluated_at": self.evaluated_at.isoformat() if isinstance(self.evaluated_at, datetime) else self.evaluated_at
-        })
-        return res
-
-
-
-
+        self.result = kwargs.get("result") or {}

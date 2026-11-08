@@ -1,7 +1,12 @@
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
+import json
+import logging
 from security.engine.risk_engine_v2 import RiskScore
+from ai.services.llm_provider import get_llm_provider
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class TopPriority:
@@ -36,6 +41,7 @@ class ExecutiveBrief:
     coverage_note: str
     confidence: float
     generated_at: str
+    citations: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -47,62 +53,69 @@ class ExecutiveBrief:
             'long_term_actions': self.long_term_actions,
             'coverage_note': self.coverage_note,
             'confidence': self.confidence,
-            'generated_at': self.generated_at
+            'generated_at': self.generated_at,
+            'citations': self.citations
         }
 
 class ExecutiveBriefService:
-    """Generate executive security briefs"""
+    """Generate executive security briefs using real or fallback LLM providers"""
     
     def __init__(self, llm_provider=None, risk_engine=None):
-        self.llm_provider = llm_provider
+        self.llm_provider = llm_provider or get_llm_provider()
         self.risk_engine = risk_engine
     
     async def generate_brief(
         self,
         findings: List[Dict],
-        risk_scores: Dict[str, RiskScore],
+        risk_scores: Dict[str, Any],
         correlations: List[Dict],
         scan_health: Dict,
-        audience: str = 'executive'
+        audience: str = 'executive',
+        compliance_summary: Optional[Dict[str, Any]] = None
     ) -> ExecutiveBrief:
-        """Generate executive security brief"""
+        """Generate executive security brief with LLM narrative synthesis"""
         
         # 1. Aggregate data
-        aggregated = self._aggregate_data(findings, risk_scores, correlations, scan_health)
+        aggregated = self._aggregate_data(findings, risk_scores, correlations, scan_health, compliance_summary)
         
-        # 2. Generate summary with AI
-        summary = await self._generate_summary(aggregated, audience)
-        
-        # 3. Build top priorities
+        # 2. Build deterministic top priorities & quick wins
         top_priorities = self._build_top_priorities(findings, risk_scores, correlations)
-        
-        # 4. Identify quick wins
         quick_wins = self._identify_quick_wins(findings, risk_scores)
         
-        # 5. Generate long-term actions
-        long_term = await self._generate_long_term_actions(aggregated)
+        # 3. Generate structured narrative with LLM
+        llm_synthesis = await self._synthesize_with_llm(aggregated, top_priorities, quick_wins, audience)
+        
+        # 4. Generate long-term actions
+        long_term = llm_synthesis.get("long_term_actions") or await self._generate_long_term_actions(aggregated)
+        
+        # 5. Build citations
+        citations = []
+        for p in top_priorities[:5]:
+            for fid in p.finding_ids:
+                citations.append({"source": "finding_id", "value": fid, "context": p.title})
         
         return ExecutiveBrief(
             posture=self._determine_posture(aggregated),
-            executive_summary=summary.get('executive', 'Security brief unavailable'),
-            technical_summary=summary.get('technical', ''),
+            executive_summary=llm_synthesis.get('summary', f"Security posture assessment completed. Found {aggregated['total_findings']} active issues."),
+            technical_summary=llm_synthesis.get('technical_summary', f"Assessment identified {aggregated['severity_counts']['critical']} critical and {aggregated['severity_counts']['high']} high issues."),
             top_priorities=top_priorities[:5],
             quick_wins=quick_wins[:3],
             long_term_actions=long_term[:5],
             coverage_note=scan_health.get('coverage_note', 'Full assessment completed.'),
-            confidence=0.90,
-            generated_at=datetime.utcnow().isoformat()
+            confidence=0.92,
+            generated_at=datetime.utcnow().isoformat(),
+            citations=citations
         )
     
     def _aggregate_data(
         self,
         findings: List[Dict],
-        risk_scores: Dict[str, RiskScore],
+        risk_scores: Dict[str, Any],
         correlations: List[Dict],
-        scan_health: Dict
+        scan_health: Dict,
+        compliance_summary: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Aggregate data"""
-        
         severity_counts = {
             'critical': 0,
             'high': 0,
@@ -112,14 +125,24 @@ class ExecutiveBriefService:
         }
         
         for finding in findings:
-            severity = finding.get('severity', 'info').lower()
+            severity = str(finding.get('severity', 'info')).lower()
             severity_counts[severity] = severity_counts.get(severity, 0) + 1
         
         total_findings = len(findings)
         overall_risk = 0
         
-        # Calculate average risk score
-        scores = [rs.score if hasattr(rs, 'score') else rs.get('score', 0) if isinstance(rs, dict) else int(rs) for rs in risk_scores.values()]
+        scores = []
+        for rs in risk_scores.values():
+            if hasattr(rs, 'score'):
+                scores.append(rs.score)
+            elif isinstance(rs, dict):
+                scores.append(rs.get('score', 0))
+            else:
+                try:
+                    scores.append(int(rs))
+                except (ValueError, TypeError):
+                    scores.append(0)
+                    
         if scores:
             overall_risk = sum(scores) // len(scores)
         
@@ -129,19 +152,55 @@ class ExecutiveBriefService:
             'overall_risk': overall_risk,
             'correlation_count': len(correlations),
             'scan_health': scan_health,
+            'compliance_summary': compliance_summary or {},
             'has_high_severity': severity_counts['critical'] > 0 or severity_counts['high'] > 0
         }
-    
-    async def _generate_summary(self, aggregated: Dict, audience: str) -> Dict:
-        """Generate AI summary"""
+
+    async def _synthesize_with_llm(
+        self,
+        aggregated: Dict,
+        top_priorities: List[TopPriority],
+        quick_wins: List[QuickWin],
+        audience: str
+    ) -> Dict[str, Any]:
+        """Calls LLM provider to synthesize a grounded executive brief narrative"""
         if not self.llm_provider:
             return {
-                'executive': f"Security assessment completed. Found {aggregated['total_findings']} active issues with an overall risk rating of {aggregated['overall_risk']}/100.",
-                'technical': f"Assessment metadata shows {aggregated['total_findings']} findings, including {aggregated['severity_counts']['critical']} critical and {aggregated['severity_counts']['high']} high issues."
+                'summary': f"Security assessment completed. Found {aggregated['total_findings']} active issues with an overall risk rating of {aggregated['overall_risk']}/100.",
+                'technical_summary': f"Assessment metadata shows {aggregated['total_findings']} findings, including {aggregated['severity_counts']['critical']} critical and {aggregated['severity_counts']['high']} high issues.",
+                'long_term_actions': []
             }
             
+        prompt = f"""
+You are the Chief Information Security Officer (CISO) and Lead Cloud Security Architect at Aegivion.
+Analyze the following security environment telemetry and generate an executive security brief.
+
+<evidence>
+TOTAL_FINDINGS: {aggregated['total_findings']}
+CRITICAL_COUNT: {aggregated['severity_counts']['critical']}
+HIGH_COUNT: {aggregated['severity_counts']['high']}
+MEDIUM_COUNT: {aggregated['severity_counts']['medium']}
+LOW_COUNT: {aggregated['severity_counts']['low']}
+OVERALL_RISK_SCORE: {aggregated['overall_risk']}/100
+CORRELATED_INCIDENTS: {aggregated['correlation_count']}
+COMPLIANCE_STATUS: {json.dumps(aggregated.get('compliance_summary', {}))}
+TOP_PRIORITY_ISSUES: {[p.to_dict() for p in top_priorities[:3]]}
+QUICK_WINS: {[q.to_dict() for q in quick_wins[:3]]}
+</evidence>
+
+Output requirements:
+Return ONLY a valid JSON object with EXACTLY the following structure:
+{{
+  "summary": "High-level executive narrative of posture, main risks, and business impact (2-3 sentences)",
+  "technical_summary": "Technical deep dive into attack surface and architecture gaps (2-3 sentences)",
+  "long_term_actions": [
+    "Strategic recommendation 1",
+    "Strategic recommendation 2"
+  ]
+}}
+Do NOT include markdown formatting or backticks around the json.
+"""
         try:
-            prompt = self._build_prompt(aggregated, audience)
             import inspect
             res = self.llm_provider.generate(prompt)
             if inspect.iscoroutine(res):
@@ -151,52 +210,37 @@ class ExecutiveBriefService:
             else:
                 response_text = res
             
-            if hasattr(response_text, 'content'):
-                text = response_text.content
+            if hasattr(response_text, 'text'):
+                raw = response_text.text
+            elif hasattr(response_text, 'content'):
+                raw = response_text.content
             else:
-                text = str(response_text)
+                raw = str(response_text)
                 
-            return self._parse_summary(text, audience)
-        except Exception:
-            return {
-                'executive': f"Security assessment completed. Found {aggregated['total_findings']} active issues with an overall risk rating of {aggregated['overall_risk']}/100.",
-                'technical': f"Assessment metadata shows {aggregated['total_findings']} findings, including {aggregated['severity_counts']['critical']} critical and {aggregated['severity_counts']['high']} high issues."
-            }
-    
-    def _build_prompt(self, aggregated: Dict, audience: str) -> str:
-        """Build prompt for summary generation"""
-        return f"""
-        Generate a security summary for this AWS environment.
-        
-        ENVIRONMENT:
-        Total Findings: {aggregated['total_findings']}
-        Critical: {aggregated['severity_counts']['critical']}
-        High: {aggregated['severity_counts']['high']}
-        Medium: {aggregated['severity_counts']['medium']}
-        Low: {aggregated['severity_counts']['low']}
-        
-        Overall Risk Score: {aggregated['overall_risk']}
-        
-        Correlations: {aggregated['correlation_count']}
-        
-        Scan Coverage: {aggregated['scan_health'].get('coverage_percentage', 0)}%
-        
-        AUDIENCE: {audience.upper()}
-        
-        Generate a concise summary focusing on:
-        - Overall security posture
-        - Most critical issues
-        - Required actions
-        
-        Keep it professional and evidence-based.
-        """
-    
-    def _parse_summary(self, response_text: str, audience: str) -> Dict:
-        """Parse AI response"""
+            clean = raw.strip()
+            if clean.startswith("```json"):
+                clean = clean[7:]
+            if clean.startswith("```"):
+                clean = clean[3:]
+            if clean.endswith("```"):
+                clean = clean[:-3]
+            clean = clean.strip()
+            
+            data = json.loads(clean)
+            if isinstance(data, dict) and "summary" in data:
+                return data
+        except Exception as e:
+            logger.warning(f"Executive brief LLM synthesis fallback triggered: {e}")
+            
         return {
-            'executive': response_text[:500],
-            'technical': response_text
+            'summary': f"Security assessment completed. Environment exhibits an overall risk rating of {aggregated['overall_risk']}/100 across {aggregated['total_findings']} findings ({aggregated['severity_counts']['critical']} critical).",
+            'technical_summary': f"Identified {aggregated['severity_counts']['critical']} critical and {aggregated['severity_counts']['high']} high vulnerabilities. Remediation of identified attack paths is recommended.",
+            'long_term_actions': [
+                "Implement least-privilege IAM guardrails and enforce mandatory MFA",
+                "Automate continuous CSPM drift scanning and posture reconciliation"
+            ]
         }
+
     
     def _build_top_priorities(
         self,

@@ -15,6 +15,7 @@ from app.cloud.aws.collectors.s3 import S3Collector
 from app.cloud.aws.collectors.iam import IAMCollector
 from app.cloud.aws.collectors.vpc import VPCCollector
 from app.cloud.aws.collectors.security_groups import SecurityGroupCollector
+from app.cloud.aws.collectors.rds import RDSCollector
 # Assume others exist or will be added
 
 logger = logging.getLogger(__name__)
@@ -25,16 +26,30 @@ class AWSCloudSync:
     Connects to AWS, extracts resources, normalizes them, and persists to Supabase.
     """
 
-    def __init__(self, organization_id: str, cloud_account_id: str, aws_access_key: str, aws_secret_key: str, default_region: str = "ap-south-1"):
+    def __init__(
+        self,
+        organization_id: str,
+        cloud_account_id: str,
+        aws_access_key: str = None,
+        aws_secret_key: str = None,
+        default_region: str = "ap-south-1",
+        role_arn: str = None,
+        external_id: str = None
+    ):
         self.organization_id = organization_id
         self.cloud_account_id = cloud_account_id
         self.region = default_region
+        self.role_arn = role_arn
+        self.external_id = external_id
 
-        # Create Boto3 Session (Securely initialized with scoped credentials)
-        self.session = boto3.Session(
+        from app.cloud.aws.client import get_aws_session
+        # Create Boto3 Session using get_aws_session helper (supports both static keys and IAM AssumeRole)
+        self.session = get_aws_session(
             aws_access_key_id=aws_access_key,
             aws_secret_access_key=aws_secret_key,
-            region_name=self.region
+            region_name=self.region,
+            role_arn=role_arn,
+            external_id=external_id
         )
 
         self.collectors = [
@@ -42,7 +57,8 @@ class AWSCloudSync:
             S3Collector(self.session, self.region),
             IAMCollector(self.session, self.region),
             VPCCollector(self.session, self.region),
-            SecurityGroupCollector(self.session, self.region)
+            SecurityGroupCollector(self.session, self.region),
+            RDSCollector(self.session, self.region)
         ]
 
     def run_sync(self):

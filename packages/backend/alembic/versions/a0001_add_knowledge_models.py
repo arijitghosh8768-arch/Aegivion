@@ -20,14 +20,14 @@ def upgrade() -> None:
     # Ensure pgvector extension is available in Postgres
     op.execute('CREATE EXTENSION IF NOT EXISTS vector')
 
-    # Create Enums
-    knowledge_scope_enum = sa.Enum('GLOBAL', 'ORGANIZATION', 'SYSTEM', name='knowledgescope')
-    authority_level_enum = sa.Enum('FRAMEWORK', 'VENDOR', 'ENTERPRISE_POLICY', 'THREAT_INTEL', 'COMMUNITY', name='authoritylevel')
-    chunk_status_enum = sa.Enum('ACTIVE', 'QUARANTINED', 'ARCHIVED', name='chunkstatus')
+    # Create Enums safely
+    knowledge_scope_enum = postgresql.ENUM('GLOBAL', 'ORGANIZATION', 'SYSTEM', name='knowledgescope', create_type=False)
+    authority_level_enum = postgresql.ENUM('FRAMEWORK', 'VENDOR', 'ENTERPRISE_POLICY', 'THREAT_INTEL', 'COMMUNITY', name='authoritylevel', create_type=False)
+    chunk_status_enum = postgresql.ENUM('ACTIVE', 'QUARANTINED', 'ARCHIVED', name='chunkstatus', create_type=False)
 
-    knowledge_scope_enum.create(op.get_bind(), checkfirst=True)
-    authority_level_enum.create(op.get_bind(), checkfirst=True)
-    chunk_status_enum.create(op.get_bind(), checkfirst=True)
+    op.execute("DO $$ BEGIN CREATE TYPE knowledgescope AS ENUM ('GLOBAL', 'ORGANIZATION', 'SYSTEM'); EXCEPTION WHEN duplicate_object THEN null; END $$;")
+    op.execute("DO $$ BEGIN CREATE TYPE authoritylevel AS ENUM ('FRAMEWORK', 'VENDOR', 'ENTERPRISE_POLICY', 'THREAT_INTEL', 'COMMUNITY'); EXCEPTION WHEN duplicate_object THEN null; END $$;")
+    op.execute("DO $$ BEGIN CREATE TYPE chunkstatus AS ENUM ('ACTIVE', 'QUARANTINED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN null; END $$;")
 
     # Create knowledge_documents table
     op.create_table('knowledge_documents',

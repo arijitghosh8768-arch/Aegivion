@@ -10,12 +10,28 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 
-db_url = os.getenv("DATABASE_URL")
+from dotenv import dotenv_values, load_dotenv
+
+# Prioritize TEST_DATABASE_URL if present, otherwise DATABASE_URL
+env_test_path = os.path.join(os.path.dirname(__file__), "..", ".env.test")
+test_vals = dotenv_values(env_test_path) if os.path.exists(env_test_path) else {}
+db_url = os.getenv("TEST_DATABASE_URL") or test_vals.get("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
+if not db_url:
+    load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+    db_url = os.getenv("DATABASE_URL")
+
 if db_url:
-    # Alembic needs postgresql:// instead of postgres:// (if any)
+    # Alembic needs postgresql+psycopg2:// instead of postgres:// or generic postgresql://
     if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    config.set_main_option("sqlalchemy.url", db_url)
+        db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    # ConfigParser treats '%' as interpolation, escape as '%%' for set_main_option
+    config.set_main_option("sqlalchemy.url", db_url.replace("%", "%%"))
+else:
+    raw_ini_url = config.get_main_option("sqlalchemy.url")
+    if raw_ini_url and raw_ini_url.startswith("postgresql://"):
+        config.set_main_option("sqlalchemy.url", raw_ini_url.replace("postgresql://", "postgresql+psycopg2://", 1))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

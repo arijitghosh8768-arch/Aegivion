@@ -46,6 +46,9 @@ export default function CloudAccountsPage() {
   const [scanning, setScanning] = useState<string | null>(null);
 
   const [selectedProvider, setSelectedProvider] = useState<ProviderId>("aws");
+  const [awsAuthMode, setAwsAuthMode] = useState<"role" | "keys">("role");
+  const [roleArn, setRoleArn] = useState("");
+  const [externalId, setExternalId] = useState(`aegivion-${Math.random().toString(36).substring(2, 9)}`);
   const [accessKey, setAccessKey] = useState("");
   const [secretKey, setSecretKey] = useState("");
 
@@ -79,18 +82,25 @@ export default function CloudAccountsPage() {
 
   const connectMutation = useMutation({
     mutationFn: async () => {
+      const payload: Record<string, any> = {
+        name: `My ${selectedProvider.toUpperCase()}`,
+        provider: selectedProvider,
+        default_region: selectedProvider === "aws" ? "us-east-1" : selectedProvider === "azure" ? "eastus" : "us-central1",
+      };
+
+      if (selectedProvider === "aws") {
+        if (awsAuthMode === "role") {
+          payload.role_arn = roleArn;
+          payload.external_id = externalId;
+        } else {
+          payload.aws_access_key = accessKey;
+          payload.aws_secret_key = secretKey;
+        }
+      }
+
       return fetchApi("/v1/cloud-accounts", {
         method: "POST",
-        body: JSON.stringify({
-          account_name: `My ${selectedProvider.toUpperCase()}`,
-          provider: selectedProvider,
-          account_id: "auto",
-          default_region: selectedProvider === "aws" ? "us-east-1" : selectedProvider === "azure" ? "eastus" : "us-central1",
-          ...(selectedProvider === "aws" ? {
-            aws_access_key_id: accessKey,
-            aws_secret_access_key: secretKey,
-          } : {}),
-        }),
+        body: JSON.stringify(payload),
       });
     },
     onSuccess: () => {
@@ -99,6 +109,7 @@ export default function CloudAccountsPage() {
       setConnectStep(0);
       setAccessKey("");
       setSecretKey("");
+      setRoleArn("");
     },
     onError: (error: Error) => {
       alert("Error: " + error.message);
@@ -243,25 +254,85 @@ export default function CloudAccountsPage() {
             <div className="space-y-4 py-2">
               {selectedProvider === "aws" ? (
                 <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="accessKey">AWS Access Key ID</Label>
-                    <Input
-                      id="accessKey"
-                      value={accessKey}
-                      onChange={(e) => setAccessKey(e.target.value)}
-                      placeholder="AKIA..."
-                    />
+                  {/* Auth mode toggle */}
+                  <div className="flex rounded-xl bg-muted p-1">
+                    <button
+                      type="button"
+                      onClick={() => setAwsAuthMode("role")}
+                      className={cn(
+                        "flex-1 rounded-lg py-1.5 text-xs font-medium transition",
+                        awsAuthMode === "role"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      IAM Role (Enterprise Recommended)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAwsAuthMode("keys")}
+                      className={cn(
+                        "flex-1 rounded-lg py-1.5 text-xs font-medium transition",
+                        awsAuthMode === "keys"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Access Keys
+                    </button>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="secretKey">AWS Secret Access Key</Label>
-                    <Input
-                      id="secretKey"
-                      type="password"
-                      value={secretKey}
-                      onChange={(e) => setSecretKey(e.target.value)}
-                      placeholder="••••••••••••••••••••••••"
-                    />
-                  </div>
+
+                  {awsAuthMode === "role" ? (
+                    <div className="grid gap-3">
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="roleArn">Cross-Account Role ARN</Label>
+                        <Input
+                          id="roleArn"
+                          value={roleArn}
+                          onChange={(e) => setRoleArn(e.target.value)}
+                          placeholder="arn:aws:iam::123456789012:role/AegivionCloudScanner"
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          Create an IAM role in your AWS account trusting Aegivion with SecurityAudit policy.
+                        </p>
+                      </div>
+
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="externalId">External ID (Anti-Confused-Deputy)</Label>
+                        <Input
+                          id="externalId"
+                          value={externalId}
+                          readOnly
+                          className="bg-muted font-mono text-xs"
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          Use this unique External ID in your IAM role trust policy condition.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3">
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="accessKey">AWS Access Key ID</Label>
+                        <Input
+                          id="accessKey"
+                          value={accessKey}
+                          onChange={(e) => setAccessKey(e.target.value)}
+                          placeholder="AKIA..."
+                        />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="secretKey">AWS Secret Access Key</Label>
+                        <Input
+                          id="secretKey"
+                          type="password"
+                          value={secretKey}
+                          onChange={(e) => setSecretKey(e.target.value)}
+                          placeholder="••••••••••••••••••••••••"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">

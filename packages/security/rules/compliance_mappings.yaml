@@ -1,0 +1,58 @@
+# Mapping between security rule IDs and Compliance Framework Controls (CIS AWS Benchmark v3 & SOC 2)
+mappings:
+  AWS-S3-001:
+    framework_id: CIS_AWS_v3
+    control_code: CIS-2.1.5
+    title: Ensure S3 Buckets are not publicly accessible
+    description: S3 buckets must not permit unrestricted public access via bucket policy or ACLs.
+    category: Storage
+    severity: high
+
+  AWS-S3-002:
+    framework_id: CIS_AWS_v3
+    control_code: CIS-2.1.4
+    title: Ensure S3 Block Public Access setting is enabled
+    description: S3 bucket level Block Public Access setting should be enabled for all buckets.
+    category: Storage
+    severity: high
+
+  AWS-SG-001:
+    framework_id: CIS_AWS_v3
+    control_code: CIS-5.2
+    title: Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (SSH)
+    description: Security groups should not permit unrestricted inbound access to port 22 from the public internet.
+    category: Networking
+    severity: high
+
+  AWS-SG-002:
+    framework_id: CIS_AWS_v3
+    control_code: CIS-5.3
+    title: Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (RDP)
+    description: Security groups should not permit unrestricted inbound access to port 3389 from the public internet.
+    category: Networking
+    severity: high
+
+  AWS-IAM-001:
+    framework_id: CIS_AWS_v3
+    control_code: CIS-1.5
+    title: Ensure MFA is enabled for all IAM users with console password
+    description: Multi-Factor Authentication adds an extra layer of protection on top of a user name and password.
+    category: Identity and Access Management
+    severity: critical
+
+  AWS-IAM-004:
+    framework_id: CIS_AWS_v3
+    control_code: CIS-1.16
+    title: Ensure IAM policies are not overly permissive with AdministratorAccess
+    description: IAM policies should adhere to the principle of least privilege.
+    category: Identity and Access Management
+    severity: high
+
+  AWS-RDS-001:
+    framework_id: CIS_AWS_v3
+    control_code: CIS-3.1
+    title: Ensure RDS storage encryption is enabled
+    description: RDS instances should have KMS storage encryption enabled at rest.
+    category: Database
+    severity: medium
+

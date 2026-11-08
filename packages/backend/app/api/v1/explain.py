@@ -14,7 +14,7 @@ from ai.services.llm_provider import get_llm_provider
 from ai.services.remediation_engine import RemediationEngine
 from ai.services.security_brief import SecurityBriefService
 from security.engine.risk_engine import ContextualRiskEngine
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_permission
 from app.core.rate_limit import limiter
 
 router = APIRouter()
@@ -89,64 +89,63 @@ async def explain_finding(
         if settings and not settings.ai_features_enabled:
             raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
     
-    # 1. Fetch finding & asset (try DB first, then fallback to mocks for MVP)
+    # 1. Fetch finding & asset from database (Strict fail-fast: NO mock fallbacks)
     finding_obj = None
-    asset_obj = None
-    
     try:
         uuid_id = uuid.UUID(finding_id)
         finding_obj = db.query(Finding).filter(Finding.id == uuid_id).first()
     except Exception:
-        pass
-        
-    if finding_obj:
-        # Map DB model fields to dict for PromptBuilder
-        finding = {
-            "id": str(finding_obj.id),
-            "finding_id": str(finding_obj.id),
-            "title": finding_obj.title,
-            "description": finding_obj.description,
-            "severity": finding_obj.severity.value if hasattr(finding_obj.severity, 'value') else str(finding_obj.severity),
-            "rule_id": finding_obj.rule_id,
-            "risk_score": finding_obj.risk_score,
-            "evidence": finding_obj.evidence or {},
-            "mitre_technique": getattr(finding_obj, 'mitre_technique', None),
-            "mitre_tactic": getattr(finding_obj, 'mitre_tactic', None)
+        finding_obj = None
+
+    if not finding_obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Finding '{finding_id}' not found."
+        )
+
+    # Tenant Isolation Check
+    if user_org_id and str(finding_obj.organization_id) != str(user_org_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: finding does not belong to your organization."
+        )
+
+    # Map DB model fields to dict for PromptBuilder
+    finding = {
+        "id": str(finding_obj.id),
+        "finding_id": str(finding_obj.id),
+        "title": finding_obj.title,
+        "description": finding_obj.description,
+        "severity": finding_obj.severity.value if hasattr(finding_obj.severity, 'value') else str(finding_obj.severity),
+        "rule_id": finding_obj.rule_id,
+        "risk_score": finding_obj.risk_score,
+        "evidence": finding_obj.evidence or {},
+        "mitre_technique": getattr(finding_obj, 'mitre_technique', None),
+        "mitre_tactic": getattr(finding_obj, 'mitre_tactic', None)
+    }
+
+    # Load asset
+    asset_db = db.query(CloudAsset).filter(CloudAsset.resource_id == finding_obj.resource_id).first()
+    if asset_db:
+        asset = {
+            "asset_id": asset_db.resource_id,
+            "provider": asset_db.provider.value if hasattr(asset_db.provider, 'value') else str(asset_db.provider),
+            "type": asset_db.type,
+            "region": asset_db.region,
+            "name": asset_db.name,
+            "configuration": asset_db.metadata_json or {},
+            "relationships": []
         }
-        
-        # Load asset
-        asset_db = db.query(CloudAsset).filter(CloudAsset.resource_id == finding_obj.resource_id).first()
-        if asset_db:
-            asset = {
-                "asset_id": asset_db.resource_id,
-                "provider": asset_db.provider.value if hasattr(asset_db.provider, 'value') else str(asset_db.provider),
-                "type": asset_db.type,
-                "region": asset_db.region,
-                "name": asset_db.name,
-                "configuration": asset_db.metadata_json or {},
-                "relationships": []
-            }
-        else:
-            asset = {
-                "asset_id": finding_obj.resource_id,
-                "provider": finding_obj.cloud_provider,
-                "type": finding_obj.resource_type,
-                "region": finding_obj.resource_region,
-                "name": finding_obj.resource_name,
-                "configuration": {},
-                "relationships": []
-            }
-            
-        # Tenant Isolation Check
-        # In full implementation: if finding_obj.org_id != current_user.org_id: raise HTTPException(403)
-        if not getattr(current_user, 'org_id', None):
-            raise HTTPException(status_code=403, detail="User does not belong to an organization")
     else:
-        # Fallback to mock findings to support testing
-        mocks = get_mock_finding_and_asset(finding_id)
-        if not mocks:
-            raise HTTPException(status_code=404, detail=f"Finding {finding_id} not found in DB or mocks")
-        finding, asset = mocks
+        asset = {
+            "asset_id": finding_obj.resource_id,
+            "provider": finding_obj.cloud_provider,
+            "type": finding_obj.resource_type,
+            "region": finding_obj.resource_region or "global",
+            "name": finding_obj.resource_name or finding_obj.resource_id,
+            "configuration": {},
+            "relationships": []
+        }
 
     # 2. RAG Retrieval
     from ai.services.rag import rag_retriever
@@ -165,7 +164,8 @@ async def explain_finding(
         finding_id=finding.get("finding_id", ""),
         provider=asset.get("provider", "aws"),
         finding_type=finding.get("rule_id", "unknown"),
-        finding_metadata=rag_metadata
+        finding_metadata=rag_metadata,
+        db=db
     )
     
     # 3. Build prompt context
@@ -187,8 +187,28 @@ async def explain_finding(
     provider = get_llm_provider()
     processing_time = 0
     try:
-        response_text = provider.generate(prompt)
+        llm_output = provider.generate(prompt)
         processing_time = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+        
+        # Extract text and token accounting
+        if hasattr(llm_output, "text"):
+            response_text = llm_output.text
+            tokens = getattr(llm_output, "tokens", {})
+            cost = getattr(llm_output, "cost", 0.0)
+            model_used = getattr(llm_output, "model", "unknown")
+        else:
+            response_text = str(llm_output)
+            tokens = {}
+            cost = 0.0
+            model_used = "unknown"
+
+        logger.info(
+            "ai_tokens_logged",
+            finding_id=finding_id,
+            tokens=tokens,
+            cost=cost,
+            model=model_used
+        )
         
         # Parse output JSON requirements
         try:
@@ -201,9 +221,26 @@ async def explain_finding(
                 "inferred": ["Exposure of configuration keys increases risk posture.", "Non-compliance triggers data policy review audit warnings."],
                 "unknown": ["Whether this vulnerability is actively exploited.", "Business owner of this resource."],
                 "recommendations": finding.get("remediation", ["Apply correct configuration constraint rules."]),
+                "citations": [
+                    {"source": "finding_id", "value": finding_id},
+                    {"source": "rule_id", "value": finding.get("rule_id", "unknown")}
+                ],
                 "confidence_score": 0.88
             }
-            
+
+        # 4. Hallucination Guardrail Check (GroundingValidator)
+        from ai.guardrails.grounding import GroundingValidator
+        validator = GroundingValidator()
+        grounded_eval = validator.validate_response(parsed, finding.get("evidence", {}))
+
+        if not grounded_eval.is_grounded and grounded_eval.safe_response:
+            logger.warning(
+                "ai_hallucination_blocked",
+                finding_id=finding_id,
+                warnings=grounded_eval.warnings
+            )
+            parsed = grounded_eval.safe_response
+
         from ai.services.remediation_engine import RemediationEngine
         remediation_engine = RemediationEngine(provider)
         remediation_plan = await remediation_engine.generate_remediation(finding)
@@ -221,8 +258,16 @@ async def explain_finding(
             "inferred": parsed.get("inferred", []),
             "unknown": parsed.get("unknown", []),
             "recommendations": parsed.get("recommendations", []),
+            "citations": parsed.get("citations", [
+                {"source": "finding_id", "value": finding_id},
+                {"source": "rule_id", "value": finding.get("rule_id", "unknown")}
+            ]),
             "confidence_score": parsed.get("confidence_score", parsed.get("confidence", 0.9)),
             "evidence_used": finding.get("evidence", {}),
+            "is_grounded": getattr(grounded_eval, "is_grounded", True),
+            "guardrail_warnings": getattr(grounded_eval, "warnings", []),
+            "tokens": tokens,
+            "cost": cost,
             "processing_time_ms": processing_time,
             "timestamp": datetime.utcnow().isoformat(),
             "remediation": remediation_dict
@@ -277,10 +322,11 @@ def generate_fallback_explanation(finding: Dict) -> Dict:
         "confidence_score": 0.3
     }
 
-@router.post("/remediate/{finding_id}")
+@router.post("/remediate/{finding_id}", dependencies=[Depends(require_permission("use_ai_assistant"))])
 async def remediate_finding(
     finding_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
 ):
     """Generate structured remediation plan for a finding"""
     finding_obj = None
@@ -318,10 +364,11 @@ async def remediate_finding(
 class BriefRequest(BaseModel):
     cloud_account_id: Optional[str] = None
 
-@router.post("/security-brief")
+@router.post("/security-brief", dependencies=[Depends(require_permission("use_ai_assistant"))])
 async def security_brief(
     request: BriefRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user)
 ):
     """Generate account-level AI security brief"""
     # Try fetching real data first

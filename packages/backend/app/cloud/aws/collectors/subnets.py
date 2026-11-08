@@ -1,7 +1,9 @@
+import logging
 from typing import List, Dict, Any
 from app.cloud.aws.collectors.base import BaseCollector
 from botocore.exceptions import ClientError
-from app.core.logging import logger
+
+logger = logging.getLogger(__name__)
 
 class SubnetCollector(BaseCollector):
     def __init__(self, session, region: str):

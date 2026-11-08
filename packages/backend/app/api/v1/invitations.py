@@ -46,7 +46,7 @@ def list_invitations(
         } for i in invites]
     }
 
-@router.post("/orgs/{org_id}/invitations")
+@router.post("/orgs/{org_id}/invitations", dependencies=[Depends(require_permission("manage_users"))])
 def create_invitation(
     org_id: str,
     request: InviteRequest,
@@ -139,7 +139,7 @@ def get_invitation_details(token: str, db: Session = Depends(get_db)):
         }
     }
 
-@router.delete("/invitations/{id}")
+@router.delete("/invitations/{id}", dependencies=[Depends(require_permission("manage_users"))])
 def revoke_invitation(
     id: str,
     db: Session = Depends(get_db),

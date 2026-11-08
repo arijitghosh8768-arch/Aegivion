@@ -51,3 +51,53 @@ export async function fetchApi<T>(
 
   return response.json();
 }
+
+export interface RemediationPlanAction {
+  id: string;
+  action_type: string;
+  status: string;
+  parameters: Record<string, any>;
+  aws_request_id?: string;
+}
+
+export interface RemediationPlanItem {
+  id: string;
+  organization_id: string;
+  finding_id?: string;
+  resource_id: string;
+  status: "PENDING_APPROVAL" | "APPROVED" | "EXECUTING" | "EXECUTED" | "VERIFIED" | "FAILED" | "FAILED_VERIFICATION" | "ROLLED_BACK" | "EXPIRED" | "REJECTED";
+  expires_at?: string;
+  created_at?: string;
+  action_type: string;
+  actions: RemediationPlanAction[];
+}
+
+export async function getRemediationPlans(): Promise<{ success: boolean; data: RemediationPlanItem[] }> {
+  return fetchApi("/v1/remediation/plans");
+}
+
+export async function approveRemediationPlan(planId: string): Promise<any> {
+  return fetchApi(`/v1/remediation/plans/${planId}/approve`, {
+    method: "POST",
+  });
+}
+
+export async function rejectRemediationPlan(planId: string, reason = "Rejected by operator"): Promise<any> {
+  return fetchApi(`/v1/remediation/plans/${planId}/reject`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function executeRemediationPlan(planId: string): Promise<any> {
+  return fetchApi(`/v1/remediation/plans/${planId}/execute`, {
+    method: "POST",
+  });
+}
+
+export async function rollbackRemediationPlan(planId: string, reason = "Rolled back by operator"): Promise<any> {
+  return fetchApi(`/v1/remediation/plans/${planId}/rollback`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}

@@ -14,6 +14,8 @@ class CloudAccountV2(BaseModel):
     name = Column(String(200), nullable=True)
     default_region = Column(String(50), default="ap-south-1")
     connection_status = Column(String(50), default="disconnected")
+    role_arn = Column(String(300), nullable=True)
+    external_id = Column(String(100), nullable=True)
     last_sync_at = Column(DateTime(timezone=True), nullable=True)
     last_error = Column(String, nullable=True)
 
@@ -26,5 +28,7 @@ class CloudAccountV2(BaseModel):
         self.name = self.account_name
         self.default_region = kwargs.get("default_region") or "ap-south-1"
         self.connection_status = kwargs.get("connection_status") or ConnectionStatus.DISCONNECTED
+        self.role_arn = kwargs.get("role_arn")
+        self.external_id = kwargs.get("external_id")
         self.last_sync_at = kwargs.get("last_sync_at")
         self.last_error = kwargs.get("last_error")

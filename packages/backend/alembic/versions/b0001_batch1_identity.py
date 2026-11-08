@@ -17,28 +17,38 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # 1. Organizations
-    op.create_table(
-        'organizations',
-        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column('name', sa.String(length=200), nullable=False),
-        sa.Column('slug', sa.String(length=200), nullable=False),
-        sa.Column('industry', sa.String(length=100), nullable=True),
-        sa.Column('subscription_plan', sa.String(length=50), server_default='free', nullable=True),
-        sa.Column('owner_id', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column('settings', sa.JSON(), server_default='{}', nullable=True),
-        sa.Column('trial_ends_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('subscription_ends_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('max_users', sa.Integer(), server_default='5', nullable=True),
-        sa.Column('max_projects', sa.Integer(), server_default='1', nullable=True),
-        sa.Column('features', sa.JSON(), nullable=True),
-        sa.Column('security_policy', sa.JSON(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
-        sa.Column('created_by', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column('updated_by', postgresql.UUID(as_uuid=True), nullable=True),
-        if_not_exists=True
-    )
+    # In case organizations already exists from 810b, add any missing Batch 1 columns and alter enums to varchar
+    op.execute("""
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'organizations') THEN
+                CREATE TABLE organizations (
+                    id UUID PRIMARY KEY,
+                    name VARCHAR(200) NOT NULL,
+                    slug VARCHAR(200) NOT NULL,
+                    industry VARCHAR(100),
+                    subscription_plan VARCHAR(50) DEFAULT 'free',
+                    owner_id UUID,
+                    settings JSON DEFAULT '{}',
+                    trial_ends_at TIMESTAMP WITH TIME ZONE,
+                    subscription_ends_at TIMESTAMP WITH TIME ZONE,
+                    max_users INTEGER DEFAULT 5,
+                    max_projects INTEGER DEFAULT 1,
+                    features JSON,
+                    security_policy JSON,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                    is_active BOOLEAN DEFAULT true NOT NULL,
+                    created_by UUID,
+                    updated_by UUID
+                );
+            ELSE
+                ALTER TABLE organizations ADD COLUMN IF NOT EXISTS security_policy JSON;
+                -- Convert subscription_plan enum to VARCHAR(50) if necessary
+                ALTER TABLE organizations ALTER COLUMN subscription_plan TYPE VARCHAR(50) USING subscription_plan::text;
+                ALTER TABLE organizations ALTER COLUMN subscription_plan SET DEFAULT 'free';
+            END IF;
+        END $$;
+    """)
     op.create_index('ix_organizations_slug', 'organizations', ['slug'], unique=True, if_not_exists=True)
 
     # 2. Roles
@@ -57,6 +67,14 @@ def upgrade() -> None:
     )
 
     # 3. Users
+    op.execute("""
+        DO $$ BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users') THEN
+                ALTER TABLE users ALTER COLUMN status TYPE VARCHAR(50) USING status::text;
+                ALTER TABLE users ALTER COLUMN status SET DEFAULT 'pending_verification';
+            END IF;
+        END $$;
+    """)
     op.create_table(
         'users',
         sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
@@ -149,10 +167,10 @@ def upgrade() -> None:
     op.create_index('ix_invitations_org_email', 'invitations', ['org_id', 'email'], if_not_exists=True)
 
 def downgrade() -> None:
-    op.drop_table('invitations', if_exists=True)
-    op.drop_table('sessions', if_exists=True)
-    op.drop_table('organization_members', if_exists=True)
-    op.drop_table('users', if_exists=True)
-    op.drop_table('roles', if_exists=True)
-    op.drop_table('organizations', if_exists=True)
+    op.execute('DROP TABLE IF EXISTS invitations CASCADE;')
+    op.execute('DROP TABLE IF EXISTS sessions CASCADE;')
+    op.execute('DROP TABLE IF EXISTS organization_members CASCADE;')
+    op.execute('DROP TABLE IF EXISTS users CASCADE;')
+    op.execute('DROP TABLE IF EXISTS roles CASCADE;')
+    op.execute('DROP TABLE IF EXISTS organizations CASCADE;')
 

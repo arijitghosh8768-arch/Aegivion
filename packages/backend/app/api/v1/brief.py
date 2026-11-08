@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 from app.database import get_db
+from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
+from app.repositories import FindingRepository, AssetRepository
 from security.models.finding import Finding
 from app.models.cloud import CloudAsset
 from app.cloud.aws.relationships.engine import RelationshipEngine
@@ -15,14 +18,19 @@ from app.services.scanner import run_cloud_scan
 router = APIRouter()
 
 @router.get("/")
-async def get_executive_brief(db: Session = Depends(get_db)):
-    """Generate executive security brief"""
+async def get_executive_brief(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate executive security brief scoped to authenticated organization"""
+    user_org_id = get_current_organization(current_user, db)
     real_findings = []
     real_assets = []
     
-    # 1. Fetch real findings from DB
+    # 1. Fetch real findings and assets scoped to tenant from DB
     try:
-        real_findings_db = db.query(Finding).all()
+        finding_repo = FindingRepository(db)
+        real_findings_db = finding_repo.get_by_organization(user_org_id)
         for f_db in real_findings_db:
             real_findings.append({
                 "finding_id": str(f_db.id),
@@ -40,7 +48,8 @@ async def get_executive_brief(db: Session = Depends(get_db)):
                 "evidence": f_db.evidence or {}
             })
             
-        real_assets_db = db.query(CloudAsset).all()
+        asset_repo = AssetRepository(db)
+        real_assets_db = asset_repo.get_by_organization(user_org_id)
         for a_db in real_assets_db:
             real_assets.append({
                 "asset_id": a_db.resource_id,
@@ -166,8 +175,10 @@ async def get_executive_brief(db: Session = Depends(get_db)):
     health_service.update_collector_status("scan-latest", "s3", CollectorStatus.SUCCESS, assets=1, duration=200)
     health_summary = health_service.get_scan_summary("scan-latest")
 
-    # 4. Generate Brief
-    brief_service = ExecutiveBriefService()
+    # 4. Generate Brief with LLM Provider
+    from ai.services.llm_provider import get_llm_provider
+    provider = get_llm_provider()
+    brief_service = ExecutiveBriefService(llm_provider=provider, risk_engine=risk_engine)
     brief = await brief_service.generate_brief(
         findings=real_findings,
         risk_scores=risk_scores,

@@ -54,3 +54,51 @@ jobs:
           pip install pytest
           PYTHONPATH=".:.." python -m pytest
         fi
+
+  security-scan:
+    name: Security & Vulnerability Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # 1. Dependency Vulnerability Scan with pip-audit
+      - name: Install Security Scanners
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit bandit
+
+      - name: Scan Backend Dependencies (pip-audit)
+        run: |
+          pip-audit -r packages/backend/requirements.txt --desc
+
+      - name: Scan Security Engine Dependencies (pip-audit)
+        run: |
+          if [ -f packages/security/requirements.txt ]; then
+            pip-audit -r packages/security/requirements.txt --desc
+          fi
+
+      # 2. Static Application Security Testing (SAST) with Bandit
+      - name: Run Bandit SAST on Backend
+        run: |
+          bandit -r packages/backend/app -ll -x "packages/backend/tests"
+
+      # 3. Docker Container Scan with Trivy
+      - name: Build Backend Docker Image
+        run: |
+          docker build -t aegivion-backend:ci packages/backend
+
+      - name: Scan Backend Docker Image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'aegivion-backend:ci'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'

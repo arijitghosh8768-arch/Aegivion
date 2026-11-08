@@ -24,6 +24,8 @@ class Permission(str, Enum):
     USE_AI_ASSISTANT = "use_ai_assistant"
     MANAGE_KNOWLEDGE = "manage_knowledge"
     MANAGE_AUTOMATION = "manage_automation"
+    MANAGE_INCIDENTS = "manage_incidents"
+    MANAGE_ORG = "manage_org"
 
 class RolePolicy:
     POLICIES = {
@@ -34,11 +36,12 @@ class RolePolicy:
             "generate_reports", "view_reports", "delete_reports",
             "view_assets", "manage_assets", "manage_settings",
             "manage_integrations", "manage_billing", "use_ai_assistant",
-            "manage_knowledge", "manage_automation"
+            "manage_knowledge", "manage_automation", "manage_incidents", "manage_org"
         ],
         "security_analyst": [
             "view_findings", "manage_findings", "resolve_findings",
-            "view_reports", "generate_reports", "view_assets", "use_ai_assistant"
+            "view_reports", "generate_reports", "view_assets", "use_ai_assistant",
+            "manage_incidents"
         ],
         "auditor": ["view_findings", "view_reports", "view_assets"],
         "viewer": ["view_findings", "view_reports", "view_assets"]

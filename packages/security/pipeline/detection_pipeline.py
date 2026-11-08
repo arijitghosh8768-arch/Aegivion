@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass
 import uuid
 import yaml
@@ -7,9 +7,10 @@ import glob
 import os
 
 from app.database import SessionLocal
-from security.models.finding import Finding
+from app.models.finding import Finding
 from security.engine.executor import RuleExecutor
 from security.engine.risk_engine import ContextualRiskEngine
+from security.engine.mitre import MitreService
 
 @dataclass
 class PipelineResult:
@@ -21,16 +22,25 @@ class PipelineResult:
     duration_ms: int
 
 class DetectionPipeline:
-    """Complete detection pipeline from assets to findings"""
+    """Complete detection pipeline from assets to findings with PostgreSQL ORM persistence and tenant isolation"""
     
-    def __init__(self):
+    def __init__(self, db=None):
         self.rule_executor = None
         self.risk_engine = ContextualRiskEngine()
-        self.db = SessionLocal()
+        self.mitre_service = MitreService()
+        self.db = db or SessionLocal()
+        self._owns_db = db is None
+
+    def __del__(self):
+        if getattr(self, '_owns_db', False) and hasattr(self, 'db') and self.db:
+            try:
+                self.db.close()
+            except Exception:
+                pass
     
-    async def process_assets(self, scan_id: str, assets: List[Dict]) -> PipelineResult:
-        """Process all assets through the detection pipeline"""
-        start_time = datetime.utcnow()
+    async def process_assets(self, scan_id: str, assets: List[Dict], organization_id: Optional[str] = None) -> PipelineResult:
+        """Process all assets through the detection pipeline and persist findings to PostgreSQL"""
+        start_time = datetime.now(timezone.utc)
         errors = []
         findings_count = 0
         updated_count = 0
@@ -40,59 +50,102 @@ class DetectionPipeline:
             rules = self._load_rules()
             self.rule_executor = RuleExecutor(rules)
             
+            # Resolve organization_id from param or first asset if available
+            org_id = organization_id
+            if not org_id and assets and 'organization_id' in assets[0]:
+                org_id = str(assets[0]['organization_id'])
+            
             # 2. Process each asset
             for asset in assets:
                 try:
+                    asset_id = asset.get('asset_id') or asset.get('resource_id')
+                    if not asset_id:
+                        continue
+
+                    asset_org_id = asset.get('organization_id') or org_id
+                    if not asset_org_id:
+                        continue
+
                     # Execute rules
                     findings = self.rule_executor.execute(asset)
                     
                     for finding in findings:
+                        rule_id = finding.get('rule_id')
+                        
                         # Calculate risk score
                         risk_score = self.risk_engine.calculate_risk_score(
                             finding,
                             asset,
                             self._get_context(asset)
                         )
-                        finding['risk_score'] = risk_score.score
-                        finding['risk_level'] = risk_score.level.value
-                        finding['risk_factors'] = risk_score.factors
+                        score_val = getattr(risk_score, 'score', 50)
                         
-                        # Deduplicate (check if finding with rule_id and asset_id exists)
+                        # Cryptographic SHA-256 Fingerprint (org_id + rule_id + resource_id)
+                        import hashlib
+                        raw_fingerprint = f"{str(asset_org_id)}:{str(rule_id)}:{str(asset_id)}"
+                        fingerprint = hashlib.sha256(raw_fingerprint.encode("utf-8")).hexdigest()
+
+                        # MITRE ATT&CK Enrichment
+                        mitre_mappings = self.mitre_service.get_mappings_for_finding({"rule_id": rule_id})
+                        evidence_data = finding.get('evidence', {}) or {}
+                        if mitre_mappings:
+                            evidence_data["mitre_attack"] = [m.to_dict() for m in mitre_mappings]
+                            evidence_data["mitre_techniques"] = [m.technique_id for m in mitre_mappings]
+
+                        # Deduplication via Fingerprint within Organization
                         existing = self.db.query(Finding).filter_by(
-                            rule_id=finding['rule_id'],
-                            resource_id=finding['asset_id']
+                            organization_id=asset_org_id,
+                            fingerprint=fingerprint
                         ).first()
                         
+                        now_utc = datetime.now(timezone.utc)
                         if existing:
-                            # Update existing
-                            existing.last_seen = datetime.utcnow()
-                            existing.risk_score = finding.get('risk_score', 0)
-                            existing.severity = finding['severity']
-                            existing.evidence = finding.get('evidence', {})
-                            existing.description = finding.get('description', '')
-                            existing.updated_at = datetime.utcnow()
+                            # Update existing finding and increment occurrence
+                            existing.occurrence_count = (existing.occurrence_count or 1) + 1
+                            existing.last_seen = now_utc
+                            existing.risk_score = score_val
+                            existing.severity = (finding.get('severity') or existing.severity).lower()
+                            
+                            # Merge evidence preserving MITRE data
+                            current_ev = existing.evidence or {}
+                            current_ev.update(evidence_data)
+                            existing.evidence = current_ev
+                            
+                            existing.description = finding.get('description') or existing.description
+                            existing.updated_at = now_utc
+
+                            # Reopen finding if it was previously marked resolved
+                            if existing.status in ("resolved", "RESOLVED"):
+                                existing.status = "open"
+                                existing.reopened_at = now_utc
+
                             updated_count += 1
                         else:
-                            # Create new
+                            # Create new SQLAlchemy Finding model instance in PostgreSQL
                             new_finding = Finding(
                                 id=uuid.uuid4(),
-                                title=finding['title'],
+                                organization_id=asset_org_id,
+                                title=finding.get('title') or f"Security Finding for {rule_id}",
                                 description=finding.get('description', ''),
-                                severity=finding['severity'],
+                                severity=(finding.get('severity') or 'medium').lower(),
                                 status="open",
-                                rule_id=finding['rule_id'],
-                                resource_id=finding['asset_id'],
-                                cloud_provider=asset.get('provider', 'aws').upper(),
-                                resource_type=asset.get('type', 'unknown'),
-                                resource_region=asset.get('region', 'global'),
-                                resource_name=asset.get('name', 'unknown'),
-                                risk_score=finding.get('risk_score', 0),
-                                evidence=finding.get('evidence', {}),
-                                mitre_technique=finding.get('mitre_technique'),
-                                mitre_tactic=finding.get('mitre_tactic'),
-                                remediation=finding.get('remediation', []),
-                                first_seen=datetime.utcnow(),
-                                last_seen=datetime.utcnow()
+                                source="cspm",
+                                rule_id=rule_id,
+                                rule_name=finding.get('rule_name') or finding.get('title') or rule_id,
+                                resource_id=asset_id,
+                                resource_name=asset.get('name') or asset_id,
+                                resource_type=asset.get('type') or 'unknown',
+                                resource_region=asset.get('region') or 'global',
+                                cloud_provider=(asset.get('provider') or 'AWS').upper(),
+                                risk_score=score_val,
+                                cvss_score=finding.get('cvss_score', 5.0),
+                                evidence=evidence_data,
+                                remediation_steps=finding.get('remediation', {}),
+                                tags=asset.get('configuration', {}).get('tags', {}),
+                                fingerprint=fingerprint,
+                                first_seen=now_utc,
+                                last_seen=now_utc,
+                                occurrence_count=1
                             )
                             self.db.add(new_finding)
                             findings_count += 1
@@ -102,7 +155,7 @@ class DetectionPipeline:
                     continue
             
             self.db.commit()
-            duration = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            duration = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
             
             return PipelineResult(
                 scan_id=scan_id,
@@ -114,6 +167,7 @@ class DetectionPipeline:
             )
             
         except Exception as e:
+            self.db.rollback()
             return PipelineResult(
                 scan_id=scan_id,
                 assets_processed=0,
@@ -126,13 +180,15 @@ class DetectionPipeline:
     def _load_rules(self) -> List[Dict]:
         """Load all rules from YAML files"""
         rules = []
-        # Support loading from security/rules/**/*.yaml
-        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "security", "rules"))
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "packages", "security", "rules"))
+        if not os.path.exists(base_dir):
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "rules"))
+
         rule_files = glob.glob(os.path.join(base_dir, "**", "*.yaml"), recursive=True)
         
         for rule_file in rule_files:
             try:
-                with open(rule_file, 'r') as f:
+                with open(rule_file, 'r', encoding="utf-8") as f:
                     docs = yaml.safe_load_all(f)
                     for r in docs:
                         if r and isinstance(r, dict) and 'id' in r:

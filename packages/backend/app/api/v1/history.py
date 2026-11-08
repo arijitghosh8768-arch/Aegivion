@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Optional
 from app.database import get_db
 from app.core.security import get_current_user
 from app.core.tenant import get_current_organization
+from app.api.deps import require_permission
 from app.models.history import AssetSnapshot, SecurityRiskSnapshot, FindingSuppression, SecurityChange, SyncQuality, EvaluationResult
 from app.models.cloud import CloudAsset
 from security.models.finding import Finding
@@ -173,7 +174,7 @@ def get_asset_diff(
         "changes": changes
     }
 
-@router.post("/findings/{finding_id}/suppress")
+@router.post("/findings/{finding_id}/suppress", dependencies=[Depends(require_permission("manage_findings"))])
 def suppress_finding(
     finding_id: str,
     reason: str,
