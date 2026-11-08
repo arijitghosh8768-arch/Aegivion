@@ -6,6 +6,7 @@ import { FileText, Download, Printer, Loader2, Shield, BarChart3, Scale, Radar, 
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { ReportTemplate } from "@/lib/data/reports";
 import { useAppStore } from "@/lib/store";
 

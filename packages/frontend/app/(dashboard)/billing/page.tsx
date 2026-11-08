@@ -200,7 +200,7 @@ export default function BillingPage() {
         >
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Current Tier</span>
-            <Badge variant="gradient" className="uppercase font-mono text-[10px]">
+            <Badge variant="default" className="uppercase font-mono text-[10px]">
               ACTIVE
             </Badge>
           </div>
@@ -238,7 +238,7 @@ export default function BillingPage() {
                 }`}
               >
                 {tier.popular && (
-                  <Badge variant="gradient" className="absolute -top-3 right-6 flex items-center gap-1">
+                  <Badge variant="default" className="absolute -top-3 right-6 flex items-center gap-1">
                     <Sparkles className="h-3 w-3" /> Most Popular
                   </Badge>
                 )}
