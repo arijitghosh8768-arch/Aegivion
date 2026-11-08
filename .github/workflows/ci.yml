@@ -108,7 +108,7 @@ jobs:
       # 3. Docker Container Scan with Trivy
       - name: Build Backend Docker Image
         run: |
-          docker build -t aegivion-backend:ci packages/backend
+          docker build -f packages/backend/Dockerfile -t aegivion-backend:ci .
 
       - name: Scan Backend Docker Image (Trivy)
         uses: aquasecurity/trivy-action@master
