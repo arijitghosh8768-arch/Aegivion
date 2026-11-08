@@ -24,6 +24,12 @@ packages/frontend/.env
 # Vite cache
 .vite/
 
+# Secrets and Private Keys
+*.pem
+*.key
+jwt_key.pem
+jwt_key*.pem
+
 # Environment files (keep .env.example, ignore real secrets)
 .env
 .env.*

@@ -1,0 +1,12 @@
+**/.git
+**/.github
+**/node_modules
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
+**/*.pem
+**/*.key
+jwt_key.pem
+**/.env*
+packages/frontend
