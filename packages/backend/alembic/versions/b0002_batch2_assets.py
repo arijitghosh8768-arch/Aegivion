@@ -16,6 +16,18 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
+    # 0. Alter legacy 8f0a cloud_accounts table if it exists
+    op.execute("""
+        DO $$ BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'cloud_accounts') THEN
+                ALTER TABLE cloud_accounts ALTER COLUMN status TYPE VARCHAR(50) USING status::text;
+                ALTER TABLE cloud_accounts ALTER COLUMN status SET DEFAULT 'connected';
+                ALTER TABLE cloud_accounts ALTER COLUMN provider TYPE VARCHAR(50) USING provider::text;
+                ALTER TABLE cloud_accounts ALTER COLUMN provider SET DEFAULT 'AWS';
+            END IF;
+        END $$;
+    """)
+
     # 1. Cloud Accounts
     op.create_table(
         'cloud_accounts',
@@ -72,9 +84,19 @@ def upgrade() -> None:
                 ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS business_criticality VARCHAR(50) DEFAULT 'UNKNOWN';
                 ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS internet_exposed BOOLEAN DEFAULT false;
                 ALTER TABLE cloud_assets ADD COLUMN IF NOT EXISTS importance_score FLOAT DEFAULT 0.0;
+                -- Drop old foreign key constraint pointing to cloud_accounts if present
+                ALTER TABLE cloud_assets DROP CONSTRAINT IF EXISTS cloud_assets_account_id_fkey;
                 -- Allow account_id to reference cloud_accounts_v2 or nullable
                 ALTER TABLE cloud_assets ALTER COLUMN account_id DROP NOT NULL;
                 ALTER TABLE cloud_assets ALTER COLUMN provider TYPE VARCHAR(50) USING provider::text;
+                -- Re-add FK constraint to cloud_accounts_v2 if not already pointing to it
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.table_constraints 
+                    WHERE constraint_name = 'cloud_assets_account_id_v2_fkey'
+                ) THEN
+                    ALTER TABLE cloud_assets ADD CONSTRAINT cloud_assets_account_id_v2_fkey 
+                    FOREIGN KEY (account_id) REFERENCES cloud_accounts_v2(id) ON DELETE CASCADE;
+                END IF;
             END IF;
         END $$;
     """)

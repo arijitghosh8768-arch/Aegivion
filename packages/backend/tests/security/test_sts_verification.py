@@ -25,7 +25,11 @@ class MockQuery:
     def all(self):
         return []
     def first(self):
-        return MagicMock()
+        mock_org = MagicMock()
+        mock_org.subscription_plan = "enterprise"
+        return mock_org
+    def count(self):
+        return 0
 
 class MockDB:
     def query(self, *args, **kwargs):

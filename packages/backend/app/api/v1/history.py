@@ -242,8 +242,7 @@ def get_historical_risk_dataset(
                 low_findings=10 + (i * 3),
                 open_incidents=1 if i < 4 else 2,
                 compliance_pass_rate=80 - (i * 2),
-                overall_risk=45 + (i * 5),
-                data_source="SYNTHETIC"
+                overall_risk=45 + (i * 5)
             ))
         for md in mock_data:
             db.add(md)

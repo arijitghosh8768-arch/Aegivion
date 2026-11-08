@@ -23,7 +23,9 @@ def get_aws_session(
     aws_region: Optional[str] = None,
     role_arn: Optional[str] = None,
     external_id: Optional[str] = None,
-    session_name: str = "AegivionCloudSession"
+    session_name: str = "AegivionCloudSession",
+    region_name: Optional[str] = None,
+    **kwargs
 ) -> Optional[boto3.Session]:
     """
     Creates and returns a boto3 Session configured with adaptive backoff retries.
@@ -31,7 +33,7 @@ def get_aws_session(
     """
     access_key = aws_access_key_id or os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = aws_secret_access_key or os.getenv("AWS_SECRET_ACCESS_KEY")
-    region = aws_region or os.getenv("AWS_REGION", "ap-south-1")
+    region = region_name or aws_region or os.getenv("AWS_REGION", "ap-south-1")
 
     # 1. Base Session (using explicit keys or default credentials chain)
     try:
