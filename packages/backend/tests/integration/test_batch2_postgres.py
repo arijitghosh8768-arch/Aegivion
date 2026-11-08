@@ -20,9 +20,23 @@ from app.repositories.cloud_account_repository import CloudAccountRepository
 
 PG_URL = "postgresql+psycopg2://aegivion:aegivion123@localhost:5432/aegivion"
 
+try:
+    import psycopg2
+    HAS_PSYCOPG2 = True
+except ImportError:
+    HAS_PSYCOPG2 = False
+
 @pytest.fixture(scope="module")
 def pg_session():
-    engine = create_engine(PG_URL)
+    if not HAS_PSYCOPG2:
+        pytest.skip("psycopg2 driver not installed in this environment")
+    try:
+        engine = create_engine(PG_URL)
+        with engine.connect() as conn:
+            pass
+    except Exception as e:
+        pytest.skip(f"PostgreSQL not reachable: {e}")
+
     Session = sessionmaker(bind=engine)
     session = Session()
     yield session
