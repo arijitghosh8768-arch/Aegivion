@@ -4,6 +4,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, JSON, Inte
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.database.base import BaseModel
+from app.core.database_types import EncryptedString
 
 class CloudProvider(str, enum.Enum):
     AWS = "AWS"
@@ -27,10 +28,10 @@ class CloudAccount(BaseModel):
     name = Column(String(200), nullable=False)
     provider = Column(String(50), nullable=False, default="AWS")
     aws_access_key_id = Column(String(100), nullable=True)
-    aws_secret_access_key = Column(String(100), nullable=True)
+    aws_secret_access_key = Column(EncryptedString(500), nullable=True)
     aws_region = Column(String(50), nullable=True, default="ap-south-1")
     role_arn = Column(String(300), nullable=True)
-    external_id = Column(String(100), nullable=True)
+    external_id = Column(EncryptedString(500), nullable=True)
     status = Column(String(50), default="connected")
     last_scan_at = Column(DateTime(timezone=True), nullable=True)
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)

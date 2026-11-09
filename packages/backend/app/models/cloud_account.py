@@ -3,6 +3,7 @@ from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from app.database.base import BaseModel
 from app.cloud.models import ConnectionStatus
+from app.core.database_types import EncryptedString
 
 class CloudAccountV2(BaseModel):
     __tablename__ = "cloud_accounts_v2"
@@ -15,7 +16,7 @@ class CloudAccountV2(BaseModel):
     default_region = Column(String(50), default="ap-south-1")
     connection_status = Column(String(50), default="disconnected")
     role_arn = Column(String(300), nullable=True)
-    external_id = Column(String(100), nullable=True)
+    external_id = Column(EncryptedString(500), nullable=True)
     last_sync_at = Column(DateTime(timezone=True), nullable=True)
     last_error = Column(String, nullable=True)
 

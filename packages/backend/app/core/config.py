@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     
     # Security Configuration
     SECRET_KEY: str = "development-secret-key"
+    ENCRYPTION_KEY: Optional[str] = None
     JWT_ALGORITHM: str = "RS256"
     JWT_PRIVATE_KEY: Optional[str] = None
     JWT_PUBLIC_KEY: Optional[str] = None
@@ -56,6 +57,10 @@ class Settings(BaseSettings):
             # Check JWT RSA Private Key
             if not self.JWT_PRIVATE_KEY and not os.getenv("JWT_PRIVATE_KEY"):
                 critical_missing.append("JWT_PRIVATE_KEY environment variable")
+
+            # Check ENCRYPTION_KEY
+            if not self.ENCRYPTION_KEY and not os.getenv("ENCRYPTION_KEY"):
+                critical_missing.append("ENCRYPTION_KEY environment variable")
                 
             if critical_missing:
                 raise ValueError(
