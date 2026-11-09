@@ -145,7 +145,7 @@ def get_reports_library(
 
 @router.get("/export")
 def export_findings_report(
-    format: str = Query("csv", regex="^(csv|json)$"),
+    format: str = Query("csv", pattern="^(csv|json)$"),
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):

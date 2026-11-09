@@ -81,7 +81,7 @@ class SubnetCollector(BaseCollector):
                     },
                     relationships=relationships
                 )
-                assets.append(envelope.dict())
+                assets.append(envelope.model_dump())
                 
         except ClientError as e:
             logger.error(f"AWS client error in SubnetCollector: {e}")
