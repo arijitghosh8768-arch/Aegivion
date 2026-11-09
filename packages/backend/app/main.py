@@ -169,17 +169,25 @@ def readiness_check(db: Any = Depends(get_db)):
     """Deeper check — confirms the DB connection actually works, not just that the process is running."""
     try:
         db.execute(text("SELECT 1"))
-        db_status = "healthy"
     except Exception as e:
-        db_status = f"unhealthy: {str(e)}"
+        return JSONResponse(
+            status_code=503,
+            content={
+                "success": False,
+                "status": "unhealthy",
+                "service": "backend",
+                "version": "0.1.0",
+                "database": f"unhealthy: {str(e)}"
+            }
+        )
 
     return APIResponse(
         success=True,
         data={
-            "status": "healthy" if db_status == "healthy" else "degraded",
+            "status": "healthy",
             "service": "backend",
             "version": "0.1.0",
-            "database": db_status
+            "database": "healthy"
         },
         timestamp=datetime.utcnow().isoformat(),
         request_id=str(uuid.uuid4())

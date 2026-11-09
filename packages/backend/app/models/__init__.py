@@ -11,7 +11,7 @@ if packages_dir not in sys.path:
     sys.path.append(packages_dir)
 
 # Import Base
-from app.database import Base
+from app.models.postgres_base import PostgresBase as Base
 
 # Import backend domain models
 from app.models.organization import Organization, SubscriptionPlan

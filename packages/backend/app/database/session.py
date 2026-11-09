@@ -20,19 +20,43 @@ DATABASE_URL = (
     or os.getenv("DATABASE_URL", "postgresql://aegivion:aegivion123@localhost:5432/aegivion")
 )
 
+# Fail-Fast in production if DATABASE_URL is pointing to localhost or is missing
+environment = os.getenv("ENVIRONMENT", "development").lower()
+is_localhost = any(h in DATABASE_URL for h in ("localhost", "127.0.0.1", "::1"))
+
+if environment in ("production", "prod") and is_localhost:
+    err_msg = (
+        "CRITICAL DATABASE CONFIGURATION ERROR: ENVIRONMENT is set to 'production', "
+        "but DATABASE_URL points to localhost or is unconfigured. "
+        "Please configure a valid managed PostgreSQL connection string (e.g. Supabase) on Render."
+    )
+    logger.critical(err_msg)
+    raise RuntimeError(err_msg)
+
 # Ensure postgresql+psycopg2:// scheme is used for psycopg2 driver
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# Create synchronous engine with connection pooling
+# Enforce sslmode=require for remote cloud databases (e.g. Supabase, Render Postgres)
+connect_args = {}
+if not is_localhost and "sslmode" not in DATABASE_URL:
+    if "?" in DATABASE_URL:
+        DATABASE_URL += "&sslmode=require"
+    else:
+        DATABASE_URL += "?sslmode=require"
+    connect_args["sslmode"] = "require"
+
+# Create synchronous engine with connection pooling and timeout resilience
 engine = create_engine(
     DATABASE_URL,
     pool_size=10,
     max_overflow=20,
     pool_timeout=30,
-    pool_recycle=1800,
+    pool_recycle=300,
+    pool_pre_ping=True,
+    connect_args=connect_args,
     echo=False
 )
 
