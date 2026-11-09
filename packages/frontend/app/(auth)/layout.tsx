@@ -25,8 +25,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </Link>
       </header>
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-10">{children}</main>
-      <footer className="relative z-10 pb-6 text-center text-[11px] text-muted-foreground">
-        © 2026 Aegivion Security Inc. · SOC 2 Type II · ISO 27001 · GDPR-ready
+      <footer className="relative z-10 flex flex-col items-center justify-center gap-2 pb-6 text-center text-[11px] text-muted-foreground">
+        <div>© 2026 Aegivion Security Inc. · SOC 2 Type II · ISO 27001 · GDPR-ready</div>
+        <div className="flex gap-4">
+          <Link href="/privacy" className="hover:text-foreground hover:underline">
+            Privacy Policy
+          </Link>
+          <span>·</span>
+          <Link href="/terms" className="hover:text-foreground hover:underline">
+            Terms of Service
+          </Link>
+        </div>
       </footer>
     </div>
   );

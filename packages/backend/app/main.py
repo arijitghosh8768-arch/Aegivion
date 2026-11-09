@@ -112,13 +112,22 @@ app.add_middleware(SecurityAuditMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 # CORS middleware config (registered last, so it executes first on requests and last on responses)
-allowed_origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "https://aegivion.vercel.app",
-]
+is_production = os.getenv("ENVIRONMENT", "").lower() in ("production", "prod")
+
+if is_production:
+    # Strictly restricted to Vercel domain and explicitly permitted origins in production
+    allowed_origins = [
+        "https://aegivion.vercel.app",
+    ]
+else:
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "https://aegivion.vercel.app",
+    ]
+
 env_origins = os.getenv("ALLOWED_ORIGINS", "")
 if env_origins:
     allowed_origins.extend([origin.strip() for origin in env_origins.split(",") if origin.strip()])
@@ -126,7 +135,7 @@ if env_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",  # Support all Vercel preview deployments
+    allow_origin_regex=r"https://.*\.vercel\.app" if not is_production else None,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
