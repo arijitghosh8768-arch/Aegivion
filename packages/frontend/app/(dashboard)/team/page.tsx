@@ -23,17 +23,19 @@ export default function TeamPage() {
   const [orgs, setOrgs] = useState<any[]>([]);
   const [targetOrg, setTargetOrg] = useState<string>("");
 
-  const isSuperAdmin = user?.role?.toLowerCase().replace(/\s/g, "") === "superadmin";
+  const cleanRole = user?.role?.toLowerCase().replace(/[\s_]/g, "") || "";
+  const isSuperAdmin = cleanRole === "superadmin";
+  const isAdmin = isSuperAdmin || cleanRole.includes("admin");
 
   useEffect(() => {
     // Only admins can view this page
-    if (user && user.role !== "admin" && user.role !== "superadmin" && user.role !== "super admin") {
+    if (user && !isAdmin) {
       router.push("/");
     } else if (user) {
       if (isSuperAdmin) {
         fetchOrgs();
       }
-      // If super admin hasn't selected an org yet, use their company as default
+      // If target org hasn't been set yet, use user's company/org ID
       if (!targetOrg && user.company) {
         setTargetOrg(user.company);
       }
@@ -45,7 +47,7 @@ export default function TeamPage() {
         setLoading(false);
       }
     }
-  }, [user, targetOrg, isSuperAdmin, router]);
+  }, [user, targetOrg, isSuperAdmin, isAdmin, router]);
 
   const fetchOrgs = async () => {
     try {
