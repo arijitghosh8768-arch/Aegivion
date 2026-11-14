@@ -107,8 +107,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Import and register Security Headers Middleware first (will execute after CORSMiddleware on responses)
 from .middleware.security import SecurityHeadersMiddleware
 from .middleware.security_audit import SecurityAuditMiddleware
+from .middleware.tenant_context import TenantContextMiddleware
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SecurityAuditMiddleware)
+app.add_middleware(TenantContextMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 # CORS middleware config (registered last, so it executes first on requests and last on responses)

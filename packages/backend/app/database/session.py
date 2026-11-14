@@ -1,9 +1,22 @@
 import os
 import logging
-from typing import Generator
+from typing import Generator, Optional
+from contextvars import ContextVar
 from dotenv import dotenv_values, load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text, event
 from sqlalchemy.orm import sessionmaker, Session
+
+# Tenant context variable for Row-Level Security
+current_tenant_org_id: ContextVar[Optional[str]] = ContextVar("current_tenant_org_id", default=None)
+
+def set_session_tenant(db: Session, org_id: Optional[str]) -> None:
+    """Set the PostgreSQL session variable app.current_org_id and switch to tenant role for Row-Level Security."""
+    if org_id:
+        db.execute(text("SET ROLE authenticated;"))
+        db.execute(text("SET LOCAL app.current_org_id = :org_id"), {"org_id": str(org_id)})
+    else:
+        db.execute(text("RESET ROLE;"))
+        db.execute(text("SET LOCAL app.current_org_id = ''"))
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +79,28 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
+@event.listens_for(Session, "after_begin")
+def receive_after_begin(session, transaction, connection):
+    """Automatically inject app.current_org_id into the PostgreSQL transaction if set in context."""
+    org_id = current_tenant_org_id.get()
+    if org_id:
+        connection.execute(text("SET ROLE authenticated;"))
+        connection.execute(text("SET LOCAL app.current_org_id = :org_id"), {"org_id": str(org_id)})
+    else:
+        connection.execute(text("RESET ROLE;"))
+
 def get_db() -> Generator[Session, None, None]:
     """
     Standard FastAPI dependency delivering a transactional sync SQLAlchemy Session.
     Automatically commits on normal completion and rolls back on exception.
     """
     db = SessionLocal()
+    org_id = current_tenant_org_id.get()
+    if org_id:
+        try:
+            set_session_tenant(db, org_id)
+        except Exception:
+            pass
     try:
         yield db
         db.commit()
