@@ -1,20 +1,38 @@
 import enum
-from app.database.base import LegacyBaseModel as BaseModel
+import uuid
+from sqlalchemy import Column, String, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import UUID, ENUM
+from sqlalchemy.orm import relationship
+from app.database.base import BaseModel
 
 class AuditAction(str, enum.Enum):
-    USER_LOGIN = "user_login"
-    USER_LOGOUT = "user_logout"
-    USER_CREATED = "user_created"
-    USER_UPDATED = "user_updated"
-    USER_DELETED = "user_deleted"
-    FINDING_CREATED = "finding_created"
-    FINDING_UPDATED = "finding_updated"
-    FINDING_RESOLVED = "finding_resolved"
-    REPORT_GENERATED = "report_generated"
-    SETTINGS_UPDATED = "settings_updated"
-    INTEGRATION_ADDED = "integration_added"
+    USER_LOGIN = "USER_LOGIN"
+    USER_LOGOUT = "USER_LOGOUT"
+    USER_CREATED = "USER_CREATED"
+    USER_UPDATED = "USER_UPDATED"
+    USER_DELETED = "USER_DELETED"
+    FINDING_CREATED = "FINDING_CREATED"
+    FINDING_UPDATED = "FINDING_UPDATED"
+    FINDING_RESOLVED = "FINDING_RESOLVED"
+    REPORT_GENERATED = "REPORT_GENERATED"
+    SETTINGS_UPDATED = "SETTINGS_UPDATED"
+    INTEGRATION_ADDED = "INTEGRATION_ADDED"
 
 class AuditLog(BaseModel):
+    __tablename__ = "audit_logs"
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
+    action = Column(ENUM(AuditAction, name="auditaction", create_type=False), nullable=False)
+    resource_type = Column(String(100), nullable=True)
+    resource_id = Column(UUID(as_uuid=True), nullable=True)
+    details = Column(JSON, default=dict)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(255), nullable=True)
+
+    user = relationship("User", foreign_keys=[user_id])
+    organization = relationship("Organization", foreign_keys=[organization_id])
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.user_id = kwargs.get("user_id")
@@ -27,11 +45,12 @@ class AuditLog(BaseModel):
         self.user_agent = kwargs.get("user_agent")
 
     def dict(self):
-        res = super().dict()
+        res = super().dict() if hasattr(super(), "dict") else {}
         res.update({
+            "id": str(self.id),
             "user_id": str(self.user_id) if self.user_id else None,
             "organization_id": str(self.organization_id) if self.organization_id else None,
-            "action": self.action,
+            "action": self.action.value if hasattr(self.action, "value") else str(self.action),
             "resource_type": self.resource_type,
             "resource_id": str(self.resource_id) if self.resource_id else None,
             "details": self.details,
@@ -39,4 +58,3 @@ class AuditLog(BaseModel):
             "user_agent": self.user_agent
         })
         return res
-

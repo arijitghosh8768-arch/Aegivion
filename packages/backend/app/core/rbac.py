@@ -30,7 +30,24 @@ class Permission(str, Enum):
 class RolePolicy:
     POLICIES = {
         "super_admin": ["*"],
+        "superadmin": ["*"],
         "organization_admin": [
+            "manage_users", "view_users", "delete_users",
+            "view_findings", "manage_findings", "resolve_findings",
+            "generate_reports", "view_reports", "delete_reports",
+            "view_assets", "manage_assets", "manage_settings",
+            "manage_integrations", "manage_billing", "use_ai_assistant",
+            "manage_knowledge", "manage_automation", "manage_incidents", "manage_org"
+        ],
+        "admin": [
+            "manage_users", "view_users", "delete_users",
+            "view_findings", "manage_findings", "resolve_findings",
+            "generate_reports", "view_reports", "delete_reports",
+            "view_assets", "manage_assets", "manage_settings",
+            "manage_integrations", "manage_billing", "use_ai_assistant",
+            "manage_knowledge", "manage_automation", "manage_incidents", "manage_org"
+        ],
+        "security_admin": [
             "manage_users", "view_users", "delete_users",
             "view_findings", "manage_findings", "resolve_findings",
             "generate_reports", "view_reports", "delete_reports",
@@ -43,8 +60,14 @@ class RolePolicy:
             "view_reports", "generate_reports", "view_assets", "use_ai_assistant",
             "manage_incidents"
         ],
+        "analyst": [
+            "view_findings", "manage_findings", "resolve_findings",
+            "view_reports", "generate_reports", "view_assets", "use_ai_assistant",
+            "manage_incidents"
+        ],
         "auditor": ["view_findings", "view_reports", "view_assets"],
-        "viewer": ["view_findings", "view_reports", "view_assets"]
+        "viewer": ["view_findings", "view_reports", "view_assets"],
+        "member": ["view_findings", "view_reports", "view_assets"]
     }
 
 class RBACService:
@@ -61,9 +84,15 @@ class RBACService:
     
     def has_permission(self, user_role: str, permission: str) -> bool:
         """Check if user role has specific permission"""
-        if user_role == "super_admin":
+        clean_role = (user_role or "").lower().replace(" ", "_").replace("-", "_")
+        if clean_role in ["super_admin", "superadmin"]:
             return True
-        return self.enforcer.enforce(user_role, permission, 'allow')
+        if clean_role in ["admin", "organization_admin", "org_admin", "security_admin"]:
+            clean_role = "organization_admin"
+        elif clean_role in ["analyst", "security_analyst"]:
+            clean_role = "security_analyst"
+
+        return self.enforcer.enforce(clean_role, permission, 'allow')
 
 rbac_service = RBACService()
 
