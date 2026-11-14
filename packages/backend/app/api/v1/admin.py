@@ -141,8 +141,7 @@ def create_org_admin(
         status=UserStatus.ACTIVE,
         email_verified=True,
         organization_id=target_org_id,
-        role_id=admin_role.id,
-        is_platform_admin=False
+        role_id=admin_role.id
     )
     db.add(new_user)
 
