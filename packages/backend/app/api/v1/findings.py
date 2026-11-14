@@ -50,10 +50,10 @@ def get_all_findings(
         return {"findings": [], "error": str(e), "message": "Supabase table may not exist yet"}
         
     try:
-        from app.models.org_settings import OrgSettings
-        settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
-        if settings and settings.enabled_cloud_providers:
-            enabled_providers = [p.lower() for p in settings.enabled_cloud_providers]
+        from app.models.organization import Organization
+        org_obj = db.query(Organization).filter(Organization.id == uuid.UUID(str(user_org_id))).first()
+        if org_obj and org_obj.settings and org_obj.settings.get("enabled_cloud_providers"):
+            enabled_providers = [p.lower() for p in org_obj.settings.get("enabled_cloud_providers")]
             findings = [f for f in findings if getattr(f, 'cloud_provider', '').lower() in enabled_providers]
     except Exception:
         pass
@@ -345,17 +345,19 @@ def get_all_assets(db: Session = Depends(get_db), current_user: Dict[str, Any] =
     user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
     
     assets_query = db.query(CloudAsset)
+    enabled_providers = None
     if user_org_id:
         assets_query = assets_query.filter(CloudAsset.organization_id == user_org_id)
-        from app.models.org_settings import OrgSettings
-        settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
-        if settings and settings.enabled_cloud_providers:
-            enabled_providers = [p.lower() for p in settings.enabled_cloud_providers]
-            # Convert enum if necessary, or just filter python side
-            # For simplicity, filter python side since CloudProvider is an Enum
+        try:
+            from app.models.organization import Organization
+            org_obj = db.query(Organization).filter(Organization.id == uuid.UUID(str(user_org_id))).first()
+            if org_obj and org_obj.settings and org_obj.settings.get("enabled_cloud_providers"):
+                enabled_providers = [p.lower() for p in org_obj.settings.get("enabled_cloud_providers")]
+        except Exception:
+            pass
 
     assets = assets_query.all()
-    if user_org_id and settings and settings.enabled_cloud_providers:
+    if enabled_providers:
         assets = [a for a in assets if (a.provider.value.lower() if hasattr(a.provider, 'value') else str(a.provider).lower()) in enabled_providers]
         
     result = []

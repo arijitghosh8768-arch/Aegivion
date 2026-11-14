@@ -82,12 +82,15 @@ async def explain_finding(
     
     logger.info("processing_explain_request", user_id=getattr(current_user, 'id', 'unknown'), finding_id=finding_id)
     
-    from app.models.org_settings import OrgSettings
+    from app.models.organization import Organization
     user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
     if user_org_id:
-        settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
-        if settings and not settings.ai_features_enabled:
-            raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
+        try:
+            org_obj = db.query(Organization).filter(Organization.id == uuid.UUID(str(user_org_id))).first()
+            if org_obj and org_obj.settings and not org_obj.settings.get("ai_features_enabled", True):
+                raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
+        except ValueError:
+            pass
     
     # 1. Fetch finding & asset from database (Strict fail-fast: NO mock fallbacks)
     finding_obj = None

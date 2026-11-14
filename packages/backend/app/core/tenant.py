@@ -24,6 +24,10 @@ def get_current_organization(current_user, db):
             detail="User is not associated with an organization",
         )
 
+    role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
+    if isinstance(role, str) and role.lower().replace(" ", "") == "superadmin":
+        return str(organization_id)
+
     org_repo = OrganizationRepository(db)
 
     membership = org_repo.get_membership(

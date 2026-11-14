@@ -17,7 +17,11 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
             try:
                 security_service = SecurityService()
                 payload = security_service.verify_token(token, token_type="access")
-                token_org_id = payload.get("org_id") or payload.get("organization_id")
+                role = (payload.get("role") or "").lower().replace(" ", "")
+                if role == "superadmin":
+                    token_org_id = "bypass"
+                else:
+                    token_org_id = payload.get("org") or payload.get("org_id") or payload.get("organization_id")
             except Exception:
                 # If token is invalid or expired, downstream auth dependencies will handle 401
                 pass
@@ -29,3 +33,4 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
             return response
         finally:
             current_tenant_org_id.reset(token_reset)
+

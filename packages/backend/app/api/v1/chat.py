@@ -74,7 +74,6 @@ logger = structlog.get_logger(__name__)
 
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.org_settings import OrgSettings
 
 @router.post("/chat", response_model=ChatResponse)
 @limiter.limit("10/minute")
@@ -90,9 +89,13 @@ async def chat_endpoint(request: Request, body: ChatRequest, current_user: Any =
     if not user_org_id:
         raise HTTPException(status_code=403, detail="User does not belong to an organization")
         
-    settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
-    if settings and not settings.ai_features_enabled:
-        raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
+    from app.models.organization import Organization
+    try:
+        org_obj = db.query(Organization).filter(Organization.id == uuid.UUID(str(user_org_id))).first()
+        if org_obj and org_obj.settings and not org_obj.settings.get("ai_features_enabled", True):
+            raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
+    except ValueError:
+        pass
 
     user_id = current_user.get("user_id") or current_user.get("id") if isinstance(current_user, dict) else getattr(current_user, "id", None)
     logger.info("processing_chat_request", user_id=str(user_id), org_id=str(user_org_id), finding_id=body.finding_id)
