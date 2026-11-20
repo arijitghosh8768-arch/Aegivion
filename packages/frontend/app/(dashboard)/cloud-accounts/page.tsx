@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { motion } from "framer-motion";
 import { Plus, RefreshCw, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -66,7 +67,9 @@ export default function CloudAccountsPage() {
     accountId: acc.account_id || "Unknown",
     status: acc.connection_status?.toLowerCase() === "failed" ? "error" : "connected",
     regions: acc.default_region ? 1 : 0,
-    lastScan: new Date().toISOString(),
+    // Use the real completion timestamp from the backend; the previous
+    // hard-coded `now` made every account look like it had just been scanned.
+    lastScan: acc.last_scan_at || acc.last_sync_at || null,
     resources: 0,
     findings: 0,
     critical: 0,
@@ -116,12 +119,49 @@ export default function CloudAccountsPage() {
     }
   });
 
-  const runScan = (id: string) => {
+  const runScan = async (id: string) => {
     setScanning(id);
-    setTimeout(() => {
+    try {
+      // Scans run in the background; poll the job until it finishes instead of
+      // holding one request open (which browsers/proxies can drop without any
+      // error). The account id is the backend account row for this tenant.
+      const started = await fetchApi<{ scan_id: string; status: string }>("/v1/scans/start", {
+        method: "POST",
+        body: JSON.stringify({ cloud_account_id: id }),
+      });
+
+      const scanId = started.scan_id;
+      if (!scanId) throw new Error("Scan did not return a scan id");
+
+      const deadline = Date.now() + 60 * 60 * 1000; // 1 hour hard ceiling
+      let consecutiveErrors = 0;
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        let job: { status: string; assets_discovered?: number; findings_generated?: number };
+        try {
+          job = await fetchApi<{ status: string; assets_discovered?: number; findings_generated?: number }>(
+            `/v1/scans/${scanId}`
+          );
+          consecutiveErrors = 0;
+        } catch (pollError) {
+          // Tolerate a few transient poll failures; a persistent one is real.
+          if (++consecutiveErrors >= 5) throw pollError;
+          continue;
+        }
+        const status = (job.status || "").toUpperCase();
+        if (status === "COMPLETED") return;
+        if (status === "FAILED") throw new Error("The scan failed. Check the account credentials and try again.");
+      }
+      throw new Error("The scan is still running after 1 hour. It will keep running on the server; refresh to see the result.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      alert(`Scan failed: ${message}`);
+    } finally {
       setScanning(null);
-      // In a real app we'd trigger a mutation here too
-    }, 1600);
+      // Refresh both the account (last scan time / status) and the findings.
+      queryClient.invalidateQueries({ queryKey: ["cloud_accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["findings"] });
+    }
   };
 
   return (
@@ -423,8 +463,10 @@ function Code({ children, className }: { children: React.ReactNode; className?: 
   );
 }
 
-function formatScan(iso: string) {
+function formatScan(iso: string | null) {
+  if (!iso) return "Never";
   const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "Never";
   const mins = Math.round((Date.now() - d.getTime()) / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;

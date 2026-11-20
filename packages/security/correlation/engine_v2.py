@@ -40,12 +40,41 @@ class CorrelationEngineV2:
         self.assets = assets
         self.relationships = relationships
 
+    def _asset_index(self) -> Dict[str, Dict]:
+        """asset_id -> asset, first occurrence wins (matches the old linear scan)."""
+        index: Dict[str, Dict] = {}
+        for asset in self.assets:
+            asset_id = asset.get("asset_id")
+            if asset_id is not None:
+                index.setdefault(asset_id, asset)
+        return index
+
+    def _relationship_index(self) -> Dict[tuple, List[Any]]:
+        """(asset_a, asset_b) -> relationship types, indexed in both directions.
+
+        Correlation used to rescan every relationship for every finding pair
+        (quadratic in findings x relationships).  This index has identical
+        matching semantics: an edge matches a pair in either orientation, and
+        self-referencing edges never match a pair of distinct assets.
+        """
+        index: Dict[tuple, List[Any]] = {}
+        for rel in self.relationships:
+            src = rel.get("source_asset_id", rel.get("source_id"))
+            tgt = rel.get("target_asset_id", rel.get("target_id"))
+            if not src or not tgt or src == tgt:
+                continue
+            rel_type = rel.get("relationship_type", rel.get("type"))
+            index.setdefault((src, tgt), []).append(rel_type)
+            index.setdefault((tgt, src), []).append(rel_type)
+        return index
+
     def correlate(self) -> List[CorrelatedGroup]:
         """Correlate loaded findings based on same asset, relationships, VPC, and MITRE contexts"""
         groups: List[CorrelatedGroup] = []
         
         # 1. Feature extraction
         finding_features = self._extract_features()
+        relationship_index = self._relationship_index()
         
         # 2. Match findings based on relationships and same assets
         matched_pairs = self._match_findings(finding_features)
@@ -80,14 +109,10 @@ class CorrelationEngineV2:
                     a1 = finding_features[fid1]["asset_id"]
                     a2 = finding_features[fid2]["asset_id"]
                     if a1 and a2 and a1 != a2:
-                        # Check M1 relationships
-                        for rel in self.relationships:
-                            src = rel.get("source_asset_id", rel.get("source_id"))
-                            tgt = rel.get("target_asset_id", rel.get("target_id"))
-                            rel_type = rel.get("relationship_type", rel.get("type"))
-                            if (src == a1 and tgt == a2) or (src == a2 and tgt == a1):
-                                has_confirmed_rel = True
-                                reasons.append(f"confirmed_asset_relationship: {rel_type}")
+                        # Check M1 relationships (indexed; same matches as a scan)
+                        for rel_type in relationship_index.get((a1, a2), ()):
+                            has_confirmed_rel = True
+                            reasons.append(f"confirmed_asset_relationship: {rel_type}")
                                 
                         # Check network context
                         v1 = finding_features[fid1].get("vpc_id")
@@ -121,6 +146,7 @@ class CorrelationEngineV2:
 
     def _extract_features(self) -> Dict[str, Dict]:
         features = {}
+        assets_by_id = self._asset_index()
         for f in self.findings:
             fid = f.get("finding_id", f.get("id"))
             asset_id = f.get("asset_id", f.get("resource_id"))
@@ -128,7 +154,7 @@ class CorrelationEngineV2:
             # Resolve VPC and Subnet from configurations
             vpc_id = None
             subnet_id = None
-            asset_obj = next((a for a in self.assets if a.get("asset_id") == asset_id), None)
+            asset_obj = assets_by_id.get(asset_id)
             if asset_obj and "configuration" in asset_obj:
                 config = asset_obj["configuration"]
                 vpc_id = config.get("vpc_id") or config.get("VpcId")
@@ -150,6 +176,7 @@ class CorrelationEngineV2:
     def _match_findings(self, features: Dict[str, Dict]) -> List[tuple]:
         pairs = []
         fids = list(features.keys())
+        relationship_index = self._relationship_index()
         
         for i in range(len(fids)):
             for j in range(i + 1, len(fids)):
@@ -165,16 +192,12 @@ class CorrelationEngineV2:
                 if feat1["asset_id"] == feat2["asset_id"] and feat1["asset_id"] is not None:
                     correlate = True
                 
-                # Rule 2: Asset Relationship
+                # Rule 2: Asset Relationship (indexed; same matches as a scan)
                 a1 = feat1["asset_id"]
                 a2 = feat2["asset_id"]
-                if a1 and a2 and a1 != a2:
-                    for rel in self.relationships:
-                        src = rel.get("source_asset_id", rel.get("source_id"))
-                        tgt = rel.get("target_asset_id", rel.get("target_id"))
-                        if (src == a1 and tgt == a2) or (src == a2 and tgt == a1):
-                            correlate = True
-                            
+                if a1 and a2 and a1 != a2 and (a1, a2) in relationship_index:
+                    correlate = True
+
                 # Rule 3: Network context (shared VPC) - weak unless coupled
                 if feat1["vpc_id"] and feat2["vpc_id"] and feat1["vpc_id"] == feat2["vpc_id"]:
                     # Weak correlation if same VPC but limit time window

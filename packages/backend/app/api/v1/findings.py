@@ -8,7 +8,7 @@ from app.database import get_db
 from security.models.finding import Finding
 from app.models.cloud import CloudAsset
 from app.models.organization import Organization
-from app.services.scanner import run_cloud_scan
+from app.services.scanner import run_cloud_scan, _resolve_account
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -467,14 +467,37 @@ logger = structlog.get_logger(__name__)
 @router.post("/scan", dependencies=[Depends(require_permission("manage_findings"))])
 @limiter.limit("2/minute")
 def trigger_cloud_scan(request: Request, db: Session = Depends(get_db), current_user: Dict[str, Any] = Depends(get_current_user)):
-    user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    log_audit_action("trigger_scan", "cloud", "all", str(current_user.get("id", "system")), str(user_org_id), {})
-    
-    scans_total.inc()
-    logger.info("cloud_scan_triggered", user_id=str(current_user.get("id", "system")), org_id=str(user_org_id))
+    # The tenant comes from the authenticated caller, never from the request.
+    user_org_id = get_current_organization(current_user, db)
+    requested_account_id = request.query_params.get("account_id")
 
     try:
-        scan_res = run_cloud_scan(db)
+        account = _resolve_account(db, requested_account_id, user_org_id)
+    except LookupError:
+        # Unknown and cross-tenant accounts are indistinguishable to the caller.
+        raise HTTPException(status_code=404, detail="Cloud account not found")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    log_audit_action(
+        "trigger_scan",
+        "cloud",
+        str(account.id),
+        str(current_user.get("id", "system")),
+        str(user_org_id),
+        {},
+    )
+    
+    scans_total.inc()
+    logger.info(
+        "cloud_scan_triggered",
+        user_id=str(current_user.get("id", "system")),
+        org_id=str(user_org_id),
+        account_id=str(account.id),
+    )
+
+    try:
+        scan_res = run_cloud_scan(db, account_id=str(account.id), organization_id=str(user_org_id))
         logger.info("cloud_scan_successful", scan_res=scan_res)
         return {"success": True, "data": scan_res}
     except Exception as e:

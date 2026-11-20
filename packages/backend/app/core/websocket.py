@@ -21,11 +21,14 @@ class ConnectionManager:
             
     async def broadcast_finding(self, finding: Dict[str, Any]):
         """Broadcast new finding to all active users"""
-        message = {
-            "type": "new_finding",
-            "data": finding
-        }
-        message_str = json.dumps(message)
+        await self._broadcast({"type": "new_finding", "data": finding})
+
+    async def broadcast_automation_update(self):
+        """Notify dashboards that worker state changed."""
+        await self._broadcast({"type": "automation_update"})
+
+    async def _broadcast(self, message: Dict[str, Any]):
+        message_str = json.dumps(message, default=str)
         for user_id, connections in self.active_connections.items():
             for connection in list(connections):
                 try:

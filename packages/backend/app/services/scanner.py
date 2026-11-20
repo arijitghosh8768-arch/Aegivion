@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import uuid
 from app.models.cloud import CloudAccount, CloudAsset, SecurityGroupAsset, IAMUserAsset, S3BucketAsset, EC2InstanceAsset, CloudProvider, CloudAccountStatus
 from app.models.organization import Organization
-from security.models.finding import Finding, FindingStatus, FindingSeverity, FindingSource
+from app.models.finding import Finding, FindingStatus, FindingSeverity, FindingSource
 from app.aws.client import get_aws_session
 from app.aws.s3 import discover_s3_buckets
 from app.aws.ec2 import discover_ec2_instances
@@ -68,8 +68,36 @@ def discover_cloudtrail_trails(session=None) -> list:
         print(f"Error listing CloudTrail trails: {e}")
     return discovered
 
-def run_cloud_scan(db: Session, account_id: str = None) -> dict:
+def _resolve_account(db: Session, account_id: str = None, organization_id: str = None) -> CloudAccount:
+    """Resolve a cloud account strictly inside the caller's tenant.
+
+    * ``LookupError`` - the explicit account does not exist *or* belongs to a
+      different tenant. Callers must return the same 404 for both so the route
+      cannot be used to probe other tenants' account ids.
+    * ``ValueError`` - no account was supplied and the tenant owns none.
+    """
+    query = db.query(CloudAccount)
+    if organization_id is not None:
+        query = query.filter(CloudAccount.organization_id == str(organization_id))
+
     if account_id:
+        account = query.filter(CloudAccount.id == str(account_id)).first()
+        if account is None:
+            raise LookupError("Cloud account not found")
+        return account
+
+    account = query.first()
+    if account is None:
+        raise ValueError("no tenant account is available to scan")
+    return account
+
+
+def run_cloud_scan(db: Session, account_id: str = None, organization_id: str = None) -> dict:
+    if organization_id is not None:
+        # Tenant-scoped path used by the HTTP route: never falls back to another
+        # tenant's account and never creates one.
+        account = _resolve_account(db, account_id, organization_id)
+    elif account_id:
         account = db.query(CloudAccount).filter(CloudAccount.id == account_id).first()
     else:
         account = db.query(CloudAccount).first()
@@ -112,10 +140,20 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
     vpcs = discover_vpcs(session)
     trails = discover_cloudtrail_trails(session)
 
+    # Findings belong to this account's own resources only: the previous
+    # unscoped delete removed every AWS finding in every tenant.
+    account_resource_ids = [
+        row[0]
+        for row in db.query(CloudAsset.resource_id)
+        .filter(CloudAsset.account_id == account.id)
+        .all()
+    ]
+    if account_resource_ids:
+        db.query(Finding).filter(
+            Finding.organization_id == account.organization_id,
+            Finding.resource_id.in_(account_resource_ids),
+        ).delete(synchronize_session=False)
     db.query(CloudAsset).filter(CloudAsset.account_id == account.id).delete()
-    db.commit()
-
-    db.query(Finding).filter(Finding.cloud_provider == "AWS").delete()
     db.commit()
 
     findings_to_create = []
@@ -147,6 +185,7 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
 
         if bucket["is_public"]:
             findings_to_create.append(Finding(
+                organization_id=account.organization_id,
                 title=f"S3 Bucket {bucket['bucket_name']} Publicly Accessible",
                 description=f"The S3 bucket '{bucket['bucket_name']}' allows public read or write access. Anyone on the internet can read or write to it.",
                 severity=FindingSeverity.HIGH,
@@ -209,6 +248,7 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
         
         if inst["has_public_ip"] and has_port_22_open:
             findings_to_create.append(Finding(
+                organization_id=account.organization_id,
                 title=f"EC2 Instance {inst['instance_id']} Exposes SSH to Public Internet",
                 description=f"EC2 Instance '{inst['instance_id']}' has a public IP and associated Security Groups allow inbound TCP port 22 (SSH) traffic from anywhere (0.0.0.0/0).",
                 severity=FindingSeverity.CRITICAL,
@@ -254,6 +294,7 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
 
         if user["is_admin"] and not user["mfa_enabled"]:
             findings_to_create.append(Finding(
+                organization_id=account.organization_id,
                 title=f"IAM Admin User {user['username']} MFA Disabled",
                 description=f"IAM User '{user['username']}' has administrative privileges but MFA is not enabled. If credentials leak, attackers gain full access.",
                 severity=FindingSeverity.CRITICAL,
@@ -273,6 +314,7 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
             
         if user["access_keys_age_days"] and user["access_keys_age_days"] > 90:
             findings_to_create.append(Finding(
+                organization_id=account.organization_id,
                 title=f"IAM User {user['username']} Access Keys Older Than 90 Days",
                 description=f"IAM User '{user['username']}' has access keys that are older than 90 days (Age: {user['access_keys_age_days']} days). Regular rotation is required.",
                 severity=FindingSeverity.MEDIUM,
@@ -305,6 +347,7 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
 
         if db_inst["publicly_accessible"]:
             findings_to_create.append(Finding(
+                organization_id=account.organization_id,
                 title=f"RDS Instance {db_inst['db_instance_identifier']} Publicly Accessible",
                 description=f"RDS database instance '{db_inst['db_instance_identifier']}' has public accessibility enabled, exposing the database port to the internet.",
                 severity=FindingSeverity.HIGH,
@@ -324,6 +367,7 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
 
         if not db_inst["storage_encrypted"]:
             findings_to_create.append(Finding(
+                organization_id=account.organization_id,
                 title=f"RDS Instance {db_inst['db_instance_identifier']} Encryption Disabled",
                 description=f"RDS database instance '{db_inst['db_instance_identifier']}' storage is not encrypted at rest. Data could be exposed if disk storage is leaked.",
                 severity=FindingSeverity.MEDIUM,
@@ -394,6 +438,7 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
         
         if not trail["is_logging"]:
             findings_to_create.append(Finding(
+                organization_id=account.organization_id,
                 title=f"CloudTrail {trail['trail_name']} Logging Disabled",
                 description=f"CloudTrail trail '{trail['trail_name']}' is not currently logging events. Auditing and breach detection will be ineffective.",
                 severity=FindingSeverity.HIGH,
@@ -421,7 +466,7 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
         f_data = {
             "finding_id": str(f.id),
             "title": f.title,
-            "severity": f.severity.value.capitalize(),
+            "severity": str(f.severity).capitalize(),
             "resource_id": f.resource_id,
             "resource_type": f.resource_type,
             "cloud_provider": f.cloud_provider,
@@ -429,10 +474,11 @@ def run_cloud_scan(db: Session, account_id: str = None) -> dict:
             "remediation": f.remediation_steps[0] if f.remediation_steps else "Fix it."
         }
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                loop.create_task(ws_manager.broadcast({"type": "new_finding", "data": f_data}))
-        except Exception:
+            loop = asyncio.get_running_loop()
+            loop.create_task(ws_manager.broadcast_finding(f_data))
+        except RuntimeError:
+            # The legacy scan runs synchronously; without a running loop there
+            # is no websocket to notify.
             pass
 
     return {

@@ -4,6 +4,10 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, String, Integer, DateTime, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
+# pgvector is a hard dependency of this model: ``knowledge_chunks.embedding``
+# is a real ``vector(384)`` column in PostgreSQL. Importing unconditionally
+# means a missing driver fails loudly instead of silently mapping the same
+# physical column as ``ARRAY(Float)``, which cannot read or write the schema.
 from pgvector.sqlalchemy import Vector
 from .postgres_base import PostgresBase
 
@@ -57,7 +61,7 @@ class KnowledgeChunk(PostgresBase):
     content_hash = Column(String, nullable=False, index=True)
     
     # Vector store specifics - Fixed dimension to 384 for bge-small-en-v1.5
-    embedding = Column(Vector(384), nullable=True) 
+    embedding = Column(Vector(384), nullable=True)
     embedding_model = Column(String, nullable=False, default="bge-small-en-v1.5")
     token_count = Column(Integer, default=0)
     

@@ -80,12 +80,14 @@ async def automation_worker_loop():
         for w in workers:
             hb = db.query(AgentHeartbeat).filter_by(worker=w).first()
             if not hb:
+                # Worker heartbeats describe global agent health, not tenant
+                # resources, so they carry no organization scope.
                 hb = AgentHeartbeat(
                     id=uuid.uuid4(),
                     worker=w,
                     status="RUNNING",
                     current_activity="Initializing...",
-                    organization_id=uuid.uuid4()
+                    organization_id=None
                 )
                 db.add(hb)
         db.commit()
@@ -146,7 +148,7 @@ async def automation_worker_loop():
                 if now > created + timedelta(seconds=10):
                     logger.info(f"Completing execution: {exec_item.id}")
                     exec_item.status = "COMPLETED"
-                    exec_item.completed_at = now.isoformat()
+                    exec_item.completed_at = now
                     exec_item.verification_status = "SUCCESS"
                     db.add(exec_item)
 
@@ -158,7 +160,7 @@ async def automation_worker_loop():
                 last_periodic_check = now
             
             # Broadcast update to UI connected via WS
-            await ws_manager.broadcast("automation_update")
+            await ws_manager.broadcast_automation_update()
             
         except Exception as e:
             logger.error(f"Error in automation worker: {e}")

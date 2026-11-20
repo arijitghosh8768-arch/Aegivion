@@ -68,9 +68,11 @@ logger = structlog.get_logger(__name__)
 @router.post("/explain/{finding_id}")
 @limiter.limit("10/minute")
 async def explain_finding(
-    request_obj: Request,
+    # slowapi resolves the Request by the literal parameter name "request", so
+    # the Starlette Request must own that name; the body is "body".
+    request: Request,
     finding_id: str,
-    request: ExplainRequest,
+    body: ExplainRequest,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user)
 ):
@@ -82,12 +84,10 @@ async def explain_finding(
     
     logger.info("processing_explain_request", user_id=getattr(current_user, 'id', 'unknown'), finding_id=finding_id)
     
-    from app.models.org_settings import OrgSettings
+    from app.services.org_ai_access import is_ai_enabled_for_organization
     user_org_id = current_user.get("organization_id") if isinstance(current_user, dict) else getattr(current_user, "organization_id", None)
-    if user_org_id:
-        settings = db.query(OrgSettings).filter(OrgSettings.organization_id == str(user_org_id)).first()
-        if settings and not settings.ai_features_enabled:
-            raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
+    if user_org_id and not is_ai_enabled_for_organization(db, user_org_id):
+        raise HTTPException(status_code=403, detail="AI features are not enabled for your organization")
     
     # 1. Fetch finding & asset from database (Strict fail-fast: NO mock fallbacks)
     finding_obj = None
@@ -419,7 +419,7 @@ async def security_brief(
     brief_service = SecurityBriefService(provider, risk_engine)
     
     brief_plan = await brief_service.generate_brief(
-        cloud_account_id=request.cloud_account_id or "all",
+        cloud_account_id=body.cloud_account_id or "all",
         findings=findings_to_use,
         assets=assets_to_use
     )

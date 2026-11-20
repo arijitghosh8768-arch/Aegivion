@@ -37,6 +37,7 @@ jwt_key*.pem
 *.env.local
 *.env.production
 *.env.test
+!.env.test.example
 
 # Build artifacts
 *.pyc
@@ -62,3 +63,9 @@ coverage.xml
 packages/backend/alembic/__pycache__/
 packages/backend/alembic/versions/__pycache__/
 ..bfg-report/
+
+# Local-only scratch/debug scripts (may contain local credentials)
+.local-scratch/
+
+# Generated validation/benchmark artifacts
+packages/backend/reports/

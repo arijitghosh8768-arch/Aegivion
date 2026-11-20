@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
 from botocore.exceptions import ClientError
@@ -45,32 +46,48 @@ class IAMCollector(BaseCollector):
             return []
     
     async def _collect_users(self) -> List[Dict[str, Any]]:
-        """Collect IAM users with security metadata"""
-        users = []
+        """Collect IAM users with security metadata.
+
+        Per-user metadata calls are issued concurrently; ``BaseCollector._aws``
+        bounds them per service and the shared AWS slot bounds all collectors.
+        """
         paginator = self.iam_client.get_paginator('list_users')
-        
-        for page in paginator.paginate():
-            for user in page.get('Users', []):
-                try:
-                    normalized = await self._normalize_user(user)
-                    users.append(normalized)
-                except ClientError as e:
-                    logger.error(f"Failed to normalize user {user.get('UserName')}: {str(e)}")
+        pages = await self._aws(lambda: list(paginator.paginate()))
+        users = []
+
+        for page in pages:
+            outcomes = await asyncio.gather(
+                *(self._normalize_user(user) for user in page.get('Users', [])),
+                return_exceptions=True,
+            )
+            for user, outcome in zip(page.get('Users', []), outcomes):
+                if isinstance(outcome, BaseException):
+                    logger.error(f"Failed to normalize user {user.get('UserName')}: {outcome}")
                     continue
-        
+                users.append(outcome)
+
         return users
     
     async def _normalize_user(self, user: Dict) -> Dict[str, Any]:
         """Normalize IAM user with complete security metadata"""
         username = user['UserName']
         
-        # Get security metadata
-        groups = await self._get_user_groups(username)
-        attached_policies = await self._get_attached_policies(username, 'user')
-        inline_policies = await self._get_inline_policies(username, 'user')
-        access_keys = await self._get_access_keys(username)
-        mfa_enabled = await self._check_mfa(username)
-        console_access = await self._check_console_access(username)
+        # Get security metadata concurrently (bounded per service).
+        (
+            groups,
+            attached_policies,
+            inline_policies,
+            access_keys,
+            mfa_enabled,
+            console_access,
+        ) = await asyncio.gather(
+            self._get_user_groups(username),
+            self._get_attached_policies(username, 'user'),
+            self._get_inline_policies(username, 'user'),
+            self._get_access_keys(username),
+            self._check_mfa(username),
+            self._check_console_access(username),
+        )
         
         # Get password last used
         password_last_used = user.get('PasswordLastUsed')
@@ -142,7 +159,7 @@ class IAMCollector(BaseCollector):
     async def _get_user_groups(self, username: str) -> List[str]:
         """Get groups for a user"""
         try:
-            response = self.iam_client.list_groups_for_user(UserName=username)
+            response = await self._aws(self.iam_client.list_groups_for_user, UserName=username)
             return [group['GroupName'] for group in response.get('Groups', [])]
         except ClientError:
             return []
@@ -150,7 +167,7 @@ class IAMCollector(BaseCollector):
     async def _get_attached_policies(self, username: str, target_type: str = 'user') -> List[Dict]:
         """Get attached policies for a user"""
         try:
-            response = self.iam_client.list_attached_user_policies(UserName=username)
+            response = await self._aws(self.iam_client.list_attached_user_policies, UserName=username)
             return [
                 {
                     'arn': policy['PolicyArn'],
@@ -164,7 +181,7 @@ class IAMCollector(BaseCollector):
     async def _get_inline_policies(self, username: str, target_type: str = 'user') -> List[str]:
         """Get inline policies for a user"""
         try:
-            response = self.iam_client.list_user_policies(UserName=username)
+            response = await self._aws(self.iam_client.list_user_policies, UserName=username)
             return response.get('PolicyNames', [])
         except ClientError:
             return []
@@ -172,12 +189,14 @@ class IAMCollector(BaseCollector):
     async def _get_access_keys(self, username: str) -> List[Dict[str, Any]]:
         """Get access keys with security metadata and unknown handling"""
         try:
-            response = self.iam_client.list_access_keys(UserName=username)
+            response = await self._aws(self.iam_client.list_access_keys, UserName=username)
             keys = []
+            metadata = response.get('AccessKeyMetadata', [])
+            last_used_values = await asyncio.gather(
+                *(self._get_key_last_used(key['AccessKeyId']) for key in metadata)
+            )
             
-            for key in response.get('AccessKeyMetadata', []):
-                # Get last used data
-                last_used = await self._get_key_last_used(key['AccessKeyId'])
+            for key, last_used in zip(metadata, last_used_values):
                 
                 # Calculate age
                 created_date = key['CreateDate']
@@ -199,8 +218,8 @@ class IAMCollector(BaseCollector):
     async def _get_key_last_used(self, access_key_id: str) -> Dict[str, Any]:
         """Get last used metadata with unknown handling"""
         try:
-            response = self.iam_client.get_access_key_last_used(
-                AccessKeyId=access_key_id
+            response = await self._aws(
+                self.iam_client.get_access_key_last_used, AccessKeyId=access_key_id
             )
             last_used_info = response.get('AccessKeyLastUsed', {})
             
@@ -231,7 +250,7 @@ class IAMCollector(BaseCollector):
     async def _check_mfa(self, username: str) -> bool:
         """Check if user has MFA enabled"""
         try:
-            response = self.iam_client.list_mfa_devices(UserName=username)
+            response = await self._aws(self.iam_client.list_mfa_devices, UserName=username)
             return len(response.get('MFADevices', [])) > 0
         except ClientError:
             return False
@@ -239,7 +258,7 @@ class IAMCollector(BaseCollector):
     async def _has_console_access(self, username: str) -> bool:
         """Check if user has console access (has login profile)"""
         try:
-            response = self.iam_client.get_login_profile(UserName=username)
+            response = await self._aws(self.iam_client.get_login_profile, UserName=username)
             return True
         except ClientError as e:
             if e.response['Error']['Code'] == 'NoSuchEntity':
@@ -250,17 +269,18 @@ class IAMCollector(BaseCollector):
         """Collect IAM roles"""
         roles = []
         paginator = self.iam_client.get_paginator('list_roles')
+        pages = await self._aws(lambda: list(paginator.paginate()))
         
-        for page in paginator.paginate():
+        for page in pages:
             for role in page.get('Roles', []):
                 try:
                     role_name = role['RoleName']
                     
-                    # Get attached policies
-                    attached_policies = await self._get_role_policies(role_name)
-                    
-                    # Get inline policies
-                    inline_policies = await self._get_role_inline_policies(role_name)
+                    # Get attached and inline policies concurrently
+                    attached_policies, inline_policies = await asyncio.gather(
+                        self._get_role_policies(role_name),
+                        self._get_role_inline_policies(role_name),
+                    )
                     
                     normalized = {
                         "asset_id": f"iam:role:{role_name}",
@@ -297,7 +317,7 @@ class IAMCollector(BaseCollector):
     async def _get_role_policies(self, role_name: str) -> List[Dict]:
         """Get attached policies for a role"""
         try:
-            response = self.iam_client.list_attached_role_policies(RoleName=role_name)
+            response = await self._aws(self.iam_client.list_attached_role_policies, RoleName=role_name)
             return [
                 {
                     'arn': policy['PolicyArn'],
@@ -311,7 +331,7 @@ class IAMCollector(BaseCollector):
     async def _get_role_inline_policies(self, role_name: str) -> List[str]:
         """Get inline policies for a role"""
         try:
-            response = self.iam_client.list_role_policies(RoleName=role_name)
+            response = await self._aws(self.iam_client.list_role_policies, RoleName=role_name)
             return response.get('PolicyNames', [])
         except ClientError:
             return []
@@ -320,8 +340,9 @@ class IAMCollector(BaseCollector):
         """Collect IAM groups"""
         groups = []
         paginator = self.iam_client.get_paginator('list_groups')
+        pages = await self._aws(lambda: list(paginator.paginate()))
         
-        for page in paginator.paginate():
+        for page in pages:
             for group in page.get('Groups', []):
                 group_name = group['GroupName']
                 
@@ -361,7 +382,7 @@ class IAMCollector(BaseCollector):
     async def _get_group_policies(self, group_name: str) -> List[Dict]:
         """Get attached policies for a group"""
         try:
-            response = self.iam_client.list_attached_group_policies(GroupName=group_name)
+            response = await self._aws(self.iam_client.list_attached_group_policies, GroupName=group_name)
             return [
                 {
                     'arn': policy['PolicyArn'],
@@ -376,8 +397,9 @@ class IAMCollector(BaseCollector):
         """Collect IAM policies"""
         policies = []
         paginator = self.iam_client.get_paginator('list_policies')
+        pages = await self._aws(lambda: list(paginator.paginate(Scope='Local')))
         
-        for page in paginator.paginate(Scope='Local'):
+        for page in pages:
             for policy in page.get('Policies', []):
                 if policy.get('AttachmentCount', 0) > 0:
                     try:
@@ -393,9 +415,10 @@ class IAMCollector(BaseCollector):
         """Normalize policy with statement analysis"""
         try:
             # Get policy version
-            version_response = self.iam_client.get_policy_version(
+            version_response = await self._aws(
+                self.iam_client.get_policy_version,
                 PolicyArn=policy['Arn'],
-                VersionId=policy['DefaultVersionId']
+                VersionId=policy['DefaultVersionId'],
             )
             
             policy_document = version_response['PolicyVersion']['Document']

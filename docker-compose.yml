@@ -5,7 +5,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: aegivion
-      POSTGRES_PASSWORD: aegivion123
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
       POSTGRES_DB: aegivion
     ports:
       - "5432:5432"
@@ -43,7 +43,7 @@ services:
       - postgres
       - redis
     environment:
-      DATABASE_URL: postgresql://aegivion:aegivion123@postgres/aegivion
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:?DB_PASSWORD must be set}@postgres/aegivion
       REDIS_URL: redis://redis:6379/0
 
   security:
@@ -56,7 +56,7 @@ services:
       - postgres
       - redis
     environment:
-      DATABASE_URL: postgresql://aegivion:aegivion123@postgres/aegivion
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:?DB_PASSWORD must be set}@postgres/aegivion
       REDIS_URL: redis://redis:6379/0
 
   ai:
@@ -70,7 +70,7 @@ services:
       - redis
       - qdrant
     environment:
-      DATABASE_URL: postgresql://aegivion:aegivion123@postgres/aegivion
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:?DB_PASSWORD must be set}@postgres/aegivion
       REDIS_URL: redis://redis:6379/0
       VECTOR_DB_URL: http://qdrant:6333
 
@@ -84,7 +84,7 @@ services:
       - postgres
       - redis
     environment:
-      DATABASE_URL: postgresql://aegivion:aegivion123@postgres/aegivion
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:?DB_PASSWORD must be set}@postgres/aegivion
       REDIS_URL: redis://redis:6379/0
 
   frontend:

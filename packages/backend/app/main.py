@@ -43,12 +43,18 @@ import asyncio
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Start the automation worker
-    from app.workers.automation_worker import automation_worker_loop
-    worker_task = asyncio.create_task(automation_worker_loop())
+    from app.core.config import settings
+
+    worker_task = None
+    # The background worker must not run inside tests or a one-off test client:
+    # it would scan fixture accounts concurrently with the test transaction.
+    if settings.ENVIRONMENT.lower() not in ("test", "testing"):
+        from app.workers.automation_worker import automation_worker_loop
+        worker_task = asyncio.create_task(automation_worker_loop())
     yield
     # Shutdown: Cancel the worker
-    worker_task.cancel()
+    if worker_task is not None:
+        worker_task.cancel()
 
 app = FastAPI(
     title="Aegivion API",

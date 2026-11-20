@@ -29,10 +29,12 @@ async def check_pg():
             pytest.skip("PostgreSQL is unavailable. Skipping integration tests.")
     return available
 
+@pytest.mark.skip(reason="unimplemented placeholder: TwinPersistenceRepository round-trip is not written yet")
 async def test_twin_persistence_repository(check_pg):
     # Future placeholder to verify TwinPersistenceRepository saves/loads correctly
     pass
 
+@pytest.mark.skip(reason="unimplemented placeholder: AgentStateRepository round-trip is not written yet")
 async def test_agent_state_repository(check_pg):
     # Future placeholder for AgentStateRepository
     pass

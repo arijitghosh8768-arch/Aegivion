@@ -1,7 +1,11 @@
+import asyncio
+import os
 from typing import Any, Optional, Dict, List
 from enum import Enum
 from datetime import datetime
 from pydantic import BaseModel, Field
+
+from app.cloud.aws.concurrency import run_aws_call
 
 class UnknownValue:
     """Explicit unknown value to distinguish from None/False"""
@@ -34,6 +38,16 @@ class BaseCollector:
         self.session = session
         self.region = region
         self.collector_name = "base"
+        # Per-service cap; the shared run_aws_call slot additionally bounds the
+        # total number of in-flight AWS requests across all collectors.
+        self._service_sem = asyncio.Semaphore(
+            int(os.getenv("AEGIVION_PER_SERVICE_CONCURRENCY", "8"))
+        )
+
+    async def _aws(self, fn, *args, **kwargs):
+        """Run a blocking boto3 call off the event loop, bounded per service."""
+        async with self._service_sem:
+            return await run_aws_call(fn, *args, **kwargs)
     
     async def collect(self) -> List[Dict[str, Any]]:
         """Override in subclasses"""

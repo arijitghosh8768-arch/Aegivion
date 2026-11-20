@@ -1,24 +1,24 @@
 import os
 import logging
 from typing import Generator
-from dotenv import dotenv_values, load_dotenv
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 logger = logging.getLogger(__name__)
 
-# Load local .env and .env.test if present
+# Load local .env only. The test suite exports TEST_DATABASE_URL into the
+# process before importing the app; a git-ignored .env.test must never redirect
+# a running application to the isolated test database.
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 load_dotenv(os.path.join(base_dir, ".env"))
 
-env_test_file = os.path.join(base_dir, ".env.test")
-test_env_vals = dotenv_values(env_test_file) if os.path.exists(env_test_file) else {}
-
-DATABASE_URL = (
-    os.getenv("TEST_DATABASE_URL")
-    or test_env_vals.get("TEST_DATABASE_URL")
-    or os.getenv("DATABASE_URL", "postgresql://aegivion:aegivion123@localhost:5432/aegivion")
-)
+DATABASE_URL = os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is not configured. Set it in the environment (or in the "
+        "git-ignored packages/backend/.env) before starting the backend."
+    )
 
 # Fail-Fast in production if DATABASE_URL is pointing to localhost or is missing
 environment = os.getenv("ENVIRONMENT", "development").lower()

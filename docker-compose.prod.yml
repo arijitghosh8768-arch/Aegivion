@@ -5,7 +5,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: aegivion
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-aegivion123}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
       POSTGRES_DB: aegivion
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
@@ -38,7 +38,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: aegivion_backend_prod
     environment:
-      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:-aegivion123}@postgres/aegivion
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:?DB_PASSWORD must be set}@postgres/aegivion
       REDIS_URL: redis://redis:6379/0
       SECRET_KEY: ${SECRET_KEY:-super-secret-key-123}
     depends_on:
@@ -58,7 +58,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: aegivion_security_prod
     environment:
-      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:-aegivion123}@postgres/aegivion
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:?DB_PASSWORD must be set}@postgres/aegivion
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,7 +69,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: aegivion_ai_prod
     environment:
-      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:-aegivion123}@postgres/aegivion
+      DATABASE_URL: postgresql://aegivion:${DB_PASSWORD:?DB_PASSWORD must be set}@postgres/aegivion
       VECTOR_DB_URL: http://qdrant:6333
     depends_on:
       postgres:
@@ -109,7 +109,7 @@ services:
     image: grafana/grafana:latest
     container_name: aegivion_grafana_prod
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set}
     ports:
       - "3001:3000"
     volumes:

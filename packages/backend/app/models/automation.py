@@ -1,14 +1,30 @@
 from typing import Dict, Any, List, Optional
-from datetime import datetime
-from app.database.base import LegacyBaseModel as OrmBaseModel
+from datetime import datetime, timezone
+from sqlalchemy import Column, DateTime, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-class AgentHeartbeat(OrmBaseModel):
+from app.database.base import BaseModel, LegacyBaseModel as OrmBaseModel
+
+# Worker state lives in real PostgreSQL tables (migration b0011). These were
+# previously declared as legacy mock classes, so any ORM query raised
+# AttributeError ('MockField' object has no attribute '_post_inspect').
+class AgentHeartbeat(BaseModel):
+    __tablename__ = "agent_heartbeats"
+
+    organization_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    worker = Column(String(50), nullable=False, index=True)
+    status = Column(String(30), nullable=False, default="RUNNING")
+    last_heartbeat = Column(String(64), nullable=True)
+    current_activity = Column(String(255), nullable=True)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
         self.worker = kwargs.get("worker", "discovery")
         self.status = kwargs.get("status", "RUNNING")
-        self.last_heartbeat = kwargs.get("last_heartbeat", datetime.utcnow().isoformat())
+        self.last_heartbeat = kwargs.get(
+            "last_heartbeat", datetime.now(timezone.utc).isoformat()
+        )
         self.current_activity = kwargs.get("current_activity", "Idle")
         
     def dict(self):
@@ -22,7 +38,24 @@ class AgentHeartbeat(OrmBaseModel):
         })
         return d
 
-class ResponseExecution(OrmBaseModel):
+class ResponseExecution(BaseModel):
+    __tablename__ = "response_executions"
+
+    organization_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    runbook_id = Column(UUID(as_uuid=True), nullable=True)
+    finding_id = Column(UUID(as_uuid=True), nullable=True)
+    asset_id = Column(UUID(as_uuid=True), nullable=True)
+    provider = Column(String(50), nullable=True)
+    action_type = Column(String(100), nullable=True)
+    resource_id = Column(String(255), nullable=True)
+    status = Column(String(30), nullable=False, default="QUEUED", index=True)
+    verification_status = Column(String(30), nullable=False, default="PENDING")
+    error_message = Column(Text, nullable=True)
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    executed_by = Column(UUID(as_uuid=True), nullable=True)
+    details = Column(JSONB, nullable=True)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.organization_id = kwargs.get("organization_id")
@@ -34,7 +67,7 @@ class ResponseExecution(OrmBaseModel):
         self.status = kwargs.get("status", "QUEUED")
         self.verification_status = kwargs.get("verification_status", "PENDING")
         self.created_by = kwargs.get("created_by")
-        self.created_at = kwargs.get("created_at", datetime.utcnow().isoformat())
+        self.created_at = kwargs.get("created_at", datetime.now(timezone.utc))
         self.completed_at = kwargs.get("completed_at")
         self.details = kwargs.get("details", {})
         

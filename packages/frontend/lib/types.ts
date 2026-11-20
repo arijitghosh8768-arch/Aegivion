@@ -11,7 +11,7 @@ export interface CloudAccount {
   accountId: string;
   status: "connected" | "degraded" | "error";
   regions: number;
-  lastScan: string;
+  lastScan: string | null;
   resources: number;
   findings: number;
   critical: number;

@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
 from botocore.exceptions import ClientError
@@ -15,64 +16,90 @@ class S3Collector(BaseCollector):
         self.collector_name = "s3"
     
     async def collect(self) -> List[Dict[str, Any]]:
-        """Collect S3 buckets with complete security configuration"""
+        """Collect S3 buckets with complete security configuration.
+
+        Buckets are collected concurrently; the per-service and global AWS
+        semaphores bound in-flight requests, and each bucket's failure is
+        contained so one bad bucket cannot drop the rest.
+        """
         try:
-            buckets = []
-            response = self.s3_client.list_buckets()
-            
-            for bucket in response.get('Buckets', []):
-                bucket_name = bucket['Name']
-                
-                try:
-                    # Get region
-                    region = await self._get_bucket_region(bucket_name)
-                    
-                    # Only collect buckets in configured region
-                    if self.region and region != self.region:
-                        continue
-                    
-                    # Collect security configuration with per-control error handling
-                    security_config = await self._collect_security_config(bucket_name)
-                    security_config['created_at'] = bucket['CreationDate'].isoformat()
-                    
-                    normalized = await self._normalize_bucket(bucket_name, region, security_config)
-                    buckets.append(normalized)
-                    
-                except ClientError as e:
-                    if e.response['Error']['Code'] in ['AccessDenied', 'UnauthorizedOperation']:
-                        logger.warning(f"Access denied for bucket {bucket_name}")
-                        # Still save with partial data
-                        partial_config = await self._collect_partial_config(bucket_name)
-                        if partial_config:
-                            partial_config['created_at'] = bucket['CreationDate'].isoformat()
-                            normalized = await self._normalize_bucket(bucket_name, region, partial_config)
-                            normalized['metadata']['collection_status'] = 'partial'
-                            buckets.append(normalized)
-                    else:
-                        logger.error(f"Failed to collect bucket {bucket_name}: {str(e)}")
-                        continue
-                        
+            response = await self._aws(self.s3_client.list_buckets)
+
+            outcomes = await asyncio.gather(
+                *(self._collect_bucket(bucket) for bucket in response.get('Buckets', [])),
+                return_exceptions=True,
+            )
+            buckets = [item for item in outcomes if isinstance(item, dict)]
+            for outcome in outcomes:
+                if isinstance(outcome, BaseException):
+                    logger.error(f"Failed to collect S3 bucket: {outcome}")
+
             logger.info(f"Collected {len(buckets)} S3 buckets from {self.region or 'all'}")
             return buckets
-            
+
         except ClientError as e:
             logger.error(f"S3 collection failed: {str(e)}")
             return []
         except Exception as e:
             logger.error(f"Unexpected error in S3 collection: {str(e)}")
             return []
+
+    async def _collect_bucket(self, bucket: Dict[str, Any]):
+        """Collect one bucket; returns None when skipped or unrecoverable."""
+        bucket_name = bucket['Name']
+        region = await self._get_bucket_region(bucket_name)
+
+        # Only collect buckets in configured region
+        if self.region and region != self.region:
+            return None
+
+        try:
+            # Collect security configuration with per-control error handling
+            security_config = await self._collect_security_config(bucket_name)
+            security_config['created_at'] = bucket['CreationDate'].isoformat()
+            return await self._normalize_bucket(bucket_name, region, security_config)
+        except ClientError as e:
+            if e.response['Error']['Code'] in ['AccessDenied', 'UnauthorizedOperation']:
+                logger.warning(f"Access denied for bucket {bucket_name}")
+                partial_config = await self._collect_partial_config(bucket_name)
+                if partial_config:
+                    partial_config['created_at'] = bucket['CreationDate'].isoformat()
+                    normalized = await self._normalize_bucket(bucket_name, region, partial_config)
+                    normalized['metadata']['collection_status'] = 'partial'
+                    return normalized
+            else:
+                logger.error(f"Failed to collect bucket {bucket_name}: {str(e)}")
+        return None
     
     async def _collect_security_config(self, bucket_name: str) -> Dict[str, Any]:
         """Collect complete security configuration with per-control handling"""
         
+        (
+            public_access_block,
+            encryption,
+            versioning,
+            logging_config,
+            policy,
+            acl,
+            tags,
+        ) = await asyncio.gather(
+            self._get_public_access_block(bucket_name),
+            self._get_encryption_config(bucket_name),
+            self._get_versioning_config(bucket_name),
+            self._get_logging_config(bucket_name),
+            self._get_policy_status(bucket_name),
+            self._get_acl_status(bucket_name),
+            self._get_tags(bucket_name),
+        )
+
         config = {
-            'public_access_block': await self._get_public_access_block(bucket_name),
-            'encryption': await self._get_encryption_config(bucket_name),
-            'versioning': await self._get_versioning_config(bucket_name),
-            'logging': await self._get_logging_config(bucket_name),
-            'policy': await self._get_policy_status(bucket_name),
-            'acl': await self._get_acl_status(bucket_name),
-            'tags': await self._get_tags(bucket_name),
+            'public_access_block': public_access_block,
+            'encryption': encryption,
+            'versioning': versioning,
+            'logging': logging_config,
+            'policy': policy,
+            'acl': acl,
+            'tags': tags,
             'collection_status': 'complete'
         }
         
@@ -97,7 +124,7 @@ class S3Collector(BaseCollector):
         }
         
         try:
-            response = self.s3_client.get_public_access_block(Bucket=bucket_name)
+            response = await self._aws(self.s3_client.get_public_access_block, Bucket=bucket_name)
             config = response.get('PublicAccessBlockConfiguration', {})
             return {
                 'block_public_acls': config.get('BlockPublicAcls', False),
@@ -122,7 +149,7 @@ class S3Collector(BaseCollector):
     async def _get_encryption_config(self, bucket_name: str) -> Dict[str, Any]:
         """Get encryption configuration"""
         try:
-            response = self.s3_client.get_bucket_encryption(Bucket=bucket_name)
+            response = await self._aws(self.s3_client.get_bucket_encryption, Bucket=bucket_name)
             encryption = response.get('ServerSideEncryptionConfiguration', {})
             rules = encryption.get('Rules', [])
             
@@ -147,7 +174,7 @@ class S3Collector(BaseCollector):
     async def _get_versioning_config(self, bucket_name: str) -> Dict[str, Any]:
         """Get versioning configuration"""
         try:
-            response = self.s3_client.get_bucket_versioning(Bucket=bucket_name)
+            response = await self._aws(self.s3_client.get_bucket_versioning, Bucket=bucket_name)
             status = response.get('Status', 'NotConfigured')
             return {
                 'status': status,
@@ -162,7 +189,7 @@ class S3Collector(BaseCollector):
     async def _get_logging_config(self, bucket_name: str) -> Dict[str, Any]:
         """Get logging configuration"""
         try:
-            response = self.s3_client.get_bucket_logging(Bucket=bucket_name)
+            response = await self._aws(self.s3_client.get_bucket_logging, Bucket=bucket_name)
             logging_config = response.get('LoggingEnabled', {})
             return {
                 'enabled': bool(logging_config),
@@ -177,7 +204,7 @@ class S3Collector(BaseCollector):
     async def _get_policy_status(self, bucket_name: str) -> Dict[str, Any]:
         """Get policy and analyze for public access"""
         try:
-            response = self.s3_client.get_bucket_policy(Bucket=bucket_name)
+            response = await self._aws(self.s3_client.get_bucket_policy, Bucket=bucket_name)
             policy = response.get('Policy')
             
             if policy:
@@ -229,7 +256,7 @@ class S3Collector(BaseCollector):
     async def _get_acl_status(self, bucket_name: str) -> Dict[str, Any]:
         """Get ACL and check for public grants"""
         try:
-            response = self.s3_client.get_bucket_acl(Bucket=bucket_name)
+            response = await self._aws(self.s3_client.get_bucket_acl, Bucket=bucket_name)
             grants = response.get('Grants', [])
             
             public_grants = []
@@ -262,7 +289,7 @@ class S3Collector(BaseCollector):
     async def _get_tags(self, bucket_name: str) -> Dict[str, str]:
         """Get bucket tags"""
         try:
-            response = self.s3_client.get_bucket_tagging(Bucket=bucket_name)
+            response = await self._aws(self.s3_client.get_bucket_tagging, Bucket=bucket_name)
             tags = response.get('TagSet', [])
             return {tag['Key']: tag['Value'] for tag in tags}
         except ClientError:
@@ -271,7 +298,7 @@ class S3Collector(BaseCollector):
     async def _get_bucket_region(self, bucket_name: str) -> str:
         """Get bucket region"""
         try:
-            response = self.s3_client.get_bucket_location(Bucket=bucket_name)
+            response = await self._aws(self.s3_client.get_bucket_location, Bucket=bucket_name)
             return response.get('LocationConstraint') or 'us-east-1'
         except Exception:
             return 'unknown'

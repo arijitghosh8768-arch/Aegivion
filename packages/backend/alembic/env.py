@@ -10,12 +10,11 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 
-from dotenv import dotenv_values, load_dotenv
+from dotenv import load_dotenv
 
-# Prioritize TEST_DATABASE_URL if present, otherwise DATABASE_URL
-env_test_path = os.path.join(os.path.dirname(__file__), "..", ".env.test")
-test_vals = dotenv_values(env_test_path) if os.path.exists(env_test_path) else {}
-db_url = os.getenv("TEST_DATABASE_URL") or test_vals.get("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
+# An explicitly exported TEST_DATABASE_URL wins (the test suite sets it); a
+# git-ignored .env.test must never quietly redirect an operator's migration.
+db_url = os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
 if not db_url:
     load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
     db_url = os.getenv("DATABASE_URL")

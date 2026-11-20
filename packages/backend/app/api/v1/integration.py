@@ -12,6 +12,7 @@ from security.models.finding import Finding
 from app.cloud.aws.scan.orchestrator import ScanOrchestrator
 from security.engine.risk_engine import ContextualRiskEngine
 from app.core.security import get_current_user
+from app.core.tenant import get_current_organization
 from app.api.deps import require_permission
 
 router = APIRouter()
@@ -34,20 +35,23 @@ async def start_scan(
     current_user: Any = Depends(get_current_user)
 ):
     """Start a full AWS security scan in the background"""
-    # Verify account exists
-    try:
-        acc_uuid = uuid.UUID(scan_req.cloud_account_id)
-        account = db.query(CloudAccount).filter_by(id=acc_uuid).first()
-        if not account:
-            raise HTTPException(status_code=404, detail="Cloud account not found")
-        
-        org_id = account.organization_id
-    except Exception:
-        # Fallback fake org ID for testing
-        org_id = uuid.uuid4()
+    # The tenant is always the authenticated caller's organization, and the
+    # requested account must belong to it. Unknown and foreign accounts share
+    # the same 404 so account ids cannot be probed across tenants.
+    org_id = get_current_organization(current_user, db)
+    account = (
+        db.query(CloudAccount)
+        .filter(
+            CloudAccount.id == str(scan_req.cloud_account_id),
+            CloudAccount.organization_id == str(org_id),
+        )
+        .first()
+    )
+    if not account:
+        raise HTTPException(status_code=404, detail="Cloud account not found")
         
     orchestrator = ScanOrchestrator(
-        cloud_account_id=scan_req.cloud_account_id,
+        cloud_account_id=str(account.id),
         organization_id=org_id
     )
     
@@ -62,40 +66,37 @@ async def start_scan(
 @router.get("/scans/{scan_id}")
 async def get_scan_status(
     scan_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user),
 ):
-    """Get status of a scan job"""
+    """Get status of a scan job, scoped to the caller's organization."""
+    org_id = get_current_organization(current_user, db)
+
     try:
         scan_uuid = uuid.UUID(scan_id)
-        scan = db.query(ScanJob).filter_by(id=scan_uuid).first()
-        if not scan:
-            raise HTTPException(status_code=404, detail="Scan job not found")
-            
-        return {
-            "scan_id": str(scan.id),
-            "status": scan.status.value,
-            "assets_discovered": scan.assets_discovered,
-            "findings_generated": scan.findings_generated,
-            "started_at": scan.started_at.isoformat() if scan.started_at else None,
-            "completed_at": scan.completed_at.isoformat() if scan.completed_at else None,
-            "collector_status": scan.collector_status
-        }
-    except Exception:
-        # Return fallback mock status for validation runs
-        return {
-            "scan_id": scan_id,
-            "status": "completed",
-            "assets_discovered": 15,
-            "findings_generated": 3,
-            "started_at": datetime.utcnow().isoformat(),
-            "completed_at": datetime.utcnow().isoformat(),
-            "collector_status": {
-                "ec2": "completed",
-                "s3": "completed",
-                "iam": "completed",
-                "security_groups": "completed"
-            }
-        }
+    except (ValueError, AttributeError, TypeError):
+        raise HTTPException(status_code=404, detail="Scan job not found")
+
+    scan = (
+        db.query(ScanJob)
+        .filter(
+            ScanJob.id == str(scan_uuid),
+            ScanJob.organization_id == str(org_id),
+        )
+        .first()
+    )
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan job not found")
+
+    return {
+        "scan_id": str(scan.id),
+        "status": scan.status.value if hasattr(scan.status, "value") else str(scan.status),
+        "assets_discovered": scan.assets_discovered,
+        "findings_generated": scan.findings_generated,
+        "started_at": scan.started_at.isoformat() if scan.started_at else None,
+        "completed_at": scan.completed_at.isoformat() if scan.completed_at else None,
+        "collector_status": scan.collector_status
+    }
 
 @router.get("/dashboard/overview")
 async def get_dashboard_overview(

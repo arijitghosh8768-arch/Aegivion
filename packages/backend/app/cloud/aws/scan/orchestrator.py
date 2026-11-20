@@ -2,9 +2,12 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import asyncio
 import boto3
+import logging
 import uuid
 from app.database import SessionLocal
-from app.models.cloud import ScanJob, ScanStatus, CloudAsset, Relationship, CloudAccount
+from app.models.cloud import ScanJob, ScanStatus, CloudAsset, CloudAccount
+
+logger = logging.getLogger(__name__)
 
 class ScanOrchestrator:
     """Unified AWS scan orchestrator with background processing"""
@@ -63,6 +66,25 @@ class ScanOrchestrator:
                     collector_status[name] = 'completed'
                 else:
                     collector_status[name] = 'failed'
+
+            # A scan in which every collector failed produced no evidence. It
+            # must not be reported as completed: that would fabricate a
+            # successful, empty scan (for example when AWS credentials are
+            # missing or the account is unreachable).
+            if results and not any(r['success'] for r in results.values()):
+                failures = "; ".join(
+                    f"{name}: {r.get('error') or 'unknown error'}"
+                    for name, r in results.items()
+                )
+                raise RuntimeError(f"All AWS collectors failed ({failures})")
+
+            failed_collectors = [
+                name for name, status in collector_status.items() if status == 'failed'
+            ]
+            error_summary = (
+                f"Partial collection failure: {', '.join(failed_collectors)}"
+                if failed_collectors else None
+            )
             
             # Normalize and persist assets
             await self._persist_assets(all_assets)
@@ -85,7 +107,7 @@ class ScanOrchestrator:
                 assets_discovered=len(all_assets),
                 findings_generated=findings_count,
                 collector_status=collector_status,
-                error_summary=None
+                error_summary=error_summary
             )
             
         except Exception as e:
@@ -121,21 +143,33 @@ class ScanOrchestrator:
         }
     
     async def _run_collectors(self, collectors: Dict) -> Dict[str, Any]:
-        """Run all collectors in parallel"""
+        """Run every registered collector concurrently, preserving registry order.
+
+        The registry is a fixed, small mapping built by ``_initialize_collectors``,
+        so one task per collector is bounded by construction. Results are keyed by
+        registry name, which keeps asset ordering deterministic regardless of the
+        order in which collectors finish.
+        """
+        names = list(collectors)
+        outcomes = await asyncio.gather(
+            *(collectors[name].collect() for name in names),
+            return_exceptions=True,
+        )
+
         results = {}
-        for name, collector in collectors.items():
-            try:
-                assets = await collector.collect()
-                results[name] = {
-                    'success': True,
-                    'assets': assets,
-                    'count': len(assets)
-                }
-            except Exception as e:
+        for name, outcome in zip(names, outcomes):
+            if isinstance(outcome, BaseException):
+                logger.warning("Collector %s failed: %s", name, outcome)
                 results[name] = {
                     'success': False,
-                    'error': str(e),
-                    'assets': []
+                    'error': str(outcome),
+                    'assets': [],
+                }
+            else:
+                results[name] = {
+                    'success': True,
+                    'assets': outcome,
+                    'count': len(outcome),
                 }
         return results
     
@@ -157,11 +191,15 @@ class ScanOrchestrator:
         scan_id_str = str(self.scan_job.id) if self.scan_job else None
 
         for asset in assets:
+            # One savepoint per asset: a malformed asset must roll back alone
+            # instead of aborting the session and dropping every later asset.
+            savepoint = None
             try:
                 asset_id_str = asset.get('asset_id')
                 if not asset_id_str:
                     continue
 
+                savepoint = self.db.begin_nested()
                 asset_type = (asset.get('type') or '').lower()
                 config = asset.get('configuration') or {}
 
@@ -340,8 +378,16 @@ class ScanOrchestrator:
                             egress_rules=egress
                         ))
 
+                savepoint.commit()
                 count += 1
             except Exception as e:
+                if savepoint is not None:
+                    savepoint.rollback()
+                logger.warning(
+                    "Could not persist asset %s: %s",
+                    asset.get('asset_id') if isinstance(asset, dict) else '?',
+                    e,
+                )
                 continue
         
         self.db.commit()
@@ -358,68 +404,60 @@ class ScanOrchestrator:
             
             for rel in relationships:
                 target_id = rel.get('target_id')
-                if target_id:
-                    key = f"{asset_id}|{rel['type'].upper()}|{target_id}"
+                rel_type = rel.get('type')
+                if target_id and rel_type:
+                    key = f"{asset_id}|{rel_type.upper()}|{target_id}"
                     relationship_map[key] = {
                         'source_id': asset_id,
                         'target_id': target_id,
-                        'type': rel['type'].upper(),
+                        'type': rel_type.upper(),
                         'target_type': rel.get('target_type'),
                         'evidence': rel.get('evidence') or {},
                         'confidence': rel.get('confidence') or "CONFIRMED"
                     }
         
+        persisted = 0
         for key, rel in relationship_map.items():
+            # Each edge is written inside its own savepoint. A single bad edge
+            # must not abort the surrounding transaction: a failure used to leave
+            # the session in an aborted state and silently discarded every row.
             try:
-                # 1. Standard Relationship populate
-                existing = self.db.query(Relationship).filter_by(
-                    source_id=rel['source_id'],
-                    target_id=rel['target_id'],
-                    type=rel['type']
-                ).first()
-                
-                if not existing:
-                    new_rel = Relationship(
-                        id=uuid.uuid4(),
-                        source_id=rel['source_id'],
-                        target_id=rel['target_id'],
-                        type=rel['type'],
-                        target_type=rel.get('target_type')
-                    )
-                    self.db.add(new_rel)
-                
-                # 2. Canonical AssetRelationship layer populate with tenant isolation
-                existing_asset_rel = self.db.query(AssetRelationship).filter_by(
-                    organization_id=self.organization_id,
-                    cloud_account_id=self.cloud_account_id,
-                    source_asset_id=rel['source_id'],
-                    target_asset_id=rel['target_id'],
-                    relationship_type=rel['type']
-                ).first()
-                
-                if not existing_asset_rel:
-                    new_asset_rel = AssetRelationship(
-                        id=str(uuid.uuid4()),
+                with self.db.begin_nested():
+                    existing_asset_rel = self.db.query(AssetRelationship).filter_by(
                         organization_id=self.organization_id,
                         cloud_account_id=self.cloud_account_id,
                         source_asset_id=rel['source_id'],
                         target_asset_id=rel['target_id'],
-                        relationship_type=rel['type'],
-                        account_id=self.cloud_account_id[:12] if self.cloud_account_id else "123456789012",
-                        region=self.scan_job.region or "ap-south-1",
-                        evidence=rel['evidence'],
-                        confidence=rel['confidence'],
-                        first_seen_at=datetime.utcnow(),
-                        last_seen_at=datetime.utcnow()
-                    )
-                    self.db.add(new_asset_rel)
-                else:
-                    existing_asset_rel.last_seen_at = datetime.utcnow()
-                    existing_asset_rel.evidence = rel['evidence']
-            except Exception:
-                continue
-        
+                        relationship_type=rel['type']
+                    ).first()
+
+                    if not existing_asset_rel:
+                        self.db.add(AssetRelationship(
+                            id=str(uuid.uuid4()),
+                            organization_id=self.organization_id,
+                            cloud_account_id=self.cloud_account_id,
+                            source_asset_id=rel['source_id'],
+                            target_asset_id=rel['target_id'],
+                            relationship_type=rel['type'],
+                            account_id=self.cloud_account_id[:12] if self.cloud_account_id else "123456789012",
+                            region=self.scan_job.region or "ap-south-1",
+                            evidence=rel['evidence'],
+                            confidence=rel['confidence'],
+                            first_seen_at=datetime.utcnow(),
+                            last_seen_at=datetime.utcnow()
+                        ))
+                    else:
+                        existing_asset_rel.last_seen_at = datetime.utcnow()
+                        existing_asset_rel.evidence = rel['evidence']
+                    persisted += 1
+            except Exception as exc:
+                logger.warning("Could not persist relationship %s: %s", key, exc)
+
         self.db.commit()
+        logger.info(
+            "Persisted %d/%d relationships for account %s",
+            persisted, len(relationship_map), self.cloud_account_id
+        )
     
     async def _trigger_rule_engine(self, assets: List[Dict]) -> int:
         """Trigger rule engine (M2) and get findings count with proper tenant isolation"""

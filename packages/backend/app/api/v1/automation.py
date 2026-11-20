@@ -67,7 +67,9 @@ def toggle_rule(rule_id: str, db: Session = Depends(get_db), current_user: Any =
 def get_automation_overview(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
 
-    rules = OrmBaseModel.find(db, "runbooks", {"organization_id": user_org_id})
+    # Runbooks are not persisted in a SQL table yet; report an empty set rather
+    # than querying an unmapped legacy model.
+    rules: List[Dict[str, Any]] = []
     active = sum(1 for r in rules if r.get("enabled"))
     total_runs = sum(r.get("runs", 0) for r in rules)
 
@@ -85,7 +87,11 @@ def get_automation_overview(db: Session = Depends(get_db), current_user: Any = D
 def get_agent_status(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
 
-    heartbeats = OrmBaseModel.find(db, "agentheartbeats", {"organization_id": user_org_id})
+    # Heartbeats report global agent health and carry no tenant data.
+    heartbeats = [
+        hb.dict()
+        for hb in db.query(AgentHeartbeat).order_by(AgentHeartbeat.created_at).all()
+    ]
 
     workers = {
         "discovery": "OFFLINE",
@@ -119,14 +125,19 @@ def get_agent_status(db: Session = Depends(get_db), current_user: Any = Depends(
 @router.get("/executions")
 def get_executions(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
-    executions = OrmBaseModel.find(db, "responseexecutions", {"organization_id": user_org_id})
-    return {"executions": [e for e in executions]}
+    executions = (
+        db.query(ResponseExecution)
+        .filter(ResponseExecution.organization_id == user_org_id)
+        .all()
+    )
+    return {"executions": [e.dict() for e in executions]}
 
 @router.get("/approvals")
 def get_approvals(db: Session = Depends(get_db), current_user: Any = Depends(get_current_user)):
     user_org_id = get_current_organization(current_user, db)
-    approvals = OrmBaseModel.find(db, "pendingapprovals", {"organization_id": user_org_id})
-    return {"approvals": [a for a in approvals]}
+    # pending_approvals has no SQL table yet, so there is nothing to return.
+    approvals: List[Dict[str, Any]] = []
+    return {"approvals": approvals}
 from app.services.automation.optimizer import optimizer_engine, CandidateAction
 from app.services.automation.safety import safety_policy_engine
 

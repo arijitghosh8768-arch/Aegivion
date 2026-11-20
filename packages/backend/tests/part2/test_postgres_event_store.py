@@ -11,36 +11,85 @@ from security.models.persistent_state import PersistentEvent, EventState
 from security.engine.persistence.postgres.postgres_event_store import PostgresEventStore
 from security.engine.persistence.postgres.models import Base
 
-# Determine if Postgres is available
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://aegivion:aegivion123@localhost:5432/test_db")
+# Determine if Postgres is available. The asyncpg driver is required here, so
+# the synchronous ``TEST_DATABASE_URL`` (psycopg2) is adapted rather than used
+# as-is. The database name must end in ``_test``: this module creates/drops
+# schema, so pointing it at the application database would be destructive.
+def _async_test_url() -> str | None:
+    url = os.getenv("TEST_DATABASE_URL")
+    if not url:
+        return None
+    url = url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+    url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if "+asyncpg://" not in url:
+        return None
+    database = url.rsplit("/", 1)[-1].split("?", 1)[0]
+    if not database.endswith("_test"):
+        return None
+    return url
 
 
+TEST_DATABASE_URL = _async_test_url()
 
-def init_db():
+
+def init_db() -> bool:
+    """Ensure the event-store tables exist. Never drops existing tables."""
+    if not TEST_DATABASE_URL:
+        return False
     try:
         engine = create_async_engine(TEST_DATABASE_URL)
+
         async def create():
             async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.drop_all)
                 await conn.run_sync(Base.metadata.create_all)
+            await engine.dispose()
+
         asyncio.run(create())
-        return engine
-    except Exception as e:
-        return None
+        return True
+    except Exception:
+        return False
+
 
 GLOBAL_ENGINE = init_db()
+
 
 @pytest.fixture
 def store():
     if not GLOBAL_ENGINE:
-        pytest.skip("PostgreSQL unavailable")
+        pytest.skip("Isolated async PostgreSQL test database is unavailable")
     s = PostgresEventStore(TEST_DATABASE_URL)
-    async def clean():
+
+    async def clean_and_dispose():
         async with s.engine.begin() as conn:
             for table in reversed(Base.metadata.sorted_tables):
                 await conn.execute(table.delete())
-    asyncio.run(clean())
-    return s
+        # asyncpg connections belong to the loop that opened them. Disposing the
+        # pool here means the test body (its own asyncio.run loop) opens fresh
+        # connections instead of reusing ones bound to this now-closed loop.
+        await s.engine.dispose()
+
+    asyncio.run(clean_and_dispose())
+    try:
+        yield s
+    finally:
+        # Leave no rows behind. Cleanup uses a plain synchronous connection: the
+        # test body's engine pool belongs to the asyncio loop that has just been
+        # closed, so reusing it from a new loop would leak rows.
+        try:
+            from sqlalchemy import create_engine
+
+            sync_url = TEST_DATABASE_URL.replace(
+                "postgresql+asyncpg://", "postgresql+psycopg2://", 1
+            )
+            sync_engine = create_engine(sync_url)
+            try:
+                with sync_engine.begin() as conn:
+                    for table in reversed(Base.metadata.sorted_tables):
+                        conn.execute(table.delete())
+            finally:
+                sync_engine.dispose()
+        except Exception:  # best-effort cleanup of an isolated test database
+            pass
 
 def _make_event(org_id="org1", event_id=None, event_type="TEST_TYPE", status=EventState.PENDING):
     return PersistentEvent(
