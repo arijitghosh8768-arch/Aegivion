@@ -7,6 +7,28 @@ from app.models.organization import Organization
 from app.models.finding import Finding, FindingSeverity, FindingStatus
 from app.models.cloud import CloudAccount
 
+ROLE_INITIALIZED = False
+
+def ensure_test_role(db):
+    """
+    Ensure an unprivileged role without BYPASSRLS exists and is granted to current user.
+    In PostgreSQL, superusers and roles with BYPASSRLS always bypass RLS policies even with FORCE RLS.
+    Switching to a non-bypass role via SET ROLE allows testing real tenant isolation.
+    """
+    global ROLE_INITIALIZED
+    bind = db.get_bind()
+    if bind and bind.dialect.name == "postgresql":
+        try:
+            db.execute(text("DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'test_app_user') THEN CREATE ROLE test_app_user WITH LOGIN INHERIT; END IF; END $$;"))
+            db.execute(text("GRANT test_app_user TO postgres;"))
+            db.execute(text("GRANT ALL ON ALL TABLES IN SCHEMA public TO test_app_user;"))
+            db.execute(text("GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO test_app_user;"))
+            db.execute(text("GRANT ALL ON SCHEMA public TO test_app_user;"))
+            db.commit()
+            ROLE_INITIALIZED = True
+        except Exception:
+            db.rollback()
+
 def test_rls_tenant_isolation_select_and_insert():
     """
     Test PostgreSQL Row-Level Security:
@@ -16,6 +38,7 @@ def test_rls_tenant_isolation_select_and_insert():
     4. Attempting to insert an Org B finding while in Org A's context must be rejected by RLS.
     """
     db = SessionLocal()
+    ensure_test_role(db)
 
     org_a_id = uuid.uuid4()
     org_a_slug = f"org-a-{uuid.uuid4().hex[:8]}"
@@ -71,6 +94,10 @@ def test_rls_tenant_isolation_select_and_insert():
     db.expunge_all()
 
     try:
+        # Switch to non-bypass role for testing RLS enforcement
+        if ROLE_INITIALIZED:
+            db.execute(text("SET ROLE test_app_user;"))
+
         # --- TEST 1: Tenant Org A Context ---
         set_session_tenant(db, str(org_a_id))
 
@@ -119,6 +146,10 @@ def test_rls_tenant_isolation_select_and_insert():
         assert "row-level security" in err_str or "policy" in err_str or "check" in err_str
         db.rollback()
 
+        # Re-apply non-bypass role after rollback (since rollback resets connection role in PostgreSQL)
+        if ROLE_INITIALIZED:
+            db.execute(text("SET ROLE test_app_user;"))
+
         # --- TEST 3: Tenant Org B Context ---
         set_session_tenant(db, str(org_b_id))
         res_b = db.execute(
@@ -132,6 +163,11 @@ def test_rls_tenant_isolation_select_and_insert():
 
     finally:
         # Reset to bypass mode for clean teardown
+        try:
+            if ROLE_INITIALIZED:
+                db.execute(text("RESET ROLE;"))
+        except Exception:
+            pass
         set_session_tenant(db, None)
         db.execute(text("DELETE FROM findings WHERE id IN (:fa, :fb)"), {"fa": str(finding_a_id), "fb": str(finding_b_id)})
         db.execute(text("DELETE FROM organizations WHERE id IN (:oa, :ob)"), {"oa": str(org_a_id), "ob": str(org_b_id)})
@@ -141,6 +177,7 @@ def test_rls_tenant_isolation_select_and_insert():
 def test_rls_cloud_accounts_isolation():
     """Verify cloud_accounts table respects RLS."""
     db = SessionLocal()
+    ensure_test_role(db)
 
     org_a_id = uuid.uuid4()
     org_a_slug = f"org-cloud-a-{uuid.uuid4().hex[:8]}"
@@ -176,6 +213,9 @@ def test_rls_cloud_accounts_isolation():
     db.expunge_all()
 
     try:
+        if ROLE_INITIALIZED:
+            db.execute(text("SET ROLE test_app_user;"))
+
         set_session_tenant(db, str(org_a_id))
         res = db.execute(
             text("SELECT id, organization_id FROM cloud_accounts WHERE id IN (:aa, :ab);"),
@@ -187,6 +227,11 @@ def test_rls_cloud_accounts_isolation():
         assert acc_b_id not in acc_ids
 
     finally:
+        try:
+            if ROLE_INITIALIZED:
+                db.execute(text("RESET ROLE;"))
+        except Exception:
+            pass
         set_session_tenant(db, None)
         db.execute(text("DELETE FROM cloud_accounts WHERE id IN (:aa, :ab)"), {"aa": str(acc_a_id), "ab": str(acc_b_id)})
         db.execute(text("DELETE FROM organizations WHERE id IN (:oa, :ob)"), {"oa": str(org_a_id), "ob": str(org_b_id)})
