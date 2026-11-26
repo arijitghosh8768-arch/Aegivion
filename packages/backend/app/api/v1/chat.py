@@ -121,8 +121,13 @@ async def chat_endpoint(request: Request, body: ChatRequest, current_user: Any =
     provider = get_llm_provider()
     
     try:
-        response_text = provider.generate(prompt)
-        if not response_text or not isinstance(response_text, str):
+        llm_output = provider.generate(prompt)
+        if hasattr(llm_output, "text"):
+            response_text = llm_output.text
+        else:
+            response_text = str(llm_output) if llm_output is not None else ""
+
+        if not response_text:
             raise HTTPException(
                 status_code=502,
                 detail={"error": "LLM_PROVIDER_EMPTY", "message": "The AI provider returned an empty or invalid response."}
@@ -133,20 +138,22 @@ async def chat_endpoint(request: Request, body: ChatRequest, current_user: Any =
             parsed = json.loads(response_text.strip())
         except (json.JSONDecodeError, ValueError) as json_err:
             logger.warning("llm_response_not_json", raw_response=response_text, error=str(json_err))
-            raise HTTPException(
-                status_code=502,
-                detail={
-                    "error": "LLM_INVALID_FORMAT",
-                    "message": "AI provider response could not be parsed into the required structured format.",
-                    "raw_response": response_text[:200]
-                }
-            )
+            parsed = {
+                "response": response_text.strip(),
+                "observed": [],
+                "inferred": [],
+                "unknown": [],
+                "declined": False
+            }
 
         if not isinstance(parsed, dict):
-            raise HTTPException(
-                status_code=502,
-                detail={"error": "LLM_INVALID_STRUCTURE", "message": "AI provider response must be a structured JSON object."}
-            )
+            parsed = {
+                "response": str(parsed),
+                "observed": [],
+                "inferred": [],
+                "unknown": [],
+                "declined": False
+            }
         
         duration = time.time() - start_time
         api_request_duration_seconds.labels(method="POST", endpoint="/api/v1/chat").observe(duration)
@@ -154,8 +161,10 @@ async def chat_endpoint(request: Request, body: ChatRequest, current_user: Any =
         
         logger.info("chat_request_successful", duration=duration)
         
+        resp_msg = parsed.get("response") or parsed.get("summary") or "Aegivion AI has analyzed your security posture."
+
         return {
-            "response": parsed.get("response", "I could not generate a response."),
+            "response": resp_msg,
             "observed": parsed.get("observed", []) if isinstance(parsed.get("observed"), list) else [],
             "inferred": parsed.get("inferred", []) if isinstance(parsed.get("inferred"), list) else [],
             "unknown": parsed.get("unknown", []) if isinstance(parsed.get("unknown"), list) else [],

@@ -5,6 +5,43 @@ export class APIError extends Error {
   }
 }
 
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const refreshToken = localStorage.getItem("aegivion_refresh_token");
+  if (!refreshToken) return null;
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://aegivion.onrender.com";
+  try {
+    const res = await fetch(`${baseUrl}/api/v1/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!res.ok) {
+      localStorage.removeItem("aegivion_token");
+      localStorage.removeItem("aegivion_refresh_token");
+      return null;
+    }
+
+    const data = await res.json();
+    const newToken = data.token || data.access_token;
+    if (newToken) {
+      localStorage.setItem("aegivion_token", newToken);
+      if (data.refresh_token) {
+        localStorage.setItem("aegivion_refresh_token", data.refresh_token);
+      }
+      return newToken;
+    }
+  } catch (err) {
+    localStorage.removeItem("aegivion_token");
+    localStorage.removeItem("aegivion_refresh_token");
+  }
+  return null;
+}
+
 export async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -13,7 +50,7 @@ export async function fetchApi<T>(
   const url = `${baseUrl}/api${endpoint}`;
 
   // Use a JWT token if it exists in local storage
-  const token = typeof window !== "undefined" ? localStorage.getItem("aegivion_token") : null;
+  let token = typeof window !== "undefined" ? localStorage.getItem("aegivion_token") : null;
 
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
@@ -21,23 +58,46 @@ export async function fetchApi<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(url, {
+  let response = await fetch(url, {
     ...options,
     headers,
   });
+
+  // Handle 401 with Token Refresh Interceptor (except for auth endpoints)
+  if (response.status === 401 && !endpoint.includes("/auth/login") && !endpoint.includes("/auth/refresh") && typeof window !== "undefined") {
+    if (!refreshPromise) {
+      refreshPromise = refreshAccessToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    const newToken = await refreshPromise;
+    if (newToken) {
+      headers.set("Authorization", `Bearer ${newToken}`);
+      response = await fetch(url, {
+        ...options,
+        headers,
+      });
+    } else {
+      localStorage.removeItem("aegivion_token");
+      localStorage.removeItem("aegivion_refresh_token");
+      window.location.href = "/login";
+    }
+  }
 
   if (!response.ok) {
     let message = "An error occurred while fetching the data.";
     try {
       const errorData = await response.json();
-      message = errorData.message || message;
+      message = (typeof errorData.detail === "string" ? errorData.detail : errorData.message) || message;
     } catch (e) {
       // JSON parsing failed
     }
     
-    // Auto logout on 401
-    if (response.status === 401 && typeof window !== "undefined") {
+    // Auto logout on 401 if refresh failed or not attempted
+    if (response.status === 401 && typeof window !== "undefined" && !endpoint.includes("/auth/login")) {
       localStorage.removeItem("aegivion_token");
+      localStorage.removeItem("aegivion_refresh_token");
       window.location.href = "/login";
     }
 

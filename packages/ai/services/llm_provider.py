@@ -103,7 +103,7 @@ class OpenAIProvider(LLMProvider):
         if not self.api_key:
             logger.info("OpenAI API key missing; falling back to offline mock response.")
             return LLMResponse(
-                text='{"summary": "Potential security vulnerability detected in cloud configuration.", "observed": ["Public ingress allowed on restricted ports."], "inferred": ["Unrestricted exposure increases vulnerability to automated scanning."], "unknown": ["Business application running on this instance."], "recommendations": ["Restrict ingress to authorized IP CIDRs."], "confidence_score": 0.90}',
+                text='{"response": "Potential security vulnerability detected in cloud configuration. Ingress on sensitive ports should be restricted to authorized CIDR ranges.", "summary": "Potential security vulnerability detected in cloud configuration.", "declined": false, "observed": ["Public ingress allowed on restricted ports."], "inferred": ["Unrestricted exposure increases vulnerability to automated scanning."], "unknown": ["Business application running on this instance."], "recommendations": ["Restrict ingress to authorized IP CIDRs."], "confidence_score": 0.90}',
                 tokens={"prompt": 50, "completion": 60, "total": 110},
                 cost=0.000045,
                 model=self.model,
@@ -156,7 +156,7 @@ class GeminiProvider(LLMProvider):
         if not self.api_key:
             logger.info("Gemini API key missing; falling back to offline mock response.")
             return LLMResponse(
-                text='{"summary": "Identified misconfiguration exposing critical resources.", "observed": ["Resource has no active MFA or encryption."], "inferred": ["Potential unauthorized credential usage."], "unknown": ["Active connection sessions."], "recommendations": ["Enable MFA and rotate keys."], "confidence_score": 0.88}',
+                text='{"response": "Identified misconfiguration exposing critical resources. Enable MFA and rotate keys to secure active access.", "summary": "Identified misconfiguration exposing critical resources.", "declined": false, "observed": ["Resource has no active MFA or encryption."], "inferred": ["Potential unauthorized credential usage."], "unknown": ["Active connection sessions."], "recommendations": ["Enable MFA and rotate keys."], "confidence_score": 0.88}',
                 tokens={"prompt": 60, "completion": 50, "total": 110},
                 cost=0.000019,
                 model=self.model,
@@ -201,7 +201,7 @@ class LocalProvider(LLMProvider):
 
     def generate(self, context: str, system_prompt: Optional[str] = None) -> LLMResponse:
         return LLMResponse(
-            text='{"summary": "Local analysis complete", "observed": ["Local inspection"], "inferred": ["Potential local threat"], "unknown": ["Remote telemetry"], "recommendations": ["Check host integrity"], "confidence_score": 0.85}',
+            text='{"response": "Local security posture evaluation complete. Host integrity checks and restricted CIDRs recommended.", "summary": "Local analysis complete", "declined": false, "observed": ["Local inspection"], "inferred": ["Potential local threat"], "unknown": ["Remote telemetry"], "recommendations": ["Check host integrity"], "confidence_score": 0.85}',
             tokens={"prompt": 40, "completion": 40, "total": 80},
             cost=0.0,
             model=self.model,

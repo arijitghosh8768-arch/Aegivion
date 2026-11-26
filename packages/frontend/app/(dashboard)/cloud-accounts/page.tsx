@@ -59,14 +59,20 @@ export default function CloudAccountsPage() {
     queryFn: () => fetchApi("/v1/cloud-accounts"),
   });
 
-  const accounts: CloudAccount[] = (accountsData?.data || []).map((acc: any) => ({
+  const rawAccountsList = Array.isArray(accountsData?.data)
+    ? accountsData.data
+    : Array.isArray((accountsData as any)?.accounts)
+    ? (accountsData as any).accounts
+    : [];
+
+  const accounts: CloudAccount[] = rawAccountsList.map((acc: any) => ({
     id: acc.id || "unknown",
     provider: (acc.provider as ProviderId) || "aws",
-    name: acc.account_name || "Unknown",
-    accountId: acc.account_id || "Unknown",
-    status: acc.connection_status?.toLowerCase() === "failed" ? "error" : "connected",
+    name: acc.account_name || acc.name || "Unknown",
+    accountId: acc.account_id || acc.id || "Unknown",
+    status: (acc.connection_status?.toLowerCase() === "failed" || acc.status?.toLowerCase() === "failed") ? "error" : "connected",
     regions: acc.default_region ? 1 : 0,
-    lastScan: new Date().toISOString(),
+    lastScan: acc.last_sync_at || new Date().toISOString(),
     resources: 0,
     findings: 0,
     critical: 0,

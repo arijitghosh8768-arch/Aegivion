@@ -21,20 +21,47 @@ def list_cloud_accounts(
     user_org_id = get_current_organization(current_user, db)
 
     try:
-        cloud_repo = CloudAccountRepository(db)
-        accounts = cloud_repo.get_by_organization(user_org_id)
+        from app.models.cloud_account import CloudAccountV2
+        from app.models.cloud import CloudAccount
+        import uuid
 
-        # Serialize the objects since FastAPI needs dicts/pydantic models if return type is dict
-        # The existing code returned raw supabase dicts.
+        org_uuid = uuid.UUID(str(user_org_id))
+        v2_accounts = db.query(CloudAccountV2).filter(CloudAccountV2.organization_id == org_uuid).all()
+        v1_accounts = db.query(CloudAccount).filter(CloudAccount.organization_id == org_uuid).all()
+
+        seen_ids = set()
         serialized = []
-        for acc in accounts:
-            acc_dict = acc.dict() if hasattr(acc, 'dict') else acc.__dict__
-            # Just basic cleanup for un-serializable types if any
-            serialized.append(acc_dict)
 
-        return {"accounts": serialized}
+        def serialize_acc(acc):
+            acc_id = str(getattr(acc, "id", ""))
+            return {
+                "id": acc_id,
+                "organization_id": str(getattr(acc, "organization_id", user_org_id)),
+                "provider": str(getattr(acc, "provider", "aws")).lower(),
+                "account_id": getattr(acc, "account_id", str(getattr(acc, "aws_access_key_id", acc_id))),
+                "account_name": getattr(acc, "account_name", getattr(acc, "name", "Cloud Account")),
+                "name": getattr(acc, "name", getattr(acc, "account_name", "Cloud Account")),
+                "default_region": getattr(acc, "default_region", getattr(acc, "aws_region", "us-east-1")),
+                "connection_status": getattr(acc, "connection_status", getattr(acc, "status", "connected")),
+                "status": getattr(acc, "connection_status", getattr(acc, "status", "connected")),
+                "role_arn": getattr(acc, "role_arn", None),
+                "last_sync_at": acc.last_sync_at.isoformat() if getattr(acc, "last_sync_at", None) else None,
+                "last_error": getattr(acc, "last_error", None)
+            }
+
+        for acc in list(v2_accounts) + list(v1_accounts):
+            acc_id = str(acc.id)
+            if acc_id not in seen_ids:
+                seen_ids.add(acc_id)
+                serialized.append(serialize_acc(acc))
+
+        return {
+            "success": True,
+            "data": serialized,
+            "accounts": serialized
+        }
     except Exception as e:
-        return {"accounts": [], "error": str(e), "message": "Supabase table may not exist yet"}
+        return {"success": False, "data": [], "accounts": [], "error": str(e)}
 
 @router.post("", dependencies=[Depends(require_permission("manage_assets"))])
 def add_cloud_account(
@@ -229,22 +256,64 @@ def add_cloud_account(
         else:
             provider_account_id = account_data.get("provider_account_id", f"acc_{name}")
 
-        # Create the account record
-        insert_payload = {
-            "organization_id": user_org_id,
+        # Create the account record in PostgreSQL using SQLAlchemy (respects RLS tenant context)
+        from app.models.cloud_account import CloudAccountV2
+        from app.models.cloud import CloudAccount
+        import uuid
+
+        org_uuid = uuid.UUID(str(user_org_id))
+        v2_account = CloudAccountV2(
+            organization_id=org_uuid,
+            provider=provider.lower(),
+            account_id=str(provider_account_id),
+            account_name=name,
+            name=name,
+            default_region=account_data.get("default_region", "us-east-1"),
+            connection_status="connected",
+            role_arn=role_arn,
+            external_id=external_id
+        )
+        db.add(v2_account)
+
+        v1_account = CloudAccount(
+            id=v2_account.id,
+            name=name,
+            provider=provider.upper(),
+            role_arn=role_arn,
+            external_id=external_id,
+            status="connected",
+            organization_id=org_uuid
+        )
+        db.add(v1_account)
+        db.commit()
+
+        new_account = {
+            "id": str(v2_account.id),
+            "organization_id": str(user_org_id),
             "provider": provider,
             "provider_account_id": provider_account_id,
             "name": name,
-            "status": "SYNCING"
+            "status": "connected"
         }
-        if role_arn:
-            insert_payload["role_arn"] = role_arn
-        if external_id:
-            insert_payload["external_id"] = external_id
 
-        insert_res = supabase.table("cloud_accounts").insert(insert_payload).execute()
-
-        new_account = insert_res.data[0]
+        # Also mirror to Supabase table if available
+        try:
+            insert_payload = {
+                "id": str(v2_account.id),
+                "organization_id": str(user_org_id),
+                "provider": provider,
+                "provider_account_id": provider_account_id,
+                "name": name,
+                "status": "connected"
+            }
+            if role_arn:
+                insert_payload["role_arn"] = role_arn
+            if external_id:
+                insert_payload["external_id"] = external_id
+            if supabase:
+                supabase.table("cloud_accounts").insert(insert_payload).execute()
+        except Exception:
+            pass
 
         # For this milestone vertical slice, we run it synchronously
         if provider == "aws":

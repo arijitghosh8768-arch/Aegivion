@@ -10,13 +10,16 @@ from sqlalchemy.orm import sessionmaker, Session
 current_tenant_org_id: ContextVar[Optional[str]] = ContextVar("current_tenant_org_id", default=None)
 
 def set_session_tenant(db: Session, org_id: Optional[str]) -> None:
-    """Set the PostgreSQL session variable app.current_org_id and switch to tenant role for Row-Level Security."""
-    if org_id:
-        db.execute(text("SET ROLE authenticated;"))
-        db.execute(text("SET LOCAL app.current_org_id = :org_id"), {"org_id": str(org_id)})
-    else:
-        db.execute(text("RESET ROLE;"))
-        db.execute(text("SET LOCAL app.current_org_id = ''"))
+    """Set the PostgreSQL session variable app.current_org_id for Row-Level Security."""
+    try:
+        bind = db.get_bind()
+        if bind and bind.dialect.name == "postgresql":
+            if org_id:
+                db.execute(text("SET LOCAL app.current_org_id = :org_id"), {"org_id": str(org_id)})
+            else:
+                db.execute(text("SET LOCAL app.current_org_id = ''"))
+    except Exception:
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -53,24 +56,39 @@ elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 # Enforce sslmode=require for remote cloud databases (e.g. Supabase, Render Postgres)
+is_postgres = "postgresql" in DATABASE_URL
+is_sqlite = DATABASE_URL.startswith("sqlite")
+
 connect_args = {}
-if not is_localhost and "sslmode" not in DATABASE_URL:
-    if "?" in DATABASE_URL:
-        DATABASE_URL += "&sslmode=require"
-    else:
-        DATABASE_URL += "?sslmode=require"
-    connect_args["sslmode"] = "require"
+engine_kwargs = {"echo": False}
+
+if is_postgres:
+    if not is_localhost and "sslmode" not in DATABASE_URL:
+        if "?" in DATABASE_URL:
+            DATABASE_URL += "&sslmode=require"
+        else:
+            DATABASE_URL += "?sslmode=require"
+        connect_args["sslmode"] = "require"
+    engine_kwargs.update({
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 30,
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+        "connect_args": connect_args,
+    })
+elif is_sqlite:
+    from sqlalchemy.pool import StaticPool
+    connect_args["check_same_thread"] = False
+    engine_kwargs.update({
+        "connect_args": connect_args,
+        "poolclass": StaticPool,
+    })
 
 # Create synchronous engine with connection pooling and timeout resilience
 engine = create_engine(
     DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    pool_timeout=30,
-    pool_recycle=300,
-    pool_pre_ping=True,
-    connect_args=connect_args,
-    echo=False
+    **engine_kwargs
 )
 
 SessionLocal = sessionmaker(
@@ -82,12 +100,18 @@ SessionLocal = sessionmaker(
 @event.listens_for(Session, "after_begin")
 def receive_after_begin(session, transaction, connection):
     """Automatically inject app.current_org_id into the PostgreSQL transaction if set in context."""
-    org_id = current_tenant_org_id.get()
-    if org_id:
-        connection.execute(text("SET ROLE authenticated;"))
-        connection.execute(text("SET LOCAL app.current_org_id = :org_id"), {"org_id": str(org_id)})
-    else:
-        connection.execute(text("RESET ROLE;"))
+    if connection.dialect.name == "postgresql":
+        org_id = current_tenant_org_id.get()
+        if org_id:
+            try:
+                connection.execute(text("SET LOCAL app.current_org_id = :org_id"), {"org_id": str(org_id)})
+            except Exception:
+                pass
+        else:
+            try:
+                connection.execute(text("SET LOCAL app.current_org_id = ''"))
+            except Exception:
+                pass
 
 def get_db() -> Generator[Session, None, None]:
     """

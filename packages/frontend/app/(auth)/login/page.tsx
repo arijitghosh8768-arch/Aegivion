@@ -55,6 +55,12 @@ export default function LoginPage() {
         });
         
         localStorage.setItem("aegivion_token", data.token);
+      if (data.refresh_token) {
+        localStorage.setItem("aegivion_refresh_token", data.refresh_token);
+      }
+        if (data.refresh_token) {
+          localStorage.setItem("aegivion_refresh_token", data.refresh_token);
+        }
         
         showAlert("success", "Allowlist check passed · Loading workspace...");
         router.push(data.user.role === 'superadmin' || data.user.role === 'Super Admin' ? '/admin' : '/');
@@ -105,6 +111,9 @@ export default function LoginPage() {
       });
       
       localStorage.setItem("aegivion_token", data.token);
+      if (data.refresh_token) {
+        localStorage.setItem("aegivion_refresh_token", data.refresh_token);
+      }
       showAlert('success', `Signed in successfully · Redirecting to dashboard...`);
 
       router.push(data.user.role === 'superadmin' || data.user.role === 'Super Admin' ? '/admin' : '/');

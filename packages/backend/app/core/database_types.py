@@ -22,3 +22,4 @@ class EncryptedString(TypeDecorator):
         if value is None:
             return None
         return decrypt_field(str(value))
+

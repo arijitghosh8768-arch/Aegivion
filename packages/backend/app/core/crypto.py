@@ -46,3 +46,4 @@ def decrypt_field(ciphertext: Optional[str]) -> Optional[str]:
     except (InvalidToken, Exception):
         # Graceful fallback: value was already plaintext before migration
         return ciphertext
+

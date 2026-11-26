@@ -45,3 +45,4 @@ class AegivionApiUser(HttpUser):
     def test_risk_telemetry(self):
         """Tests telemetry query performance"""
         self.client.get("/api/v1/history/risk-telemetry/dataset", headers=self.headers)
+

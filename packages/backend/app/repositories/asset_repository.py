@@ -12,10 +12,21 @@ class AssetRepository:
             .filter(CloudAccountV2.organization_id == organization_id)
             .all()
         )
-        if not accounts:
+        account_ids = [acc.id for acc in accounts]
+        try:
+            from app.models.cloud import CloudAccount
+            legacy_accounts = (
+                self.db.query(CloudAccount)
+                .filter(CloudAccount.organization_id == organization_id)
+                .all()
+            )
+            account_ids.extend([acc.id for acc in legacy_accounts])
+        except Exception:
+            pass
+
+        if not account_ids:
             return []
             
-        account_ids = [acc.id for acc in accounts]
         return (
             self.db.query(CloudAsset)
             .filter(CloudAsset.account_id.in_(account_ids))

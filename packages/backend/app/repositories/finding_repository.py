@@ -39,15 +39,12 @@ class FindingRepository:
 
     def get_by_organization(self, organization_id):
         resource_ids = self._get_org_resource_ids(organization_id)
-        if not resource_ids:
-            return []
-            
         all_findings = self.db.query(Finding).all()
         
-        # If finding object happens to have organization_id due to kwargs, we can use it as well
+        # Return findings associated by resource_id OR directly by organization_id
         return [
             f for f in all_findings 
-            if f.resource_id in resource_ids or str(getattr(f, 'organization_id', '')) == str(organization_id)
+            if (resource_ids and f.resource_id in resource_ids) or str(getattr(f, 'organization_id', '')) == str(organization_id)
         ]
 
     def get_by_organization_and_id(self, organization_id, finding_id):

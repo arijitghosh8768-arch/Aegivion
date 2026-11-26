@@ -148,3 +148,4 @@ If a scan job causes rate-limiting on customer AWS APIs (`RequestLimitExceeded`)
 
 4. **Restart Automation Worker**:
    - The worker dynamically detects the `CANCELLED` status and terminates active collector threads immediately.
+
