@@ -138,22 +138,20 @@ async def chat_endpoint(request: Request, body: ChatRequest, current_user: Any =
             parsed = json.loads(response_text.strip())
         except (json.JSONDecodeError, ValueError) as json_err:
             logger.warning("llm_response_not_json", raw_response=response_text, error=str(json_err))
-            parsed = {
-                "response": response_text.strip(),
-                "observed": [],
-                "inferred": [],
-                "unknown": [],
-                "declined": False
-            }
+            raise HTTPException(
+                status_code=502,
+                detail={
+                    "error": "LLM_INVALID_FORMAT",
+                    "message": "AI provider response could not be parsed into the required structured format.",
+                    "raw_response": response_text[:200]
+                }
+            )
 
         if not isinstance(parsed, dict):
-            parsed = {
-                "response": str(parsed),
-                "observed": [],
-                "inferred": [],
-                "unknown": [],
-                "declined": False
-            }
+            raise HTTPException(
+                status_code=502,
+                detail={"error": "LLM_INVALID_STRUCTURE", "message": "AI provider response must be a structured JSON object."}
+            )
         
         duration = time.time() - start_time
         api_request_duration_seconds.labels(method="POST", endpoint="/api/v1/chat").observe(duration)

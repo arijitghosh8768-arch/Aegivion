@@ -11,13 +11,14 @@ current_tenant_org_id: ContextVar[Optional[str]] = ContextVar("current_tenant_or
 
 def set_session_tenant(db: Session, org_id: Optional[str]) -> None:
     """Set the PostgreSQL session variable app.current_org_id for Row-Level Security."""
+    current_tenant_org_id.set(str(org_id) if org_id else None)
     try:
         bind = db.get_bind()
         if bind and bind.dialect.name == "postgresql":
             if org_id:
-                db.execute(text("SET LOCAL app.current_org_id = :org_id"), {"org_id": str(org_id)})
+                db.execute(text("SET app.current_org_id = :org_id"), {"org_id": str(org_id)})
             else:
-                db.execute(text("SET LOCAL app.current_org_id = ''"))
+                db.execute(text("SET app.current_org_id = ''"))
     except Exception:
         pass
 
@@ -104,12 +105,12 @@ def receive_after_begin(session, transaction, connection):
         org_id = current_tenant_org_id.get()
         if org_id:
             try:
-                connection.execute(text("SET LOCAL app.current_org_id = :org_id"), {"org_id": str(org_id)})
+                connection.execute(text("SET app.current_org_id = :org_id"), {"org_id": str(org_id)})
             except Exception:
                 pass
         else:
             try:
-                connection.execute(text("SET LOCAL app.current_org_id = ''"))
+                connection.execute(text("SET app.current_org_id = ''"))
             except Exception:
                 pass
 

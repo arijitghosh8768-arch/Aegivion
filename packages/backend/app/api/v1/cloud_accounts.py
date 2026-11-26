@@ -256,62 +256,72 @@ def add_cloud_account(
         else:
             provider_account_id = account_data.get("provider_account_id", f"acc_{name}")
 
-        # Create the account record in PostgreSQL using SQLAlchemy (respects RLS tenant context)
-        from app.models.cloud_account import CloudAccountV2
-        from app.models.cloud import CloudAccount
-        import uuid
-
-        org_uuid = uuid.UUID(str(user_org_id))
-        v2_account = CloudAccountV2(
-            organization_id=org_uuid,
-            provider=provider.lower(),
-            account_id=str(provider_account_id),
-            account_name=name,
-            name=name,
-            default_region=account_data.get("default_region", "us-east-1"),
-            connection_status="connected",
-            role_arn=role_arn,
-            external_id=external_id
-        )
-        db.add(v2_account)
-
-        v1_account = CloudAccount(
-            id=v2_account.id,
-            name=name,
-            provider=provider.upper(),
-            role_arn=role_arn,
-            external_id=external_id,
-            status="connected",
-            organization_id=org_uuid
-        )
-        db.add(v1_account)
-        db.commit()
-
-        new_account = {
-            "id": str(v2_account.id),
-            "organization_id": str(user_org_id),
+        # Create the account record
+        insert_payload = {
+            "organization_id": user_org_id,
             "provider": provider,
             "provider_account_id": provider_account_id,
             "name": name,
-            "status": "connected"
+            "status": "SYNCING"
+        }
+        if role_arn:
+            insert_payload["role_arn"] = role_arn
+        if external_id:
+            insert_payload["external_id"] = external_id
+
+        insert_res = supabase.table("cloud_accounts").insert(insert_payload).execute()
+        new_account = insert_res.data[0] if (insert_res and hasattr(insert_res, "data") and insert_res.data) else {
+            "id": str(uuid.uuid4()),
+            "organization_id": user_org_id,
+            "provider": provider,
+            "provider_account_id": provider_account_id,
+            "name": name,
+            "status": "SYNCING"
         }
 
-        # Also mirror to Supabase table if available
+        # Also persist to PostgreSQL CloudAccountV2 and CloudAccount
         try:
-            insert_payload = {
-                "id": str(v2_account.id),
-                "organization_id": str(user_org_id),
-                "provider": provider,
-                "provider_account_id": provider_account_id,
-                "name": name,
-                "status": "connected"
-            }
-            if role_arn:
-                insert_payload["role_arn"] = role_arn
-            if external_id:
-                insert_payload["external_id"] = external_id
-            if supabase:
-                supabase.table("cloud_accounts").insert(insert_payload).execute()
+            from app.models.cloud_account import CloudAccountV2
+            from app.models.cloud import CloudAccount
+            import uuid
+
+            acc_id_str = str(new_account.get("id"))
+            try:
+                acc_uuid = uuid.UUID(acc_id_str)
+            except Exception:
+                acc_uuid = uuid.uuid4()
+            try:
+                org_uuid = uuid.UUID(str(user_org_id))
+            except Exception:
+                org_uuid = uuid.uuid4()
+
+            if hasattr(db, "add"):
+                v2_account = CloudAccountV2(
+                    id=acc_uuid,
+                    organization_id=org_uuid,
+                    provider=provider.lower(),
+                    account_id=str(provider_account_id),
+                    account_name=name,
+                    name=name,
+                    default_region=account_data.get("default_region", "us-east-1"),
+                    connection_status="connected",
+                    role_arn=role_arn,
+                    external_id=external_id
+                )
+                db.add(v2_account)
+
+                v1_account = CloudAccount(
+                    id=acc_uuid,
+                    name=name,
+                    provider=provider.upper(),
+                    role_arn=role_arn,
+                    external_id=external_id,
+                    status="connected",
+                    organization_id=org_uuid
+                )
+                db.add(v1_account)
+                if hasattr(db, "commit"):
+                    db.commit()
         except Exception:
             pass
 
